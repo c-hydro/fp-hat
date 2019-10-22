@@ -1,0 +1,478 @@
+{
+  "algorithm":{
+    "flags": {
+      "cleaning_static_data": false,
+      "cleaning_dynamic_data_source": false,
+      "cleaning_dynamic_data_outcome": true
+    },
+    "ancillary": {
+      "run_domain" : "Marche",
+      "run_name": "nrt",
+      "run_application": ["hydrapp"]
+    },
+    "general": {
+      "title": "HAT - Data publisher to create analysis file(s) and plot(s) for hmc model",
+      "web-site": "",
+      "source": "Python library developed by CIMA Research Foundation",
+      "history": "1.5.1 [20190527]",
+      "project-info": "HAT - Hydrological Analysis Tool",
+      "algorithm": "Analysis tools developed by CIMA Research Foundation"
+    }
+  },
+  "data": {
+    "static": {
+      "section": {
+        "section_ref": {
+          "filename": "fp_sections_marche.shp",
+          "folder": "/hydro/data/static_data/shapefile/"
+        },
+        "section_mask": {
+          "filename": "marche.mask_$section.txt",
+          "folder": "/hydro/data/static_data/mask/"
+        },
+        "section_ctime": {
+          "filename": "marche.ctime_$section.txt",
+          "folder": "/hydro/data/static_data/mask/"
+        },
+        "section_dem": {
+          "filename": "marche.dem_$section.txt",
+          "folder": "/hydro/data/static_data/mask/"
+        },
+        "section_ancillary": {
+          "filename": "info_$section.nc",
+          "folder": "/hydro/data/static_data/ancillary/hat/"
+        }
+      },
+      "land": {
+        "land_terrain": {
+          "filename": "marche.dem.txt",
+          "folder": "/hydro/data/static_data/land/"
+        },
+        "land_channel_network": {
+          "filename": "marche.choice.txt",
+          "folder": "/hydro/data/static_data/land/"
+        },
+        "land_ancillary": {
+          "filename": "info_land.nc",
+          "folder": "/hydro/data/static_data/ancillary/hat/"
+        }
+      },
+      "colormap": {
+        "colormap_sm": {
+          "filename": "sm.cmap",
+          "folder": null,
+          "palette": null
+        },
+        "colormap_rain": {
+          "filename": "rain.cmap",
+          "folder": null,
+          "palette": null
+        },
+        "colormap_lst": {
+          "filename": "lst.cmap",
+          "folder": null,
+          "palette": null
+        },
+        "colormap_swe": {
+          "filename": "swe.cmap",
+          "folder": null,
+          "palette": null
+        },
+        "colormap_snow_melting": {
+          "filename": "snow_melting.cmap",
+          "folder": null,
+          "palette": null
+        },
+        "colormap_snow_density": {
+          "filename": "snow_density.cmap",
+          "folder": null,
+          "palette": null
+        }
+      }
+    },
+    "dynamic": {
+      "time": {
+        "time_forecast_period": 48,
+        "time_forecast_frequency": "H",
+        "time_observed_period": 24,
+        "time_observed_frequency": "H",
+        "time_extra_period": 5,
+        "time_extra_frequency": "H"
+      },
+      "source": {
+        "file_product_ts": {
+          "filename": "hat_timeseries_$section_$yyyy$mm$dd$HH$MM.nc.gz",
+          "folder": "/hydro/analysis/product/$RUNNAME/$RUNTIME/section/"
+        },
+        "file_product_gridded": {
+          "filename": "hat_maps_$yyyy$mm$dd$HH$MM.nc.gz",
+          "folder": "/hydro/analysis/product/$RUNNAME/$RUNTIME/map/"
+        },
+        "file_buffer_ts": {
+          "filename": "hat_timeseries_$section_$application_$yyyy$mm$dd$HH$MM.workspace",
+          "folder": "/hydro/analysis/buffer/$RUNNAME/$RUNTIME/section/"
+        },
+        "file_buffer_gridded": {
+          "filename": "hat_maps_$application_$yyyy$mm$dd$HH$MM.workspace",
+          "folder": "/hydro/analysis/buffer/$RUNNAME/$RUNTIME/map/"
+        },
+        "file_buffer_info": {
+          "filename": "hat_info_$yyyy$mm$dd$HH$MM.workspace",
+          "folder": "/hydro/analysis/buffer/$RUNNAME/$RUNTIME/info/"
+        }
+      },
+      "outcome": {
+        "file_dewetra_data_ts": {
+          "filename": "dewetra_timeseries_$section_$yyyy$mm$dd$HH$MM.txt",
+          "folder": "/hydro/analysis/dewetra/$RUNNAME/$RUNTIME/section/"
+        },
+        "file_dewetra_data_gridded": {
+          "filename": "dewetra_maps_$yyyy$mm$dd$HH$MM.nc.gz",
+          "folder": "/hydro/analysis/dewetra/$RUNNAME/$RUNTIME/map/"
+        },
+        "file_hydrapp_info_ts": {
+          "filename": "section.csv",
+          "folder":"/hydro/analysis/hydrapp/registry/"
+        },
+        "file_hydrapp_info_gridded": {
+          "filename": "map.csv",
+          "folder":"/hydro/analysis/hydrapp/registry/"
+        },
+        "file_buffer_registry": {
+          "filename": "hat_registry_$yyyy$mm$dd$HH$MM.workspace",
+          "folder":"/hydro/analysis/buffer/$RUNNAME/$RUNTIME/registry/"
+        },
+        "file_hydrapp_graph_ts": {
+          "group": true,
+          "collection": {
+            "file_hydrapp_graph_ts_run_obs": {
+              "filename": "hydrapp_timeseries_$row_$col_$section_obs.jpg",
+              "folder": "/hydro/analysis/hydrapp/section/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_ts_run_forecast_probabilistic_ecmwf": {
+              "filename": "hydrapp_timeseries_$row_$col_$section_ecmwf.jpg",
+              "folder": "/hydro/analysis/hydrapp/section/$group/$graphname/$yyyy$mm$dd$HH/"
+            }
+          }
+        },
+        "file_hydrapp_graph_gridded": {
+          "group": true,
+          "collection": {
+            "file_hydrapp_graph_gridded_accumulated_rain_obs" : {
+              "filename": "hydrapp_gridded_rain_accumulated_obs_hour_$period.jpg",
+              "folder": "/hydro/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_gridded_accumulated_rain_for": {
+              "filename": "hydrapp_gridded_rain_accumulated_for_hour_$period.jpg",
+              "folder": "/hydro/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_gridded_sm_hmc": {
+              "filename": "hydrapp_gridded_sm_hmc.jpg",
+              "folder": "/hydro/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_gridded_lst_hmc": {
+              "filename": "hydrapp_gridded_lst_hmc.jpg",
+              "folder": "/hydro/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_gridded_swe_hmc": {
+              "filename": "hydrapp_gridded_swe_hmc.jpg",
+              "folder": "/hydro/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_gridded_snow_melting_hmc": {
+              "filename": "hydrapp_gridded_snow_melting_hmc.jpg",
+              "folder": "/hydro/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_gridded_snow_density_hmc": {
+              "filename": "hydrapp_gridded_snow_density_hmc.jpg",
+              "folder": "/hydro/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            }
+          }
+        }
+      }
+    },
+    "log": {
+        "filename": "hat_datapublisher_hmc_nrt_history_log.txt",
+        "folder": "/hydro/log/",
+        "history": true
+      },
+    "library": {
+      "filename": "",
+      "folder": ""
+    },
+    "bin": {
+      "filename": "",
+      "folder": ""
+    }
+  },
+  "time": {
+    "time_now": null,
+    "time_period": 0,
+    "time_frequency": "D",
+    "time_eta": "H"
+  },
+  "analysis": {
+    "hydrapp": {
+      "data_gridded": {
+        "id": {
+          "var_dims": [
+            "var2d",
+            "var2d",
+            "var2d", "var2d",
+            "var2d", "var2d", "var2d",
+            "var2d", "var2d", "var2d"
+          ],
+          "var_type_data": [
+            "forecast",
+            "observed",
+            "forecast", "forecast",
+            "result", "result", "result",
+            "result", "result", "result"
+          ],
+          "var_type_experiment": [
+            "probabilistic",
+            "deterministic",
+            "deterministic", "deterministic",
+            "deterministic", "deterministic", "deterministic",
+            "deterministic", "deterministic", "deterministic"
+          ],
+          "var_name_in": [
+            "rain_$ensemble_accumulated_hour_$period",
+            "rain_accumulated_hour_$period",
+            "air_temperature_avg_hour_$period", "rain_accumulated_hour_$period",
+            "evapot", "land_surface_temperature", "soil_moisture",
+            "snow_water_equivalent", "snow_melting", "snow_density"
+          ],
+          "var_name_out": [
+            "rain_for_$ensemble_accumulated_hour_$period",
+            "rain_obs_accumulated_hour_$period",
+            "airtemperature_for_avg_hour_$period", "rain_for_accumulated_hour_$period",
+            "hmc_evapotranspiration", "hmc_lst", "hmc_sm",
+            "hmc_swe", "hmc_snow_melting", "hmc_snow_density"
+          ],
+          "var_name_group": [
+            "rain",
+            "rain",
+            "other", "rain",
+            "other", "other", "other",
+            "other", "other", "other"
+          ],
+          "var_file_tag": ["file_product_gridded"],
+          "var_file_group": [
+            "file_forecast_gridded_forcing_probabilistic_ecmwf",
+            "file_obs_gridded_forcing",
+            "file_forecast_gridded_forcing_deterministic_ecmwf", "file_forecast_gridded_forcing_deterministic_ecmwf",
+            "file_result_gridded_outcome", "file_result_gridded_outcome",  "file_result_gridded_outcome",
+            "file_result_gridded_outcome", "file_result_gridded_outcome",  "file_result_gridded_outcome"
+            ],
+          "var_file_ancillary": ["file_buffer_gridded"],
+          "var_method_publish": [{
+            "graph_type_basic": {
+              "graph_name": ["surface"],
+              "variable_name" : {
+                "rain_obs_accumulated" : ["rain_obs_accumulated_hour_$period"],
+                "rain_nwp_accumulated_deterministic" : ["rain_for_accumulated_hour_$period"],
+                "lst_model_obs" : ["hmc_lst"],
+                "sm_model_obs": ["hmc_sm"],
+                "swe_model_obs": ["hmc_swe"],
+                "snow_melting_model_obs": ["hmc_snow_melting"],
+                "snow_density_model_obs": ["hmc_snow_density"]
+              },
+              "variable_appearance" : {
+                "rain_obs_accumulated" : ["observed accumulated rain"],
+                "rain_nwp_accumulated_deterministic" : ["nwp accumulated rain"],
+                "lst_model_obs" : ["hmc lst"],
+                "sm_model_obs": ["hmc soil moisture"],
+                "swe_model_obs": ["hmc snow water equivalent"],
+                "snow_melting_model_obs": ["hmc snow melting"],
+                "snow_density_model_obs": ["hmc snow density"]
+              },
+              "function_graph": {
+                "rain_obs_accumulated" : ["plotGridded_Var2D"],
+                "rain_nwp_accumulated_deterministic": ["plotGridded_Var2D"],
+                "lst_model_obs": ["plotGridded_Var2D"],
+                "sm_model_obs": ["plotGridded_Var2D"],
+                "swe_model_obs": ["plotGridded_Var2D"],
+                "snow_melting_model_obs": ["plotGridded_Var2D"],
+                "snow_density_model_obs": ["plotGridded_Var2D"]
+              },
+              "file_name": {
+                "rain_obs_accumulated" : ["file_hydrapp_graph_gridded_accumulated_rain_obs"],
+                "rain_nwp_accumulated_deterministic": ["file_hydrapp_graph_gridded_accumulated_rain_for"],
+                "lst_model_obs": ["file_hydrapp_graph_gridded_lst_hmc"],
+                "sm_model_obs": ["file_hydrapp_graph_gridded_sm_hmc"],
+                "swe_model_obs": ["file_hydrapp_graph_gridded_swe_hmc"],
+                "snow_melting_model_obs": ["file_hydrapp_graph_gridded_snow_melting_hmc"],
+                "snow_density_model_obs": ["file_hydrapp_graph_gridded_snow_density_hmc"]
+              },
+              "file_content": {
+                "rain_obs_accumulated" : [null],
+                "rain_nwp_accumulated_deterministic": [null],
+                "lst_model_obs": [null],
+                "sm_model_obs": [null],
+                "swe_model_obs": [null],
+                "snow_melting_model_obs": [null],
+                "snow_density_model_obs": [null]
+              },
+              "colormap_name": {
+                "rain_obs_accumulated" : ["colormap_rain"],
+                "rain_nwp_accumulated_deterministic": ["colormap_rain"],
+                "lst_model_obs": ["colormap_lst"],
+                "sm_model_obs": ["colormap_sm"],
+                "swe_model_obs": ["colormap_swe"],
+                "snow_melting_model_obs": ["colormap_snow_melting"],
+                "snow_density_model_obs": ["colormap_snow_density"]
+              }
+            }
+          }],
+          "var_args": [null]
+        },
+        "attributes": {
+          "figure_dpi": [120]
+        }
+      },
+      "data_ts": {
+        "id": {
+          "var_dims": [
+            "var1d",
+            "var1d", "var1d", "var1d",
+            "var1d", "var1d",
+            "var1d", "var1d",
+            "var1d", "var1d",
+            "var1d"
+          ],
+          "var_type_data": [
+            "forecast",
+            "observed", "observed", "observed",
+            "forecast", "forecast",
+            "result", "observed",
+            "result", "result",
+            "result"
+          ],
+          "var_type_experiment": [
+            "probabilistic",
+            "deterministic", "deterministic", "deterministic",
+            "deterministic", "deterministic",
+            "deterministic", "deterministic",
+            "probabilistic", "deterministic",
+            "deterministic"
+          ],
+          "var_name_in": [
+            "rain_$ensemble",
+            "rain", "air_temperature", "rain_accumulated",
+            "rain", "rain_accumulated",
+            "discharge_run_ws", "observed_discharge",
+            "discharge_ecmwf_prob_$ensemble", "discharge_ecmwf_det",
+            "soil_moisture"
+          ],
+          "var_name_out": [
+            "rain_ecmwf_prob_$ensemble",
+            "rain_ws_obs", "air_temperature_ws_obs", "rain_accumulated_ws_obs",
+            "rain_ecmwf_det", "rain_accumulated_ecmwf_for",
+            "discharge_hmc_obs", "discharge_rs_obs",
+            "discharge_hmc_ecmwf_prob_$ensemble", "discharge_hmc_ecmwf_det",
+            "sm_hmc_obs"
+          ],
+          "var_name_group": [
+            "rain",
+            "rain", "other", "rain",
+            "rain", "rain",
+            "discharge", "discharge",
+            "discharge", "discharge",
+            "other"
+          ],
+          "var_file_tag": ["file_product_ts"],
+          "var_file_group": [
+            "file_forecast_gridded_forcing_probabilistic_ecmwf",
+            "file_obs_gridded_forcing", "file_obs_gridded_forcing", "file_obs_gridded_forcing",
+            "file_forecast_gridded_forcing_deterministic_ecmwf", "file_forecast_gridded_forcing_deterministic_ecmwf",
+            "file_result_point_discharge_ws", "file_obs_point_discharge",
+            "file_result_point_discharge_probabilistic_ecmwf", "file_result_point_discharge_deterministic_ecmwf",
+            "file_result_gridded_outcome"
+            ],
+          "var_file_ancillary" : ["file_buffer_ts"],
+          "var_method_publish": [{
+            "graph_type_nwp_probabilistic": {
+              "graph_name": ["nwp_ecmwf"],
+              "variable_name" : {
+                "rain_obs" : ["rain_ws_obs"],
+                "rain_nwp_deterministic" : ["rain_ecmwf_det"],
+                "rain_nwp_probabilistic" : ["rain_ecmwf_prob_$ensemble"],
+                "discharge_obs" : ["discharge_rs_obs"],
+                "discharge_model_obs" : ["discharge_hmc_obs"],
+                "discharge_model_nwp_probabilistic": ["discharge_hmc_ecmwf_prob_$ensemble"],
+                "discharge_model_nwp_deterministic": ["discharge_hmc_ecmwf_det"],
+                "rain_accumulated_nwp_deterministic": ["rain_accumulated_ecmwf_for"],
+                "rain_accumulated_obs": ["rain_accumulated_ws_obs"],
+                "sm_obs": ["sm_hmc_obs"]
+              },
+              "variable_appearance" : {
+                "rain_obs" : ["observed rain"],
+                "rain_nwp_deterministic" : ["nwp rain deterministic"],
+                "rain_nwp_probabilistic" : ["nwp rain probabilistic"],
+                "discharge_obs" : ["observed discharge"],
+                "discharge_model_obs" : ["hmc discharge obs"],
+                "discharge_model_nwp_probabilistic": ["hmc discharge obs/for ecmwf probabilistic"],
+                "discharge_model_nwp_deterministic": ["hmc discharge obs/for ecmwf deterministic"],
+                "rain_accumulated_nwp_deterministic": ["nwp rain accumulated deterministic"],
+                "rain_accumulated_obs": ["observed rain accumulated"],
+                "sm_obs": ["hmc sm obs"]
+              },
+              "function_graph": ["plotTS_NWP_Probabilistic"],
+              "file_name": ["file_hydrapp_graph_ts_run_forecast_probabilistic_ecmwf"],
+              "file_content": [null],
+              "colormap_name": [null]
+            },
+            "graph_type_ws_observed": {
+              "graph_name": ["observed"],
+              "variable_name" : {
+                "rain_obs" : ["rain_ws_obs"],
+                "discharge_obs" : ["discharge_rs_obs"],
+                "discharge_model_obs" : ["discharge_hmc_obs"],
+                "rain_accumulated_obs": ["rain_accumulated_ws_obs"],
+                "sm_obs": ["sm_hmc_obs"]
+              },
+              "variable_appearance" : {
+                "rain_obs" : ["observed rain"],
+                "discharge_obs" : ["observed discharge"],
+                "discharge_model_obs" : ["discharge model ws"],
+                "rain_accumulated_obs": ["observed rain accumulated"],
+                "sm_obs": ["hmc sm obs"]
+              },
+              "function_graph": ["plotTS_OBS"],
+              "file_name": ["file_hydrapp_graph_ts_run_obs"],
+              "file_content": [null],
+              "colormap_name": [null]
+            }
+          }],
+          "var_args": [null]
+        },
+        "attributes": {
+          "figure_dpi": [120]
+        }
+      }
+    },
+    "dewetra": {
+      "data_gridded": {},
+      "data_ts": {
+        "id": {
+          "var_dims": ["var1d", "var1d"],
+          "var_type_data": ["observed", "result"],
+          "var_type_experiment": ["deterministic"],
+          "var_type_procedure": ["raingauges_deterministic"],
+          "var_name_in": ["observed_discharge", "discharge_run_ws"],
+          "var_name_out": ["discharge_rs_obs", "discharge_hmc_obs"],
+          "var_name_group": ["discharge_rs_obs", "discharge_hmc_obs"],
+          "var_file_tag": ["file_product_ts"],
+          "var_file_group": ["file_obs_point_discharge", "file_result_point_discharge_ws"],
+          "var_file_ancillary" : ["file_buffer_ts"],
+          "var_file_production": ["file_dewetra_data_ts"],
+          "var_method_publish": ["writeDew1D"],
+          "var_args": [null]
+        },
+        "attributes": {
+          "figure_dpi" : [null]
+        }
+      }
+    }
+  }
+}

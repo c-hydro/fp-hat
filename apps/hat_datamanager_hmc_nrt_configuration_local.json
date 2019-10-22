@@ -1,0 +1,545 @@
+{
+  "algorithm":{
+    "flags": {
+      "cleaning_static_data": false,
+      "cleaning_dynamic_data_source": true,
+      "cleaning_dynamic_data_outcome_ts": true,
+      "cleaning_dynamic_data_outcome_gridded": true,
+      "cleaning_dynamic_data_product_ts": true,
+      "cleaning_dynamic_data_product_gridded": true
+    },
+    "ancillary": {
+      "run_domain" : "Marche",
+      "run_name": "nrt"
+    },
+    "general": {
+      "title": "HAT - Data manager to analyze source and outcome of hmc model",
+      "web-site": "",
+      "source": "Python library developed by CIMA Research Foundation",
+      "history": "1.6.1 [20190708]",
+      "project-info": "HAT - Hydrological Analysis Tool",
+      "algorithm": "Analysis tools developed by CIMA Research Foundation"
+    }
+  },
+  "data": {
+    "static": {
+      "section": {
+        "section_ref": {
+          "filename": "fp_sections_marche.shp",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/shapefile/"
+        },
+        "section_mask": {
+          "filename": "marche.mask_$section.txt",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/mask/"
+        },
+        "section_ctime": {
+          "filename": "marche.ctime_$section.txt",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/mask/"
+        },
+        "section_dem": {
+          "filename": "marche.dem_$section.txt",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/mask/"
+        },
+        "section_ancillary": {
+          "filename": "info_$section.nc",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/ancillary/"
+        }
+      },
+      "land": {
+        "land_terrain": {
+          "filename": "marche.dem.txt",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/land/"
+        },
+        "land_channel_network": {
+          "filename": "marche.choice.txt",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/land/"
+        },
+        "land_ancillary": {
+          "filename": "info_land.nc",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/ancillary/"
+        }
+      }
+    },
+    "dynamic": {
+      "time": {
+        "time_forecast_period": 48,
+        "time_forecast_frequency": "H",
+        "time_observed_period": 72,
+        "time_observed_frequency": "H",
+        "time_extra_period": 5,
+        "time_extra_frequency": "H",
+        "time_starting_period": 48,
+        "time_starting_frequency": "H",
+        "time_starting_eta": "D"
+      },
+      "source": {
+        "file_obs_gridded_forcing": {
+          "filename": "ws.db.$yyyy$mm$dd$HH$MM.nc.gz",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/observation/ws/$yyyy/$mm/$dd/"
+        },
+        "file_forecast_gridded_forcing_deterministic": {
+          "group": true,
+          "collection": {
+            "file_forecast_gridded_forcing_deterministic_ecmwf": {
+              "filename": "nwp.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/nwp/ecmwf0100/$yyyy/$mm/$dd/"
+            },
+            "file_forecast_gridded_forcing_deterministic_lami": {
+              "filename": "nwp.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/nwp/ecmwf0100/$yyyy/$mm/$dd/"
+            }
+          }
+        },
+        "file_forecast_gridded_forcing_probabilistic": {
+          "group": true,
+          "collection": {
+            "file_forecast_gridded_forcing_probabilistic_ecmwf": {
+              "filename": "rf.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/rainfarm/ecmwf0100/$yyyy/$mm/$dd/$ensemble"
+            },
+            "file_forecast_gridded_forcing_probabilistic_lami": {
+              "filename": "rf.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/rainfarm/ecmwf0100/$yyyy/$mm/$dd/"
+            }
+          }
+        },
+        "file_obs_point_discharge": {
+          "filename": "rs.db.$yyyy$mm$dd$HH$MM.txt",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/observation/rs/$yyyy/$mm/$dd/"
+        },
+        "file_result_point_discharge": {
+          "group": true,
+          "collection": {
+            "file_result_point_discharge_ws": {
+              "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/point/section_q/"
+            },
+            "file_result_point_discharge_radar": {
+              "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/point/section_q/"
+            },
+            "file_result_point_discharge_probabilistic_ecmwf": {
+              "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-ecmwf-0100/$RUNTIME/point/section_q/$ensemble/"
+            },
+            "file_result_point_discharge_deterministic_ecmwf": {
+              "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-ecmwf-0100/$RUNTIME/point/section_q/"
+            }
+          }
+        },
+        "file_result_gridded_outcome": {
+          "filename": "hmc.output-grid.$yyyy$mm$dd$HH$MM.nc.gz",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/gridded/"
+        },
+        "file_result_ts_discharge": {
+          "group": true,
+          "collection": {
+            "file_result_ts_discharge_ws": {
+              "filename": "hmc.hydrograph.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/timeseries/section_q/"
+            },
+            "file_result_ts_discharge_radar": {
+              "filename": "hmc.hydrograph.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/timeseries/section_q/"
+            },
+            "file_result_ts_discharge_probabilistic_ecmwf": {
+              "filename": "hmc.hydrograph.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-ecmwf-0100/$RUNTIME/timeseries/section_q/$ensemble/"
+            },
+            "file_result_ts_discharge_deterministic_ecmwf": {
+              "filename": "hmc.hydrograph.txt",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-ecmwf-0100/$RUNTIME/timeseries/section_q/"
+            }
+          }
+        },
+        "file_buffer_source_info": {
+          "filename": "hat_buffer_ws_source_$yyyy$mm$dd$HH$MM.workspace",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/buffer/$RUNNAME/$RUNTIME/"
+        },
+        "file_buffer_source_data": {
+          "filename": "hat_buffer_data_$yyyy$mm$dd$HH$MM_$subset.nc",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/buffer/$RUNNAME/$RUNTIME/"
+        },
+        "file_buffer_outcome_ts": {
+          "filename": "hat_buffer_ws_outcome_ts_$yyyy$mm$dd$HH$MM.workspace",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/buffer/$RUNNAME/$RUNTIME/"
+        },
+        "file_buffer_outcome_gridded": {
+          "filename": "hat_buffer_ws_outcome_gridded_$yyyy$mm$dd$HH$MM.workspace",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/buffer/$RUNNAME/$RUNTIME/"
+        }
+      },
+      "outcome": {
+        "file_product_ts": {
+          "filename": "hat_timeseries_$section_$yyyy$mm$dd$HH$MM.nc.gz",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/product/$RUNNAME/$RUNTIME/section/"
+        },
+        "file_product_gridded": {
+          "filename": "hat_maps_$yyyy$mm$dd$HH$MM.nc.gz",
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/product/$RUNNAME/$RUNTIME/map/"
+        }
+      }
+    },
+    "log": {
+        "filename": "hat_datamanager_hmc_nrt_log_local.txt",
+        "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/log/",
+        "history": true
+      },
+    "temp": {
+        "filename": null,
+        "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/tmp/"
+    },
+    "library": {
+      "filename": "",
+      "folder": ""
+    },
+    "bin": {
+      "filename": "",
+      "folder": ""
+    }
+  },
+  "time": {
+    "time_now": null,
+    "time_period": 0,
+    "time_frequency": "D",
+    "time_eta": "H"
+  },
+  "buffer": {
+    "subset_max_step": 10,
+    "subset_format": "{:03d}"
+  },
+  "variables": {
+    "source": {
+      "data_obs_gridded_forcing": {
+        "id": {
+          "var_dims": ["var2d", "var2d", "var2d", "var2d"],
+          "var_type_data": ["observed"],
+          "var_type_ancillary": ["result"],
+          "var_type_experiment": ["deterministic"],
+          "var_name_in": ["Rain", "AirTemperature", "Wind", "Rain"],
+          "var_name_out": ["rain", "air_temperature", "wind_speed", "rain_accumulated"],
+          "var_file_data": ["file_obs_gridded_forcing"],
+          "var_file_ancillary": ["file_result_point_discharge_ws"],
+          "var_file_format": ["netcdf4", "netcdf4", "netcdf4", "netcdf4"],
+          "var_method_get_name": ["getVar2D", "getVar2D", "getVar2D", "getVar2D"],
+          "var_method_cmp_name_ts": ["cmpVarMean", "cmpVarMean", "cmpVarMean", "cmpVarCumSum"],
+          "var_method_cmp_name_gridded": ["cmpVarAccumulated", "cmpVarMean", null, null],
+          "var_args": [
+            {"var2d":
+              {"observed": {
+                "var_tag" : ["$var_accumulated_hour_$period", "$var_avg_hour_$period", null, null],
+                "var_period": [[3, 6, 9, 12, 24], [3, 6, 9, 12, 24], null, null],
+                "var_frequency": ["1H", "1H", null, "1H"],
+                "var_cmp_ts": [[null, null], [null, null], [null, null], ["time_starting", "time_run"]]
+              }
+            }
+          }]
+        },
+        "attributes": {
+          "units": ["mm", "C", "m/s", "mm"],
+          "ScaleFactor": [1, 1, 1, 1],
+          "Missing_value": [-9999.0, -9999.0, -9999.0, -9999.0],
+          "Valid_range": [[0, null], [-30, 50], [0,10], [0, null]],
+          "_FillValue": [-9999.0, -9999.0, -9999.0, -9999.0]
+        }
+      },
+      "data_forecast_gridded_forcing_deterministic_ecmwf": {
+        "id": {
+          "var_dims": ["var3d", "var3d", "var3d", "var3d"],
+          "var_type_data": ["forecast"],
+          "var_type_ancillary": ["result"],
+          "var_type_experiment": ["deterministic"],
+          "var_name_in": ["Rain", "AirTemperature", "Wind", "Rain"],
+          "var_name_out": ["rain", "air_temperature", "wind_speed", "rain_accumulated"],
+          "var_file_data": ["file_forecast_gridded_forcing_deterministic_ecmwf"],
+          "var_file_ancillary": ["file_result_point_discharge_deterministic_ecmwf"],
+          "var_file_format": ["netcdf4", "netcdf4", "netcdf4", "netcdf4"],
+          "var_method_get_name": ["getVar3D", "getVar3D", "getVar3D", "getVar3D"],
+          "var_method_cmp_name_ts": ["cmpVarMean", "cmpVarMean", "cmpVarMean", "cmpVarCumSum"],
+          "var_method_cmp_name_gridded": ["cmpVarAccumulated", "cmpVarMean", null, null],
+          "var_args": [
+            {"var3d":
+              {"forecast": {
+                "model_frequency": ["D"], "model_period" : [2],
+                "data_period": [84], "data_frequency":  ["H"],
+                "var_tag" : ["$var_accumulated_hour_$period", "$var_avg_hour_$period", null, null],
+                "var_period": [[3, 6, 9, 12, 24], [3, 6, 9, 12, 24], null, null],
+                "var_frequency": ["1H", "1H", null, null],
+                "var_cmp_ts": [[null, null], [null, null], [null, null], ["time_dataset", null]]
+              }
+              }
+            }]
+        },
+        "attributes": {
+          "units": ["mm", "C", "m/s", "mm"],
+          "ScaleFactor": [1, 1, 1, 1],
+          "Missing_value": [-9999.0, -9999.0, -9999.0, -9999.0],
+          "Valid_range": [[0, null], [-30, 50], [0,10], [0, null]],
+          "_FillValue": [-9999.0, -9999.0, -9999.0, -9999.0]
+        }
+      },
+      "data_forecast_gridded_forcing_probabilistic_ecmwf": {
+        "id": {
+          "var_dims": ["var3d"],
+          "var_type_data": ["forecast"],
+          "var_type_ancillary": ["result"],
+          "var_type_experiment": ["probabilistic"],
+          "var_name_in": ["Rain"],
+          "var_name_out": ["rain_$ensemble"],
+          "var_file_data": ["file_forecast_gridded_forcing_probabilistic_ecmwf"],
+          "var_file_ancillary": ["file_result_point_discharge_probabilistic_ecmwf"],
+          "var_file_format": ["netcdf4"],
+          "var_method_get_name": ["getVar3D"],
+          "var_method_cmp_name_ts": ["cmpVarMean"],
+          "var_method_cmp_name_gridded": ["cmpVarAccumulated"],
+          "var_args": [
+            {"var3d":
+              {"forecast": {
+                "model_frequency": ["D"], "model_period" : [2],
+                "ensemble_n": [28], "ensemble_format": ["{:03d}"],
+                "data_period": [84], "data_frequency":  ["H"],
+                "var_tag" : ["$var_accumulated_hour_$period"],
+                "var_period": [[3, 6, 9]],
+                "var_frequency": ["1H"],
+                "var_cmp_ts": [[null, null]]}
+              }
+            }]
+        },
+        "attributes": {
+          "units": ["mm"],
+          "ScaleFactor": [1],
+          "Missing_value": [-9999.0],
+          "Valid_range": [[0, null]],
+          "_FillValue": [-9999.0]
+        }
+      },
+      "data_result_gridded_outcome": {
+        "id": {
+          "var_dims": ["var2d", "var2d", "var2d", "var2d", "var2d", "var2d", "var2d"],
+          "var_type_data": ["result"],
+          "var_type_ancillary": ["observed"],
+          "var_type_experiment": ["deterministic"],
+          "var_name_in": ["SM", "LST", "ETCum", "VTot", "SWE", "MeltingS", "RhoS"],
+          "var_name_out": [
+            "soil_moisture", "land_surface_temperature", "evapot", "volume_tot",
+            "snow_water_equivalent", "snow_melting", "snow_density"
+          ],
+          "var_file_data": ["file_result_gridded_outcome"],
+          "var_file_ancillary": ["file_obs_gridded_forcing"],
+          "var_file_format": ["netcdf4", "netcdf4", "netcdf4", "netcdf4", "netcdf4", "netcdf4", "netcdf4"],
+          "var_method_get_name": ["getVar2D", "getVar2D", "getVar2D", "getVar2D", "getVar2D", "getVar2D", "getVar2D"],
+          "var_method_cmp_name_ts": [
+            "cmpVarMean", "cmpVarMean", "cmpVarMean", "cmpVarMean", "cmpVarMean", null, null
+          ],
+          "var_method_cmp_name_gridded": [
+            "cmpVarStep", "cmpVarStep", "cmpVarStep", null, "cmpVarStep", "cmpVarStep", "cmpVarStep"
+          ],
+          "var_args": [
+            {"var2d":
+              {"result": {
+                "var_tag" : ["$var"],
+                "var_step": ["last"],
+                "var_period": [[24]],
+                "var_frequency": ["1H"],
+                "var_cmp_ts": [["time_starting", "time_run"], ["time_starting", "time_run"], [null, null], [null, null], [null, null], [null, null], [null, null]]
+              }
+              }
+            }]
+        },
+        "attributes": {
+          "units": ["%", "K", "mm", "m^3", "mm", "mm", "kg/m^3"],
+          "ScaleFactor": [1, 1, 1, 1, 1, 1, 1],
+          "Missing_value": [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+          "Valid_range": [[0, 1], [245, 320], [0, null], [0, null], [0, null], [0, null], [0, null]],
+          "_FillValue": [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0]
+        }
+      },
+      "data_obs_ts_discharge": {
+        "id": {
+          "var_dims": ["var1d"],
+          "var_type_data": ["observed"],
+          "var_type_ancillary": [null],
+          "var_type_experiment": ["deterministic"],
+          "var_name_in": ["discharge"],
+          "var_name_out": ["observed_discharge"],
+          "var_file_data": ["file_obs_point_discharge"],
+          "var_file_ancillary": [null],
+          "var_file_format": ["ascii"],
+          "var_method_get_name": ["getVar1D"],
+          "var_method_cmp_name_ts": [null],
+          "var_method_cmp_name_gridded": [null],
+          "var_args": [
+            {"var1d":
+              {"observed":
+                {"column_id": [1]}
+              }
+            }
+          ]
+        },
+        "attributes": {
+          "units": ["m^3/s"],
+          "ScaleFactor": [1],
+          "Missing_value": [-9999.0],
+          "Valid_range": [[0, null]],
+          "_FillValue": [-9999.0]
+        }
+      },
+      "data_result_ts_discharge_ws": {
+        "id": {
+          "var_dims": ["var1d"],
+          "var_type_data": ["result"],
+          "var_type_ancillary": ["observed"],
+          "var_type_experiment": ["deterministic"],
+          "var_name_in": ["discharge"],
+          "var_name_out": ["discharge_run_ws"],
+          "var_file_data": ["file_result_point_discharge_ws"],
+          "var_file_ancillary": ["file_obs_gridded_forcing"],
+          "var_file_format": ["ascii"],
+          "var_method_get_name": ["getVar1D"],
+          "var_method_cmp_name_ts": [null],
+          "var_method_cmp_name_gridded": [null],
+          "var_args": [
+            {"var1d": {"result": {"column_id": [0]}}}
+          ]
+        },
+        "attributes": {
+          "units": ["m^3/s"],
+          "ScaleFactor": [1],
+          "Missing_value": [-9999.0],
+          "Valid_range": [[0, null]],
+          "_FillValue": [-9999.0]
+        }
+      },
+      "data_result_ts_discharge_radar": {
+        "id": {
+          "var_dims": ["var1d"],
+          "var_type_data": ["result"],
+          "var_type_ancillary": [null],
+          "var_type_experiment": ["deterministic"],
+          "var_name_in": ["discharge"],
+          "var_name_out": ["discharge_run_radar"],
+          "var_file_data": ["file_result_point_discharge_radar"],
+          "var_file_ancillary": [null],
+          "var_file_format": ["ascii"],
+          "var_method_get_name": ["getVar1D"],
+          "var_method_cmp_name_ts": [null],
+          "var_method_cmp_name_gridded": [null],
+          "var_args": [
+            {"var1d":
+              {"result":
+                {"column_id": [0]}
+              }
+            }
+          ]
+        },
+        "attributes": {
+          "units": ["m^3/s"],
+          "ScaleFactor": [1],
+          "Missing_value": [-9999.0],
+          "Valid_range": [[0, null]],
+          "_FillValue": [-9999.0]
+        }
+      },
+      "data_result_ts_discharge_probabilistic_ecmwf": {
+        "id": {
+          "var_dims": ["var1d"],
+          "var_type_data": ["result"],
+          "var_type_ancillary": ["forecast"],
+          "var_type_experiment": ["probabilistic"],
+          "var_name_in": ["discharge"],
+          "var_name_out": ["discharge_ecmwf_prob_$ensemble"],
+          "var_file_data": ["file_result_point_discharge_probabilistic_ecmwf"],
+          "var_file_ancillary": ["file_forecast_gridded_forcing_probabilistic_ecmwf"],
+          "var_file_format": ["ascii"],
+          "var_method_get_name": ["getVar1D"],
+          "var_method_cmp_name_ts": [null],
+          "var_method_cmp_name_gridded": [null],
+          "var_args": [
+            {"var1d":
+              {"result": {
+                "column_id": [0],
+                "model_frequency": ["D"], "model_period" : [2],
+                "ensemble_n": [28], "ensemble_format": ["{:03d}"],
+                "data_period": [84], "data_frequency":  ["H"]}
+              }
+            }]
+        },
+        "attributes": {
+          "units": ["m^3/s"],
+          "ScaleFactor": [1],
+          "Missing_value": [-9999.0],
+          "Valid_range": [[0, null]],
+          "_FillValue": [-9999.0]
+        }
+      },
+      "data_result_ts_discharge_deterministic_ecmwf": {
+        "id": {
+          "var_dims": ["var1d"],
+          "var_type_data": ["result"],
+          "var_type_ancillary": ["forecast"],
+          "var_type_experiment": ["deterministic"],
+          "var_name_in": ["discharge"],
+          "var_name_out": ["discharge_ecmwf_det"],
+          "var_file_data": ["file_result_point_discharge_deterministic_ecmwf"],
+          "var_file_ancillary": ["file_forecast_gridded_forcing_deterministic_ecmwf"],
+          "var_file_format": ["ascii"],
+          "var_method_get_name": ["getVar1D"],
+          "var_method_cmp_name_ts": [null],
+          "var_method_cmp_name_gridded": [null],
+          "var_args": [null]
+        },
+        "attributes": {
+          "units": ["m^3/s"],
+          "ScaleFactor": [1],
+          "Missing_value": [-9999.0],
+          "Valid_range": [[0, null]],
+          "_FillValue": [-9999.0]
+        }
+      }
+    },
+    "outcome": {
+      "data_product_ts":{
+        "id": {
+          "var_dims": ["var1d"],
+          "var_type_data": ["analysis"],
+          "var_file_in": ["file_result_gridded_outcome", "file_obs_gridded_forcing", "file_obs_point_discharge",
+            "file_forecast_gridded_forcing_deterministic_ecmwf", "file_forecast_gridded_forcing_probabilistic_ecmwf",
+            "file_result_gridded_outcome", "file_result_point_discharge_ws", "file_result_point_discharge_radar",
+            "file_result_point_discharge_deterministic_ecmwf", "file_result_point_discharge_probabilistic_ecmwf"],
+          "var_file_out": ["file_product_ts"],
+          "var_file_colormap": [null],
+          "var_method_save_name": ["writeVar1D"],
+          "var_args": [null]
+        },
+        "attributes": {
+          "long_name": ["section time series"],
+          "standard_name": [""],
+          "units": ["time"],
+          "Format": ["f4"],
+          "description": ["time series"]
+        }
+      },
+      "data_product_gridded":{
+        "id": {
+          "var_dims": ["var2d"],
+          "var_type_data": ["analysis"],
+          "var_file_in": ["file_obs_gridded_forcing",
+            "file_forecast_gridded_forcing_deterministic_ecmwf", "file_forecast_gridded_forcing_probabilistic_ecmwf",
+            "file_result_gridded_outcome"],
+          "var_file_out": ["file_product_gridded"],
+          "var_file_colormap": [null],
+          "var_method_save_name": ["writeVar2D"],
+          "var_args": [null]
+        },
+        "attributes": {
+          "long_name": ["domain maps"],
+          "standard_name": [""],
+          "units": ["time", "south_north", "west_east"],
+          "Format": ["f4"],
+          "description": ["maps"]
+        }
+      }
+    }
+  }
+}
