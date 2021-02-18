@@ -2,25 +2,24 @@
 
 #-----------------------------------------------------------------------------------------
 # Script information
-script_name='HAT - DataPublisher HMC NRT - LOCAL'
-script_version="1.5.0"
-script_date='2019/03/04'
+script_name='HAT - Run Analyzer HMC - REALTIME'
+script_version="1.0.0"
+script_date='2020/06/15'
 
 # Python virtual environment information
-fp_folder_libs='/home/fabio/Documents/Work_Area/Code_Development/Library/virtualenv_python3/'
-fp_env_libs='virtualenv_python3'
+fp_folder_libs=$HOME/fp_libs_python
+fp_env_libs='fp_env_python'
 #-----------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------
 # Get file information
-script_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps//HAT_DataPublisher_HMC_NRT.py'
-settings_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps/hat_datapublisher_hmc_nrt_configuration_local.json'
-script_folder='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/'
-stats_folder='/home/fabio/Desktop/PyCharm_Workspace/hat-master/bin/local/'
+script_file='/home/dpc-marche/library/hat-run_analyzer/HAT_RunAnalyzer_HMC_Main.py'
+setting_file='/home/dpc-marche/library/hat-run_analyzer/hat_runanalyzer_hmc_configuration_realtime.json'
+script_folder='/home/dpc-marche/library/hat-run_analyzer/'
 
 # Get information (-u to get gmt time)
 time_now=$(date -u +"%Y%m%d%H00")
-time_now='201910221500' #'201905131000' # DEBUG 
+# time_now='201807230000' # DEBUG 
 #-----------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------
@@ -39,10 +38,7 @@ echo " ==> "$script_name" (Version: "$script_version" Release_Date: "$script_dat
 echo " ==> START ..."
 
 # Run python script (using setting and time)
-python3 -m cProfile -o stats.binary $script_file -settings_file $settings_file -time $time_now
-
-cprofilev -f ${stats_folder}stats.binary
-gprof2dot -f pstats ${stats_folder}stats.binary | dot -Tsvg -o profile.svg
+python3 $script_file -settings_file $setting_file -time $time_now
 
 # Info script end
 echo " ==> "$script_name" (Version: "$script_version" Release_Date: "$script_date")"

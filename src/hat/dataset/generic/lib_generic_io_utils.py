@@ -104,6 +104,7 @@ def clipVar1D(oVarData_WS, sVarData_CHECK='first'):
         else:
             a1dVarData_VALUE[iVarID] = dVarData
 
+    # Count occurrences of time-series first values and set to NaNs outlier(s)
     a1dVarData_UNIQUE, a1iVarData_COUNT = np.unique(a1dVarData_VALUE, return_counts=True)
 
     if not np.all(np.isnan(a1dVarData_VALUE)):
@@ -119,8 +120,10 @@ def clipVar1D(oVarData_WS, sVarData_CHECK='first'):
             a1dVarData_UNIQUE_SORT = a1dVarData_UNIQUE_SORT[::-1]
 
             a1sVarData_CHECK = ', '.join(str(dVarData_CHECK) for dVarData_CHECK in a1dVarData_UNIQUE_SORT)
+            a1sVarCount_CHECK = ', '.join(str(dVarCount_CHECK) for dVarCount_CHECK in a1iVarData_COUNT_SORT)
             Exc.getExc(' =====> WARNING: probabilistic ensembles start with different values [ ' +
-                       a1sVarData_CHECK + ']. Outliers will be removed.', 2, 1)
+                       a1sVarData_CHECK + '] with occurrences [' +
+                       a1sVarCount_CHECK + '] . Outliers will be removed.', 2, 1)
 
             for iVarData_INDEX, (iVarData_COUNT, dVarData_OUTLIER) in enumerate(
                     zip(a1iVarData_COUNT_SORT[1:], a1dVarData_UNIQUE_SORT[1:])):
@@ -334,7 +337,7 @@ def createDArray1D(oVarDArray, oVarPeriod, sVarName_IN='rain', sVarName_OUT=None
     try:
         oEncodingDArray_SEL = {'_FillValue': float(oVarDArray_SEL.encoding['_FillValue']),
                                'scale_factor': int(oVarDArray_SEL.encoding['scale_factor'])}
-    except Warning:
+    except BaseException:
         Exc.getExc(' =====> WARNING: in creating data array 1D _FillValue and scale_factor are not defined! Try'
                    'to correct with default values (_FillValue=-9999.0; scale_factor=1) ', 2, 1)
         oEncodingDArray_SEL = {'_FillValue': -9999.0,

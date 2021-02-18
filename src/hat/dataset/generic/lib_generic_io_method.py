@@ -230,6 +230,9 @@ def appendFilePickle(sFileName, oFileData, sFileKey=None, oFileProtocol=-1):
                     oFileDSet_CORRECTED[sVarName].attrs = oVarAttributes
                     oFileDSet_CORRECTED[sVarName].encoding = oVarEncoding
 
+                    # Reload updated datasets for next correction step
+                    oFileDSet_STORED_VAR = deepcopy(oFileDSet_CORRECTED)
+
                 oFileDSet_STORE_UPD[sFileKey] = oFileDSet_CORRECTED
 
         else:

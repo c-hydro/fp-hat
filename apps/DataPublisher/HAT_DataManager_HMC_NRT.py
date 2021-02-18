@@ -1,19 +1,15 @@
 """
-Hydrological Analysis Tool - DataPublisher for Hydrological Model Continuum - Near Real Time
+Hydrological Analysis Tool - DataManager for Hydrological Model Continuum - Near Real Time
 
-__date__ = '20190708'
-__version__ = '1.5.2'
-__author__ = 'Fabio Delogu (fabio.delogu@cimafoundation.org'
+__date__ = '20191022'
+__version__ = '1.1.5'
+__author__ = 'Fabio Delogu (fabio.delogu@cimafoundation.org)'
 __library__ = 'hat'
 
 General command line:
-python HAT_DataPublisher_HMC_NRT.py -settingfile hat_datapublisher_hmc_nrt_configuration.json -time YYYYMMDDHHMM
+python3 HAT_DataManager_HMC_NRT.py -settings_file configuration.json -time YYYYMMDDHHMM
 
-Version:
-20190527 (1.5.1) --> Add soil moisture and accumulated rain to time-series graph(s)
-20190516 (1.5.0) --> Fix bugs in data seeking and data plotting (hydrapp time-series and maps product)
-20190322 (1.0.1) --> Beta release
-20190219 (1.0.0) --> Starting development
+Version(s) in changelog file
 """
 # -------------------------------------------------------------------------------------
 
@@ -27,6 +23,7 @@ from os.path import exists
 
 from src.common.log.lib_logging import setLoggingFile
 from src.common.utils.lib_utils_op_string import defineString
+from src.common.utils.lib_utils_op_dict import removeDictKey
 from src.common.utils.lib_utils_file_workspace import savePickle, restorePickle
 from src.common.driver.configuration.drv_configuration_debug import Exc
 
@@ -36,8 +33,8 @@ from src.hat.driver.configuration.drv_configuration_algorithm import DataAlgorit
 from src.hat.driver.configuration.drv_configuration_time import DataTime
 from src.hat.driver.configuration.drv_configuration_tags import DataTags
 
-from src.hat.driver.analysis.hmc.nrt.drv_datapublisher_hmc_nrt import DataAnalysisCleaner, DataAnalysisTime, \
-    DataAnalysisSeeker, DataAnalysisMaker
+from src.hat.driver.analysis.hmc.nrt.drv_datamanager_hmc_nrt import DataAnalysisCleaner, DataAnalysisTime, \
+    DataAnalysisBuilder, DataAnalysisManagerTimeSeries, DataAnalysisManagerGridded, DataAnalysisFinalizer
 # -------------------------------------------------------------------------------------
 
 
@@ -45,7 +42,7 @@ from src.hat.driver.analysis.hmc.nrt.drv_datapublisher_hmc_nrt import DataAnalys
 # Method to get script argument(s)
 def GetArgs():
     oParser = argparse.ArgumentParser()
-    oParser.add_argument('-settingfile', action="store", dest="sSettingFile")
+    oParser.add_argument('-settings_file', action="store", dest="sSettingFile")
     oParser.add_argument('-time', action="store", dest="sTimeArg")
     oParserValue = oParser.parse_args()
 
@@ -54,7 +51,7 @@ def GetArgs():
     if oParserValue.sSettingFile:
         sSettingsFile = oParserValue.sSettingFile
     else:
-        sSettingsFile = 'hat_datapublisher_hmc_nrt_configuration.json'
+        sSettingsFile = 'configuration.json'
 
     if oParserValue.sTimeArg:
         sTimeArg = oParserValue.sTimeArg
@@ -72,9 +69,9 @@ def main():
 
     # -------------------------------------------------------------------------------------
     # Version and algorithm information
-    sProgramVersion = '1.5.2'
+    sProgramVersion = '1.1.5'
     sProjectName = 'HAT'
-    sAlgType = 'DataPublisher'
+    sAlgType = 'DataManager'
     sAlgName = 'HMC NearRealTime'
     # Time algorithm information
     dStartTime = time.time()
@@ -176,80 +173,120 @@ def main():
         # Clean buffer and product file(s) and folder(s)
         DataAnalysisCleaner(
             flag=[oData_Flags['cleaning_dynamic_data_source'],
-                  oData_Flags['cleaning_dynamic_data_outcome'],
+                  oData_Flags['cleaning_dynamic_data_outcome_ts'],
+                  oData_Flags['cleaning_dynamic_data_outcome_gridded'],
+                  oData_Flags['cleaning_dynamic_data_product_ts'],
+                  oData_Flags['cleaning_dynamic_data_product_gridded'],
                   ],
-            file=[[defineString(oData_Path['file_buffer_ts'], oData_Tags),
-                   defineString(oData_Path['file_buffer_gridded'], oData_Tags),
-                   defineString(oData_Path['file_buffer_info'], oData_Tags)],
-                  [defineString(oData_Path['file_buffer_registry'], oData_Tags),
-                   [defineString(oData_Path[sListItem], oData_Tags) for sListItem in list(
-                          oData_Mapping['file_dewetra_data_ts'])],
-                   [defineString(oData_Path[sListItem], oData_Tags) for sListItem in list(
-                       oData_Mapping['file_dewetra_data_gridded'])],
-                   [defineString(oData_Path[sListItem], oData_Tags) for sListItem in list(
-                       oData_Mapping['file_hydrapp_graph_ts'])],
-                   [defineString(oData_Path[sListItem], oData_Tags) for sListItem in list(
-                       oData_Mapping['file_hydrapp_graph_gridded'])],
-                   ]
+            file=[[defineString(oData_Path['file_buffer_source_info'], oData_Tags),
+                   defineString(oData_Path['file_buffer_source_data'], oData_Tags)],
+                  defineString(oData_Path['file_buffer_outcome_ts'], oData_Tags),
+                  defineString(oData_Path['file_buffer_outcome_gridded'], oData_Tags),
+                  defineString(oData_Path['file_product_ts'], oData_Tags),
+                  defineString(oData_Path['file_product_gridded'], oData_Tags),
                   ]
         ).cleanDataAnalysis()
         # -------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------
         # Get data analysis
-        oLogStream.info(' --> Seek analysis data ... ')
-        oDrv_DataSeeker_Dynamic = DataAnalysisSeeker(oData_Settings['algorithm']['ancillary']['run_application'],
-                                                     time_seek=oTimeRun_STEP,
-                                                     time_period=oData_TimePeriod,
-                                                     settings=oData_Settings,
-                                                     file=oData_Path,
-                                                     mapping=oData_Mapping,
-                                                     tags=oData_Tags
-                                                     )
-
-        if not exists(defineString(oData_Path['file_buffer_info'], oData_Tags)):
-            oData_Dynamic_Source_Info = oDrv_DataSeeker_Dynamic.seekDataAnalysis(oData_Section)
-            savePickle(defineString(oData_Path['file_buffer_info'], oData_Tags), oData_Dynamic_Source_Info)
-            oLogStream.info(' --> Seek dynamic data ... DONE')
-        else:
-            oData_Dynamic_Source_Info = restorePickle(defineString(oData_Path['file_buffer_info'], oData_Tags))
-            oLogStream.info(' --> Seek dynamic data ... LOADED from workspace saved file.')
-        # -------------------------------------------------------------------------------------
-
-        # -------------------------------------------------------------------------------------
-        # Make data analysis
-        oLogStream.info(' --> Make analysis data... ')
-        oDrv_DataMaker_Dynamic = DataAnalysisMaker(
-            oData_Settings['algorithm']['ancillary']['run_application'],
-            time_make=oTimeRun_STEP,
+        oLogStream.info(' --> Get analysis data ... ')
+        oDrv_DataBuilder_Dynamic = DataAnalysisBuilder(
+            time_run=oTimeRun_STEP,
             time_period=oData_TimePeriod,
             settings=oData_Settings,
             file=oData_Path,
             mapping=oData_Mapping,
-            cmap=oData_ColorMap,
-            tags=oData_Tags
+            tags=removeDictKey(oData_Tags, ['Year', 'Month', 'Day', 'Hour', 'Minute']),
         )
 
-        if not exists(defineString(oData_Path['file_buffer_registry'], oData_Tags)):
-            oData_Dynamic_Outcome_Info = oDrv_DataMaker_Dynamic.selectDataAnalysisMaker(oData_Dynamic_Source_Info,
-                                                                                        oData_Geo, oData_Section)
-            savePickle(defineString(oData_Path['file_buffer_registry'], oData_Tags), oData_Dynamic_Outcome_Info)
-            oLogStream.info(' --> Make analysis data ... DONE')
+        if not exists(defineString(oData_Path['file_buffer_source_info'], oData_Tags)):
+            oData_Dynamic_Source = oDrv_DataBuilder_Dynamic.getDataAnalysis(oData_Geo, oData_Section)
+            savePickle(defineString(oData_Path['file_buffer_source_info'], oData_Tags),
+                       oData_Dynamic_Source)
+            oLogStream.info(' --> Get dynamic data ... DONE')
         else:
-            oLogStream.info(' --> Make analysis data ... SKIPPED! Data previously published.')
-            oData_Dynamic_Outcome_Info = restorePickle(defineString(oData_Path['file_buffer_registry'], oData_Tags))
+            oData_Dynamic_Source = restorePickle(defineString(oData_Path['file_buffer_source_info'], oData_Tags))
+            oLogStream.info(' --> Get dynamic data ... LOADED from buffer workspace saved file.')
+        # -------------------------------------------------------------------------------------
+
+        # -------------------------------------------------------------------------------------
+        # Compute time series data analysis
+        oLogStream.info(' --> Compute dynamic time-series data... ')
+        oDrv_DataManager_Dynamic_TS = DataAnalysisManagerTimeSeries(
+            time_run=oTimeRun_STEP,
+            time_period=oData_TimePeriod,
+            settings=oData_Settings,
+            file=oData_Path,
+            mapping=oData_Mapping,
+            tags=removeDictKey(oData_Tags, ['Year', 'Month', 'Day', 'Hour', 'Minute']),
+        )
+
+        if not exists(defineString(oData_Path['file_buffer_outcome_ts'], oData_Tags)):
+            oData_Dynamic_Outcome_TS = oDrv_DataManager_Dynamic_TS.computeDataAnalysis(
+                oData_Dynamic_Source, oData_Section)
+            savePickle(defineString(oData_Path['file_buffer_outcome_ts'], oData_Tags),
+                       oData_Dynamic_Outcome_TS)
+            oLogStream.info(' --> Compute dynamic time-series data ... DONE')
+        else:
+            oData_Dynamic_Outcome_TS = restorePickle(defineString(
+                oData_Path['file_buffer_outcome_ts'], oData_Tags))
+            oLogStream.info(' --> Compute dynamic time-series data ... LOADED from buffer workspace saved file.')
+
+        # Compute gridded data analysis
+        oLogStream.info(' --> Compute dynamic gridded data ... ')
+        oDrv_DataManager_Dynamic_Gridded = DataAnalysisManagerGridded(
+            time_run=oTimeRun_STEP,
+            time_period=oData_TimePeriod,
+            settings=oData_Settings,
+            file=oData_Path,
+            mapping=oData_Mapping,
+            tags=removeDictKey(oData_Tags, ['Year', 'Month', 'Day', 'Hour', 'Minute']),
+        )
+
+        if not exists(defineString(oData_Path['file_buffer_outcome_gridded'], oData_Tags)):
+            oData_Dynamic_Outcome_Gridded = oDrv_DataManager_Dynamic_Gridded.computeDataAnalysis(
+                oData_Dynamic_Source, oData_Geo)
+            savePickle(defineString(oData_Path['file_buffer_outcome_gridded'], oData_Tags),
+                       oData_Dynamic_Outcome_Gridded)
+            oLogStream.info(' --> Compute dynamic gridded data ... DONE')
+        else:
+            oData_Dynamic_Outcome_Gridded = restorePickle(defineString(
+                oData_Path['file_buffer_outcome_gridded'], oData_Tags))
+            oLogStream.info(' --> Compute dynamic gridded data ... LOADED from buffer workspace saved file.')
+        # -------------------------------------------------------------------------------------
+
+        # -------------------------------------------------------------------------------------
+        # Save data dynamic
+        oLogStream.info(' --> Save dynamic data ... ')
+        oDrv_DataFinalizer_Dynamic = DataAnalysisFinalizer(
+            time_run=oTimeRun_STEP,
+            time_period=oData_TimePeriod,
+            data_ts=oData_Dynamic_Outcome_TS,
+            data_gridded=oData_Dynamic_Outcome_Gridded,
+            settings=oData_Settings,
+            file=oData_Path,
+            mapping=oData_Mapping,
+            tags=removeDictKey(oData_Tags, ['Year', 'Month', 'Day', 'Hour', 'Minute']))
+        if not (exists(defineString(oData_Path['file_product_ts'], oData_Tags))) or not (
+                exists(defineString(oData_Path['file_product_gridded'], oData_Tags))):
+            oDrv_DataFinalizer_Dynamic.saveDataAnalysis(oData_Dynamic_Source, oData_Section, oData_Geo)
+            oLogStream.info(' --> Save dynamic data ... DONE')
+        else:
+            oLogStream.info(' --> Save dynamic data ... SKIPPED! Data previously saved.')
         # -------------------------------------------------------------------------------------
 
         # -------------------------------------------------------------------------------------
         # Clean buffer file(s) and folder(s)
         DataAnalysisCleaner(
             flag=[oData_Flags['cleaning_dynamic_data_source'],
-                  oData_Flags['cleaning_dynamic_data_outcome']
+                  oData_Flags['cleaning_dynamic_data_outcome_ts'],
+                  oData_Flags['cleaning_dynamic_data_outcome_gridded']
                   ],
-            file=[[defineString(oData_Path['file_buffer_ts'], oData_Tags),
-                   defineString(oData_Path['file_buffer_gridded'], oData_Tags),
-                   defineString(oData_Path['file_buffer_info'], oData_Tags)],
-                  [defineString(oData_Path['file_buffer_registry'], oData_Tags)]
+            file=[[defineString(oData_Path['file_buffer_source_info'], oData_Tags),
+                   defineString(oData_Path['file_buffer_source_data'], oData_Tags)],
+                  defineString(oData_Path['file_buffer_outcome_ts'], oData_Tags),
+                  defineString(oData_Path['file_buffer_outcome_gridded'], oData_Tags),
                   ]
         ).cleanDataAnalysis()
         # -------------------------------------------------------------------------------------

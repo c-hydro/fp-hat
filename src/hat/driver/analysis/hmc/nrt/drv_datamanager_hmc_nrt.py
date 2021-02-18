@@ -621,13 +621,48 @@ class DataAnalysisManagerGridded:
 
                                             # -------------------------------------------------------------------------------------
                                             # Select data using date times
-                                            oVarData_SEL = oVarData_WS.sel(time=oVarDateRange_SEL)
-                                            bVarData_SEL = list(oVarData_SEL.indexes.values())[0].equals(oVarDateRange_SEL)
+                                            oVarDateRange_WS = pd.DatetimeIndex(oVarData_WS.time.values)
+                                            oVarDataRange_DIFF = oVarDateRange_SEL.difference(oVarDateRange_WS)
+
+                                            # Check if all time steps are defined in datasets
+                                            if not oVarDataRange_DIFF.empty:
+                                                oVarDateRange_FILL = oVarDateRange_WS.union(oVarDataRange_DIFF)
+                                                oVarData_FILL = xr.Dataset(
+                                                    coords={'time': (['time'], pd.to_datetime(oVarDateRange_FILL))})
+                                                oVarData_FILLED = oVarData_FILL.combine_first(oVarData_WS)
+
+                                                Exc.getExc(
+                                                    ' =====> WARNING: some time step(s) are missed: ' +
+                                                    str(oVarDataRange_DIFF.to_list()) + '. Step(s) filled using NaNs!',
+                                                    2, 1)
+                                            else:
+                                                oVarData_FILLED = oVarData_WS
+
+                                            # Find finite time step(s)
+                                            _, oVarDateRange_FINITE = oLibCmpTS.findVarFinite(
+                                                oVarData_FILLED, sVarName=sVarNameOutcome_SEL)
+                                            # Find common time step(s) between finite and generic selection
+                                            oVarDateRange_INTER = oVarDateRange_FINITE.intersection(oVarDateRange_SEL)
+
+                                            # Select data by using finite time step(s)
+                                            if oVarDateRange_INTER.size < oVarDateRange_SEL.size:
+                                                oVarDateRange_FINITE_SEL = oVarDateRange_FINITE[-oVarDateRange_SEL.size:]
+                                            else:
+                                                oVarDateRange_FINITE_SEL = oVarDateRange_SEL
+
+                                            # Check availability of all time step(s)
+                                            oVarData_SEL = oVarData_FILLED.sel(time=oVarDateRange_FINITE_SEL)
+                                            bVarData_SEL = list(oVarData_SEL.indexes.values())[0].equals(
+                                                oVarDateRange_FINITE_SEL)
                                             # -------------------------------------------------------------------------------------
 
                                             # -------------------------------------------------------------------------------------
                                             # Apply method to data
                                             if bVarData_SEL:
+
+                                                # Add information about effective computating time step(s)
+                                                oVarAttributes['time_from'] = oVarDateRange_FINITE_SEL[0]
+                                                oVarAttributes['time_to'] = oVarDateRange_FINITE_SEL[-1]
 
                                                 # Set variable attributes
                                                 oVarGridded_ATTRIBUTES = mergeDict(
@@ -846,6 +881,8 @@ class DataAnalysisManagerTimeSeries:
             # sVarKey = "data_forecast_gridded_forcing_deterministic_ecmwf" #
             # sVarKey = "data_result_ts_discharge_probabilistic_ecmwf" # OK
             # sVarKey = "data_result_ts_discharge_deterministic_ecmwf"  #
+            # sVarKey = "data_forecast_gridded_forcing_probabilistic_lami" #
+            # sVarKey = "data_forecast_gridded_forcing_deterministic_lami" #
             # sVarKey = "data_test_nodata"
             # oVarFields = oVarDef[sVarKey]
             # DEBUG
@@ -1588,7 +1625,7 @@ class DataAnalysisBuilder:
 
     # -------------------------------------------------------------------------------------
     # Method to get data
-    def getDataAnalysis(self, oPointData):
+    def getDataAnalysis(self, oLandData, oPointData):
 
         # -------------------------------------------------------------------------------------
         # Get global declaration(s)
@@ -1640,6 +1677,10 @@ class DataAnalysisBuilder:
             # sVarKey = "data_forecast_gridded_forcing_deterministic_ecmwf" # OK
             # sVarKey = "data_result_ts_discharge_probabilistic_ecmwf" # OK
             # sVarKey = "data_result_ts_discharge_deterministic_ecmwf"  # OK
+            # sVarKey = "data_forecast_gridded_forcing_deterministic_lami"
+            # sVarKey = "data_forecast_gridded_forcing_probabilistic_lami"
+            # sVarKey = "data_result_ts_discharge_deterministic_lami" # OK
+            # sVarKey = "data_result_ts_discharge_probabilistic_lami" # OK
             # sVarKey = "data_test_nodata" # OK
             # oVarFields = oVarDef[sVarKey]
             # DEBUG
@@ -1898,7 +1939,8 @@ class DataAnalysisBuilder:
                                        'oFileTime': oVarTime_STORE_STEP,
                                        'oFileVarsSource': oVarNameSource_STEP,
                                        'oFileVarsOutcome': oVarNameOutcome_STEP,
-                                       'sFolderTmp': sVarFolder_TMP}
+                                       'sFolderTmp': sVarFolder_TMP,
+                                       'oDataGeo': oLandData}
 
                             # Compute variable data
                             oVarObj_BUFFER, oFileObj_BUFFER = configVarFx(sVarMethodName, oLibGridded, oFxArgs)
@@ -1913,7 +1955,8 @@ class DataAnalysisBuilder:
                                        'oFileVarsSource': oVarNameSource_STEP,
                                        'oFileVarsOutcome': oVarNameOutcome_STEP,
                                        'oDataTime': oDatasetTime_REF_STEP,
-                                       'sFolderTmp': sVarFolder_TMP}
+                                       'sFolderTmp': sVarFolder_TMP,
+                                       'oDataGeo': oLandData}
 
                             # Compute variable data
                             oVarObj_BUFFER, oFileObj_BUFFER = configVarFx(sVarMethodName, oLibGridded, oFxArgs)

@@ -47,6 +47,22 @@ def createVarDataFrame(oDataTime):
 
 
 # -------------------------------------------------------------------------------------
+# Method to find finite gridded data steps along time
+def findVarFinite(oVarData, sVarName='air_temperature', sVarMask='Terrain', sVarTime='time'):
+
+    oVarData_CHECK = oVarData.where(oVarData[sVarMask] > 0).mean(dim=['south_north', 'west_east'])[sVarName]
+    oVarTime_CHECK = oVarData[sVarTime]
+
+    oVarData_BOOL = xr.ufuncs.isfinite(oVarData_CHECK)
+
+    oVarTime_FINITE = pd.DatetimeIndex(oVarTime_CHECK.where(oVarData_BOOL).dropna(dim='time').values)
+    oVarData_FINITE = oVarData_CHECK.sel(time=oVarTime_FINITE)
+
+    return oVarData_FINITE, oVarTime_FINITE
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
 # Method to mean gridded data steps along time
 def cmpVarMean(oVarData, oVarTime_FROM=None, oVarTime_TO=None):
 

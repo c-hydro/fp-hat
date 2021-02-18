@@ -56,6 +56,23 @@ def configVarArgs(oFxData):
 
 
 # -------------------------------------------------------------------------------------
+# Method to get indexed dataframe
+def configGraphIdxDF_TS(oDataValue_IN):
+
+    if isinstance(oDataValue_IN, dict):
+        iN = oDataValue_IN.__len__()
+        oDataValue_OUT = []
+        for iI in range(0, iN):
+            oDataValue = list(oDataValue_IN.values())[iI]
+            oDataValue_OUT.append(oDataValue)
+    else:
+        oDataValue_OUT = oDataValue_IN
+
+    return oDataValue_OUT
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
 # Method to config data time-series time(s)
 def configGraphTime_TS(oDataValue, sTimeFormat='%m-%d %H'):
 

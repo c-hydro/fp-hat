@@ -11,10 +11,12 @@ Version:       '1.0.0'
 import logging
 import progressbar
 import os
+import time
 
 import numpy as np
 import pandas as pd
 
+from collections import OrderedDict
 from copy import deepcopy
 
 from src.common.utils.lib_utils_op_string import defineString
@@ -26,7 +28,8 @@ from src.hat.dataset.generic.lib_generic_io_apps import findVarName, findVarTag,
 from src.hat.dataset.generic.lib_generic_io_utils import createVarAttrs, mergeVarAttrs, addVarAttrs, reduceDArray3D
 from src.hat.dataset.generic.lib_generic_configuration_utils import configVarFx
 
-from src.hat.framework.hydrapp.lib_hydrapp_io_apps import wrapFileRegistry
+from src.hat.framework.hydrapp.lib_hydrapp_io_apps import wrapFileRegistry, \
+    defineRootRegistry, translateRootRegistry, updateRootRegistry
 from src.hat.framework.hydrapp.lib_hydrapp_graph_configuration import configVarArgs
 import src.hat.framework.hydrapp.lib_hydrapp_graph_ts as libFxTS
 import src.hat.framework.hydrapp.lib_hydrapp_graph_gridded as libFxGridded
@@ -59,6 +62,8 @@ class DataPublisher:
         self.oVarMapping = oAppArgs['mapping']
         self.oVarCMap = oAppArgs['cmap']
         self.oVarTags = oAppArgs['tags']
+
+        self.sVarPathDelimiter = '$group'
 
         # Map file(s)
         self.oVarFile, self.oVarBaseName = fileMapping(self.oVarSource, self.oVarMapping, self.oVarTags)
@@ -93,6 +98,10 @@ class DataPublisher:
         oVarData_DEF_WS = {}
         oVarRegistry_DEF_WS = {}
         # -------------------------------------------------------------------------------------
+
+        # DEBUG
+        # """
+        # DEBUG
 
         # -------------------------------------------------------------------------------------
         # Iterate over dataset(s)
@@ -149,10 +158,10 @@ class DataPublisher:
             for oVarMethodObj in oVarMethodName_RED:
 
                 # DEBUG
-                # n = 1
-                # sVarMethodObj = next(x for i, x in enumerate(oVarMethodObj) if i == n)
+                # n = 2 # number of graph
+                # sVarMethodObj_SEL = next(x for i, x in enumerate(oVarMethodObj) if i == n)
                 # oVarMethodObj_TMP = deepcopy(oVarMethodObj)
-                # oVarMethodObj = {sVarMethodObj: oVarMethodObj_TMP[sVarMethodObj]}
+                # oVarMethodObj = {sVarMethodObj_SEL: oVarMethodObj_TMP[sVarMethodObj_SEL]}
                 # DEBUG
 
                 # -------------------------------------------------------------------------------------
@@ -233,6 +242,12 @@ class DataPublisher:
                                     iSectionHAT_ID_COLS = None
                                     iSectionHAT_ID_ROWS = None
 
+                                # Get section reference basin (if not available == name of the basin)
+                                if 'MAIN_BASIN' in oSectionInfo:
+                                    sSectionRoot = oSectionInfo['MAIN_BASIN']
+                                else:
+                                    sSectionRoot = oSectionInfo['BASIN']
+
                                 sSectionFileName_ANCILLARY = oSectionInfo['OUTLET_FILE_ANCILLARY']
                                 # Info section
                                 oLogStream.info(' ------> Publishing time-series data for section ' +
@@ -251,6 +266,9 @@ class DataPublisher:
                                     sVarFileName_DEF = oVarFile[sFileName_DEF]
                                     sVarFileRegistry_DEF = oVarFile['file_hydrapp_info_ts']
 
+                                    # Store path to registry file
+                                    sVarFilePath_DEF = defineRootRegistry(sVarFileName_DEF, '$group', '$graphname')
+
                                     # Define file tags
                                     oFileTags_DEF = {
                                         '$yyyy': str(oVarTime_RUN.year).zfill(4),
@@ -261,11 +279,11 @@ class DataPublisher:
                                         '$section': sSectionName,
                                         '$application': sAppTag,
                                         '$graphname': sGraphName_DEF,
-                                        '$group': sSectionBasin,
+                                        '$group': sSectionRoot,
                                         '$basin': sSectionBasin,
                                         '$row': "{:03d}".format(iSectionHAT_ID_ROWS),
                                         '$col': "{:03d}".format(iSectionHAT_ID_COLS),
-                                        '$element': "{:03d}".format(iSectionHAT_ELEM)
+                                        '$element': "{:03d}".format(iSectionHAT_ELEM),
                                     }
 
                                     # Define ancillary filename, graph and registry
@@ -275,6 +293,11 @@ class DataPublisher:
                                         oFileTags_DEF, oVarTags))
                                     sVarFileRegistry_DEF = defineString(sVarFileRegistry_DEF, mergeDict(
                                         oFileTags_DEF, oVarTags))
+                                    sVarFilePath_DEF = defineString(sVarFilePath_DEF, mergeDict(
+                                        oFileTags_DEF, oVarTags))
+
+                                    # Get list of registry path
+                                    oVarFilePath_DEF = translateRootRegistry(sVarFilePath_DEF)
                                     # -------------------------------------------------------------------------------------
 
                                     # -------------------------------------------------------------------------------------
@@ -335,14 +358,16 @@ class DataPublisher:
 
                                         # -------------------------------------------------------------------------------------
                                         # Iterate over method variable(s) name and appearance
-                                        oVarData_DEF = {}
+                                        oVarData_DEF = OrderedDict()
                                         for (sVarAppGroup_TYPE, oVarAppValue_TYPE), \
                                             (sVarNameGroup_TYPE, oVarNameValue_TYPE) in zip(
                                                 oVarAppearance_DEF.items(), oVarName_DEF.items()):
 
                                             # -------------------------------------------------------------------------------------
+                                            # Add dictionary key(s)
+                                            oVarData_DEF[sVarNameGroup_TYPE] = {}
+
                                             # Iterate over variable(s) to publish data    using defined function(s)
-                                            oVarDataFrame_DEF = None
                                             for iVarID_TYPE_STEP, \
                                                 (sFileContent_TYPE_STEP,
                                                  sVarNameValue_TYPE_STEP, sVarAppValue_TYPE_STEP) in enumerate(
@@ -350,6 +375,7 @@ class DataPublisher:
 
                                                 # -------------------------------------------------------------------------------------
                                                 # Check variable definition
+                                                oVarDataFrame_DEF = None
                                                 if sVarNameValue_TYPE_STEP in oVarNameOutcome:
 
                                                     # -------------------------------------------------------------------------------------
@@ -398,42 +424,41 @@ class DataPublisher:
                                                     # -------------------------------------------------------------------------------------
 
                                                     # -------------------------------------------------------------------------------------
-                                                    # Iterate over variable(s)
-                                                    oVarDataAttrs_TYPE_STEP = None
-                                                    for sVarNameOutcome_TYPE_STEP, sVarNameGroup_TYPE_STEP in zip(
-                                                            oVarNameOutcome_TYPE_STEP, oVarNameGroup_TYPE_STEP):
+                                                    # Get variable(s)
+                                                    if oVarNameOutcome_TYPE_STEP.__len__() == 1:
+                                                        sVarNameOutcome_TYPE_STEP = oVarNameOutcome_TYPE_STEP[0]
+                                                        oVarDset_TYPE_STEP = oVarFile_DEF[sVarNameOutcome_TYPE_STEP]
+                                                        oVarAttr_TYPE_STEP = dict(oVarFile_DEF[sVarNameOutcome_TYPE_STEP].attrs)
+                                                    else:
+                                                        oVarDset_TYPE_STEP = oVarFile_DEF[oVarNameOutcome_TYPE_STEP]
+                                                        oVarAttr_TYPE_STEP = oVarFile_DEF[oVarNameOutcome_TYPE_STEP[0]].attrs
 
-                                                        # Get data for each variable(s)
-                                                        oVarDataArray_TYPE_STEP = oVarFile_DEF[sVarNameOutcome_TYPE_STEP]
-                                                        oVarDataFrame_TYPE_STEP = oVarDataArray_TYPE_STEP.to_dataframe(
-                                                            name=sVarNameOutcome_TYPE_STEP)
+                                                    # Set dataframe object
+                                                    oVarDataFrame_DEF = oVarDset_TYPE_STEP.to_dataframe()
 
-                                                        if oVarDataAttrs_TYPE_STEP is None:
-                                                            oVarDataAttrs_TYPE_STEP = oVarDataArray_TYPE_STEP.attrs
+                                                    if oVarNameGroup_TYPE_STEP.__len__() == 1:
+                                                        sVarNameGroup_DEF = oVarNameGroup_TYPE_STEP[0]
+                                                    else:
+                                                        sVarNameGroup_DEF = list(set(oVarNameGroup_TYPE_STEP))[0]
 
-                                                            # Add min and max value of variable (run based information)
-                                                            if sVarNameGroup_TYPE_STEP != 'other':
-                                                                oSectioStats_TYPE_STEP = oSectionStats[
-                                                                    sVarNameGroup_TYPE_STEP]
-                                                                oVarDataAttrs_TYPE_STEP['min'] = oSectioStats_TYPE_STEP[
-                                                                    'min']
-                                                                oVarDataAttrs_TYPE_STEP['max'] = oSectioStats_TYPE_STEP[
-                                                                    'max']
-                                                            else:
-                                                                oVarDataAttrs_TYPE_STEP['min'] = None
-                                                                oVarDataAttrs_TYPE_STEP['max'] = None
+                                                    sVarFileGroup_DEF = sVarFileGroup_TYPE_STEP
 
-                                                                # Manage data frame iteration(s)
-                                                        if oVarDataFrame_DEF is None:
-                                                            oVarDataFrame_DEF = oVarDataFrame_TYPE_STEP.copy()
-                                                        else:
-                                                            oVarDataFrame_DEF[sVarNameOutcome_TYPE_STEP] = \
-                                                                oVarDataFrame_TYPE_STEP
+                                                    # Add min and max value of variable (run based information)
+                                                    oVarStatsAttrs_TYPE_STEP = {}
+                                                    if sVarNameGroup_DEF != 'other':
+                                                        oSectioStats_TYPE_STEP = oSectionStats[sVarNameGroup_DEF]
+                                                        oVarStatsAttrs_TYPE_STEP['min'] = oSectioStats_TYPE_STEP['min']
+                                                        oVarStatsAttrs_TYPE_STEP['max'] = oSectioStats_TYPE_STEP['max']
+                                                    else:
+                                                        oVarStatsAttrs_TYPE_STEP['min'] = None
+                                                        oVarStatsAttrs_TYPE_STEP['max'] = None
 
-                                                    # Add attribute(s) to dataframe
+                                                    # Create variable attribute(s)
+                                                    oVarAttr_TYPE_STEP.update(oVarStatsAttrs_TYPE_STEP)
+
+                                                    # Set attributes object
                                                     oVarAttrs_DEF = mergeVarAttrs(
-                                                        [oVarSectionAttrs, oVarAlgAttrs_TYPE_STEP,
-                                                         oVarDataAttrs_TYPE_STEP])
+                                                        [oVarSectionAttrs, oVarAlgAttrs_TYPE_STEP, oVarAttr_TYPE_STEP])
                                                     # -------------------------------------------------------------------------------------
                                                 else:
                                                     # -------------------------------------------------------------------------------------
@@ -463,7 +488,12 @@ class DataPublisher:
                                                 # -------------------------------------------------------------------------------------
                                                 # Save data in a dictionary to apply publish function
                                                 oVarDataFrame_DEF = addVarAttrs(oVarDataFrame_DEF, oVarAttrs_DEF)
-                                                oVarData_DEF[sVarNameGroup_TYPE] = oVarDataFrame_DEF
+
+                                                # Update data dictionary sVarFileGroup_TYPE_STEP
+                                                # if sVarFileGroup_TYPE_STEP not in oVarData_DEF[sVarNameGroup_TYPE]:
+                                                if sVarNameGroup_DEF not in oVarData_DEF[sVarNameGroup_TYPE]:
+                                                    oVarData_DEF[sVarNameGroup_TYPE][sVarFileGroup_DEF] = {}
+                                                    oVarData_DEF[sVarNameGroup_TYPE][sVarFileGroup_DEF] = oVarDataFrame_DEF
                                                 # -------------------------------------------------------------------------------------
 
                                             # End of iteration over(s) variable(s) data
@@ -490,17 +520,18 @@ class DataPublisher:
                                             if 'registry' not in oVarRegistry_DEF_WS[sVarKey]:
                                                 oVarRegistry_DEF_WS[sVarKey]['registry'] = {}
 
-                                            sRegistryString = sSectionBasin.replace(' ', '_')
-                                            if sRegistryString not in oVarRegistry_DEF_WS[sVarKey]['registry']:
+                                            sRegistryString = sSectionRoot.replace(' ', '_')
+                                            if sRegistryString not in list(oVarRegistry_DEF_WS[sVarKey]['registry']):
                                                 oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = {}
-                                                oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString]['level1'] = \
-                                                    [sGraphName_DEF]
+                                                oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_DEF
                                             else:
                                                 oVarReg_GENERIC = oVarRegistry_DEF_WS[sVarKey]['registry']
-                                                oRunReg = oVarReg_GENERIC[sRegistryString]['level1']
-                                                oRunReg.append(sGraphName_DEF)
-                                                oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString]['level1'] = \
-                                                    list(set(oRunReg))
+
+                                                oVarFilePath_STORAGE = oVarReg_GENERIC[sRegistryString]
+                                                oVarFilePath_UPD = updateRootRegistry(oVarFilePath_STORAGE, oVarFilePath_DEF)
+
+                                                oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_UPD
+
                                         else:
                                             # Exit condition for error(s) in plotting data
                                             Exc.getExc(' =====> WARNING: error(s) occurred in plotting data! ', 2, 1)
@@ -537,6 +568,7 @@ class DataPublisher:
                             # DEBUG
                             # sVarGroup_DEF = 'sm_model_obs'
                             # sVarGroup_DEF = 'snow_density_model_obs'
+                            # sVarGroup_DEF = 'rain_nwp_accumulated_deterministic_lami'
                             # DEBUG
 
                             # -------------------------------------------------------------------------------------
@@ -567,6 +599,9 @@ class DataPublisher:
                                     sVarFileName_DEF = deepcopy(oVarFile[sFileName_DEF])
                                     sVarFileRegistry_DEF = deepcopy(oVarFile['file_hydrapp_info_gridded'])
 
+                                    # Store path to registry file
+                                    sVarFilePath_DEF = defineRootRegistry(sVarFileName_DEF, '$group', '$graphname')
+
                                     # Get variable colormap
                                     if sCMapName_DEF is not None:
                                         if sCMapName_DEF in list(oVarCMap.keys()):
@@ -596,6 +631,11 @@ class DataPublisher:
                                         oFileTags_DEF, oVarTags))
                                     sVarFileRegistry_DEF = defineString(sVarFileRegistry_DEF, mergeDict(
                                         oFileTags_DEF, oVarTags))
+                                    sVarFilePath_DEF = defineString(sVarFilePath_DEF, mergeDict(
+                                        oFileTags_DEF, oVarTags))
+
+                                    # Get list of registry path
+                                    oVarFilePath_DEF = translateRootRegistry(sVarFilePath_DEF)
                                     # -------------------------------------------------------------------------------------
 
                                     # -------------------------------------------------------------------------------------
@@ -714,16 +754,17 @@ class DataPublisher:
                                                         oVarRegistry_DEF_WS[sVarKey]['registry'] = {}
 
                                                     sRegistryString = sVarAppearance_DEF.replace(" ", "_")
-                                                    if sRegistryString not in oVarRegistry_DEF_WS[sVarKey]['registry']:
+                                                    if sRegistryString not in list(oVarRegistry_DEF_WS[sVarKey]['registry']):
                                                         oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = {}
-                                                        oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString][
-                                                            'level1'] = [sGraphName_DEF]
+                                                        oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_DEF
                                                     else:
                                                         oVarReg_GENERIC = oVarRegistry_DEF_WS[sVarKey]['registry']
-                                                        oRunReg = oVarReg_GENERIC[sRegistryString]['level1']
-                                                        oRunReg.append(sGraphName_DEF)
-                                                        oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString][
-                                                            'level1'] = list(set(oRunReg))
+
+                                                        oVarFilePath_STORAGE = oVarReg_GENERIC[sRegistryString]
+                                                        oVarFilePath_UPD = updateRootRegistry(oVarFilePath_STORAGE,oVarFilePath_DEF)
+
+                                                        oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_UPD
+
                                                 else:
                                                     # Info end
                                                     oLogStream.info(' -------> Publishing gridded data ' +
@@ -784,6 +825,23 @@ class DataPublisher:
 
             # End iteration(s) over publishing object(s)
             # -------------------------------------------------------------------------------------
+
+        # """
+        # DEBUG
+        # import pickle
+        # sFileTmp = 'registry_data'
+        # sPathTmp = os.path.dirname(os.path.realpath(__file__))
+
+        # Create registry debug file
+        # oFileTmp = open(os.path.join(sPathTmp, sFileTmp), 'wb')
+        # pickle.dump(oVarRegistry_DEF_WS, oFileTmp, protocol=pickle.HIGHEST_PROTOCOL)
+        # oFileTmp.close()
+
+        # Read registry debug file
+        # oFileTmp = open(os.path.join(sPathTmp, sFileTmp), 'rb')
+        # oVarRegistry_DEF_WS = pickle.load(oFileTmp)
+        # oFileTmp.close()
+        # DEBUG
 
         # -------------------------------------------------------------------------------------
         # End iteration(s) over dataset(s)

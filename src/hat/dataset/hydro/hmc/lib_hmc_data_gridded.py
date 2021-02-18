@@ -3,13 +3,14 @@ Library Features:
 
 Name:          lib_hmc_data_gridded
 Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
-Date:          '20190115'
-Version:       '1.0.0'
+Date:          '20191023'
+Version:       '1.0.1'
 """
 
 #######################################################################################
 # Library
 import logging
+import warnings
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -31,12 +32,76 @@ oLogStream = logging.getLogger(sLoggerName)
 
 
 # -------------------------------------------------------------------------------------
+# Method to add variable to datasets
+def addVar3D(oFileData, a3dVarData, a2dVarGeoX, a2dVarGeoY, iTimeStep=0, sVarName='Terrain', sTimeName='time'):
+
+    # Check if variable is in file list (considering the upper and lower cases)
+    oFileVars = list(oFileData.variables)
+    if sVarName.lower() in oFileVars:
+        sVarFile = oFileVars.index(sVarName.lower())
+        oFileData = oFileData.rename({sVarFile: sVarName})
+    elif sVarName.upper() in oFileVars:
+        sVarFile = oFileVars.index(sVarName.upper())
+        oFileData = oFileData.rename({sVarFile: sVarName})
+
+    # Check availability of variable in datasets
+    if sVarName not in oFileVars:
+
+        # Create a data array for adding in dataset
+        oVarData = xr.DataArray(a3dVarData,
+                                dims=['time', 'south_north', 'west_east'],
+                                coords={
+                                    'time': ('time', iTimeStep),
+                                    'Longitude': (['south_north', 'west_east'], a2dVarGeoX),
+                                    'Latitude': (['south_north', 'west_east'], a2dVarGeoY)})
+
+        oFileData[sVarName] = oVarData
+
+    return oFileData
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to add variable to datasets
+def addVar2D(oFileData, a2dVarData, a2dVarGeoX, a2dVarGeoY, sVarName='Terrain'):
+
+    # Check if variable is in file list (considering the upper and lower cases)
+    oFileVars = list(oFileData.variables)
+    if sVarName.lower() in oFileVars:
+        iVarID = oFileVars.index(sVarName.lower())
+        sVarFile = oFileVars[iVarID]
+        oFileData = oFileData.rename({sVarFile: sVarName})
+    elif sVarName.upper() in oFileVars:
+        iVarID = oFileVars.index(sVarName.upper())
+        sVarFile = oFileVars[iVarID]
+        oFileData = oFileData.rename({sVarFile: sVarName})
+
+    # Check availability of variable in datasets
+    if sVarName not in oFileVars:
+
+        # Create a data array for adding in dataset
+        oVarData = xr.DataArray(a2dVarData,
+                                dims=['south_north', 'west_east'],
+                                coords={'Longitude': (['south_north', 'west_east'], a2dVarGeoX),
+                                        'Latitude': (['south_north', 'west_east'], a2dVarGeoY)})
+
+        oFileData[sVarName] = oVarData
+
+    return oFileData
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
 # Method to get file gridded with 3d variable
 def getVar3D(oFileName, oFileTime, oDataTime=None, oFileVarsSource=None, oFileVarsOutcome=None,
-             oFileVars_DEFAULT=None, sFolderTmp=None, sSuffixTmp='.nc'):
+             oFileVars_DEFAULT=None, sFolderTmp=None, sSuffixTmp='.nc', oFileDims_LUT=None,
+             oDataGeo=None):
 
     if oFileVars_DEFAULT is None:
         oFileVars_DEFAULT = ['Longitude', 'Latitude', 'Terrain', 'time', 'crs']
+
+    if oFileDims_LUT is None:
+        oFileDims_LUT = {'X': 'west_east', 'Y': 'south_north', 'time': 'time'}
 
     if isinstance(oFileName, str):
         oFileName = [oFileName]
@@ -139,6 +204,21 @@ def getVar3D(oFileName, oFileTime, oDataTime=None, oFileVarsSource=None, oFileVa
                 # Drop variables unselected
                 oFileData = removeVar2D(oFileData, oFileVarsSource_EXPECTED, oFileVarsSource_SELECTED)
 
+                # Set values for Terrain field
+                if oDataGeo is not None:
+                    if 'Terrain' not in list(oFileData.variables):
+                        oFileData = addVar2D(oFileData,
+                                             oDataGeo.a2dGeoData, oDataGeo.a2dGeoX, oDataGeo.a2dGeoY,
+                                             sVarName='Terrain')
+                    if 'Longitude' not in list(oFileData.variables):
+                        oFileData = addVar2D(oFileData,
+                                             oDataGeo.a2dGeoX, oDataGeo.a2dGeoX, oDataGeo.a2dGeoY,
+                                             sVarName='Longitude')
+                    if 'Latitude' not in list(oFileData.variables):
+                        oFileData = addVar2D(oFileData,
+                                             oDataGeo.a2dGeoY, oDataGeo.a2dGeoX, oDataGeo.a2dGeoY,
+                                             sVarName='Latitude')
+
                 # Drop variables with expected time
                 if not pd.DatetimeIndex(oDataTime_EXPECTED).equals(pd.DatetimeIndex(oDataTime_SELECT)):
                     # Define datetime index
@@ -183,32 +263,56 @@ def getVar3D(oFileName, oFileTime, oDataTime=None, oFileVarsSource=None, oFileVa
                 oFileData_IN = oFileData
                 oFileData_IN_COORDS = oFileData_IN.coords
 
-                oFileData_OUT = xr.Dataset(coords=oFileData_IN_COORDS)
-                for sVarName_IN, sVarName_OUT in zip(oFileVarsSource_SELECTED_N, oFileVarsOutcome_SELECTED_N):
-                    #if sVarName_IN != sVarName_OUT:
-                    if sVarName_IN in list(oFileData_SELECTED.variables.keys()):
-                        if (sVarName_IN in oFileVarsSource_SELECTED_ID) and (
-                                sVarName_OUT in oFileVarsOutcome_SELECTED_ID):
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=FutureWarning)
 
-                            #iVarID = oFileVarsSource_SELECTED_ID.index(sVarName_IN)
+                    oFileData_OUT = xr.Dataset(coords=oFileData_IN_COORDS)
+                    for sVarName_IN, sVarName_OUT in zip(oFileVarsSource_SELECTED_N, oFileVarsOutcome_SELECTED_N):
 
-                            oVarData_IN = oFileData_IN[sVarName_IN]
-                            oVarData_IN_DIMS = oVarData_IN.dims
-                            oVarData_IN_COORDS = oVarData_IN.coords
-                            oVarDArray = xr.DataArray(oVarData_IN, dims=oVarData_IN_DIMS, coords=oVarData_IN_COORDS)
+                        if sVarName_IN in list(oFileData_SELECTED.variables.keys()):
+                            if (sVarName_IN in oFileVarsSource_SELECTED_ID) and (
+                                    sVarName_OUT in oFileVarsOutcome_SELECTED_ID):
 
-                            oFileData_OUT[sVarName_OUT] = oVarDArray
+                                oVarData_IN = oFileData_IN[sVarName_IN]
+                                oVarData_IN_DIMS = oVarData_IN.dims
+                                oVarData_IN_COORDS = oVarData_IN.coords
+                                oVarDArray = xr.DataArray(oVarData_IN, dims=oVarData_IN_DIMS, coords=oVarData_IN_COORDS)
 
-                            #oFileData_SELECTED = oFileData_SELECTED.rename({sVarName_IN: sVarName_OUT})
-                            #oFileVarsSource_SELECTED_ID.pop(iVarID)
-                            #oFileVarsOutcome_SELECTED_ID.pop(iVarID)
+                                oFileData_OUT[sVarName_OUT] = oVarDArray
 
-                if oFileData_ALL is None:
-                    oFileData_ALL = oFileData_OUT
-                else:
-                    oFileData_ALL = oFileData_ALL.merge(oFileData_OUT)
+                    if oFileData_ALL is None:
+                        oFileData_ALL = oFileData_OUT
+                    else:
+                        oFileData_ALL = oFileData_ALL.merge(oFileData_OUT)
     else:
         oFileData_ALL = None
+
+    # Check dimension(s) name
+    if oFileData_ALL is not None:
+
+        oFileDims_GET = list(oFileData_ALL.dims)
+        oFileDims_CHECK_KEYS = list(oFileDims_LUT.keys())
+        oFileDims_CHECK_VALS = list(oFileDims_LUT.values())
+
+        for sFileDim_GET in oFileDims_GET:
+
+            if sFileDim_GET not in oFileDims_CHECK_VALS:
+                Exc.getExc(' =====> WARNING: name of dataset dim ' + sFileDim_GET +
+                           ' not in default convention ' + str(oFileDims_CHECK_VALS) + '!', 2, 1)
+                bFileDim_UPD = True
+            else:
+                bFileDim_UPD = False
+
+            if sFileDim_GET in oFileDims_CHECK_KEYS:
+                sFileDim_CHECK = oFileDims_LUT[sFileDim_GET]
+                if sFileDim_GET != sFileDim_CHECK:
+                    oFileData_ALL = oFileData_ALL.rename({sFileDim_GET: sFileDim_CHECK})
+                    Exc.getExc(' =====> WARNING: name of dataset dim ' + sFileDim_GET +
+                               ' is renamed in ' + sFileDim_CHECK + ' according with the default convention!', 2, 1)
+            else:
+                if bFileDim_UPD:
+                    Exc.getExc(' =====> WARNING: name of dataset dim ' + sFileDim_GET +
+                               ' not in default convention!', 2, 1)
 
     return oFileData_ALL, oFileName_LIST
 
@@ -218,7 +322,8 @@ def getVar3D(oFileName, oFileTime, oDataTime=None, oFileVarsSource=None, oFileVa
 # -------------------------------------------------------------------------------------
 # Method to get file or file(s) gridded with 2d variable
 def getVar2D(oFileName, oFileTime, oFileVarsSource=None, oFileVarsOutcome=None,
-             oFileVars_DEFAULT=None, sFolderTmp=None, sSuffixTmp='.nc'):
+             oFileVars_DEFAULT=None, sFolderTmp=None, sSuffixTmp='.nc', oFileDims_LUT=None,
+             oDataGeo=None):
 
     global oFileVarsSource_EXPECTED
     global oFileTime_EXPECTED
@@ -226,6 +331,9 @@ def getVar2D(oFileName, oFileTime, oFileVarsSource=None, oFileVarsOutcome=None,
 
     if oFileVars_DEFAULT is None:
         oFileVars_DEFAULT = ['Longitude', 'Latitude', 'Terrain', 'time', 'crs']
+
+    if oFileDims_LUT is None:
+        oFileDims_LUT = {'X': 'west_east', 'Y': 'south_north', 'time': 'time'}
 
     if isinstance(oFileName, str):
         oFileName = [oFileName]
@@ -323,18 +431,29 @@ def getVar2D(oFileName, oFileTime, oFileVarsSource=None, oFileVarsOutcome=None,
         if oFileVarsOutcome_SELECTED_ID is None:
             oFileVarsOutcome_SELECTED_ID = deepcopy(oFileVarsOutcome_SELECTED)
 
+        # Set values for Terrain field
+        if oDataGeo is not None:
+            if 'Terrain' not in list(oFileData.variables):
+                oFileData = addVar2D(oFileData,
+                                     oDataGeo.a2dGeoData, oDataGeo.a2dGeoX, oDataGeo.a2dGeoY,
+                                     sVarName='Terrain')
+            if 'Longitude' not in list(oFileData.variables):
+                oFileData = addVar2D(oFileData,
+                                     oDataGeo.a2dGeoX, oDataGeo.a2dGeoX, oDataGeo.a2dGeoY,
+                                     sVarName='Longitude')
+            if 'Latitude' not in list(oFileData.variables):
+                oFileData = addVar2D(oFileData,
+                                     oDataGeo.a2dGeoY, oDataGeo.a2dGeoX, oDataGeo.a2dGeoY,
+                                     sVarName='Latitude')
         # Change variables name
         oFileData_IN = oFileData
         oFileData_IN_COORDS = oFileData_IN.coords
 
         oFileData_OUT = xr.Dataset(coords=oFileData_IN_COORDS)
         for sVarName_IN, sVarName_OUT in zip(oFileVarsSource_SELECTED, oFileVarsOutcome_SELECTED):
-            #if sVarName_IN != sVarName_OUT:
             if sVarName_IN in list(oFileData.variables.keys()):
                 if (sVarName_IN in oFileVarsSource_SELECTED_ID) and (
                         sVarName_OUT in oFileVarsOutcome_SELECTED_ID):
-
-                    #iVarID = oFileVarsSource_SELECTED_ID.index(sVarName_IN)
 
                     oVarData_IN = oFileData_IN[sVarName_IN]
                     oVarData_IN_DIMS = oVarData_IN.dims
@@ -343,12 +462,35 @@ def getVar2D(oFileName, oFileTime, oFileVarsSource=None, oFileVarsOutcome=None,
 
                     oFileData_OUT[sVarName_OUT] = oVarDArray
 
-                    #oFileData = oFileData.rename({sVarName_IN: sVarName_OUT})
-                    #oFileVarsSource_SELECTED_ID.pop(iVarID)
-                    #oFileVarsOutcome_SELECTED_ID.pop(iVarID)
-
     else:
         oFileData_OUT = None
+
+    # Check dimension(s) name
+    if oFileData_OUT is not None:
+
+        oFileDims_GET = list(oFileData_OUT.dims)
+        oFileDims_CHECK_KEYS = list(oFileDims_LUT.keys())
+        oFileDims_CHECK_VALS = list(oFileDims_LUT.values())
+
+        for sFileDim_GET in oFileDims_GET:
+
+            if sFileDim_GET not in oFileDims_CHECK_VALS:
+                Exc.getExc(' =====> WARNING: name of dataset dim ' + sFileDim_GET +
+                           ' not in default convention ' + str(oFileDims_CHECK_VALS) + '!', 2, 1)
+                bFileDim_UPD = True
+            else:
+                bFileDim_UPD = False
+
+            if sFileDim_GET in oFileDims_CHECK_KEYS:
+                sFileDim_CHECK = oFileDims_LUT[sFileDim_GET]
+                if sFileDim_GET != sFileDim_CHECK:
+                    oFileData_OUT = oFileData_OUT.rename({sFileDim_GET: sFileDim_CHECK})
+                    Exc.getExc(' =====> WARNING: name of dataset dim ' + sFileDim_GET +
+                               ' is renamed in ' + sFileDim_CHECK + ' according with the default convention!', 2, 1)
+            else:
+                if bFileDim_UPD:
+                    Exc.getExc(' =====> WARNING: name of dataset dim ' + sFileDim_GET +
+                               ' not in default convention!', 2, 1)
 
     return oFileData_OUT, oFileName_LIST
 

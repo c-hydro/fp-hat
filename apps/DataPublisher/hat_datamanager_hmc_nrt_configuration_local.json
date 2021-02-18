@@ -16,7 +16,7 @@
       "title": "HAT - Data manager to analyze source and outcome of hmc model",
       "web-site": "",
       "source": "Python library developed by CIMA Research Foundation",
-      "history": "1.6.1 [20190708]",
+      "history": "1.6.1 [20191022]",
       "project-info": "HAT - Hydrological Analysis Tool",
       "algorithm": "Analysis tools developed by CIMA Research Foundation"
     }
@@ -85,8 +85,8 @@
               "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/nwp/ecmwf0100/$yyyy/$mm/$dd/"
             },
             "file_forecast_gridded_forcing_deterministic_lami": {
-              "filename": "nwp.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/nwp/ecmwf0100/$yyyy/$mm/$dd/"
+              "filename": "nwp.lami-2i.$yyyy$mm$dd$HH$MM.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/nwp/lami-2i/$yyyy/$mm/$dd/"
             }
           }
         },
@@ -98,8 +98,8 @@
               "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/rainfarm/ecmwf0100/$yyyy/$mm/$dd/$ensemble"
             },
             "file_forecast_gridded_forcing_probabilistic_lami": {
-              "filename": "rf.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/rainfarm/ecmwf0100/$yyyy/$mm/$dd/"
+              "filename": "rf.lami-2i.$yyyy$mm$dd$HH$MM.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/rainfarm/lami-2i/$yyyy/$mm/$dd/$ensemble"
             }
           }
         },
@@ -128,11 +128,11 @@
             },
             "file_result_point_discharge_probabilistic_lami": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-ecmwf-0100/$RUNTIME/point/section_q/$ensemble/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-lami-2i/$RUNTIME/point/section_q/$ensemble/"
             },
             "file_result_point_discharge_deterministic_lami": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-ecmwf-0100/$RUNTIME/point/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-lami-2i/$RUNTIME/point/section_q/"
             }
           }
         },
@@ -161,11 +161,11 @@
             },
             "file_result_ts_discharge_probabilistic_lami": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-ecmwf-0100/$RUNTIME/timeseries/section_q/$ensemble/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-lami-2i/$RUNTIME/timeseries/section_q/$ensemble/"
             },
             "file_result_ts_discharge_deterministic_lami": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-ecmwf-0100/$RUNTIME/timeseries/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-lami-2i/$RUNTIME/timeseries/section_q/"
             }
           }
         },
@@ -313,7 +313,7 @@
             {"var3d":
               {"forecast": {
                 "model_frequency": ["D"], "model_period" : [2],
-                "data_period": [84], "data_frequency":  ["H"],
+                "data_period": [48], "data_frequency":  ["H"],
                 "var_tag" : ["$var_accumulated_hour_$period", "$var_avg_hour_$period", null, null],
                 "var_period": [[3, 6, 9, 12, 24], [3, 6, 9, 12, 24], null, null],
                 "var_frequency": ["1H", "1H", null, null],
@@ -383,8 +383,8 @@
             {"var3d":
               {"forecast": {
                 "model_frequency": ["D"], "model_period" : [2],
-                "ensemble_n": [28], "ensemble_format": ["{:03d}"],
-                "data_period": [84], "data_frequency":  ["H"],
+                "ensemble_n": [30], "ensemble_format": ["{:03d}"],
+                "data_period": [48], "data_frequency":  ["H"],
                 "var_tag" : ["$var_accumulated_hour_$period"],
                 "var_period": [[3, 6, 9]],
                 "var_frequency": ["1H"],
@@ -566,7 +566,7 @@
           "var_type_ancillary": ["forecast"],
           "var_type_experiment": ["probabilistic"],
           "var_name_in": ["discharge"],
-          "var_name_out": ["discharge_ecmwf_prob_$ensemble"],
+          "var_name_out": ["discharge_lami_prob_$ensemble"],
           "var_file_data": ["file_result_point_discharge_probabilistic_lami"],
           "var_file_ancillary": ["file_forecast_gridded_forcing_probabilistic_lami"],
           "var_file_format": ["ascii"],
@@ -578,8 +578,8 @@
               {"result": {
                 "column_id": [0],
                 "model_frequency": ["D"], "model_period" : [2],
-                "ensemble_n": [28], "ensemble_format": ["{:03d}"],
-                "data_period": [84], "data_frequency":  ["H"]}
+                "ensemble_n": [30], "ensemble_format": ["{:03d}"],
+                "data_period": [48], "data_frequency":  ["H"]}
               }
             }]
         },
@@ -622,7 +622,7 @@
           "var_type_ancillary": ["forecast"],
           "var_type_experiment": ["deterministic"],
           "var_name_in": ["discharge"],
-          "var_name_out": ["discharge_ecmwf_det"],
+          "var_name_out": ["discharge_lami_det"],
           "var_file_data": ["file_result_point_discharge_deterministic_lami"],
           "var_file_ancillary": ["file_forecast_gridded_forcing_deterministic_lami"],
           "var_file_format": ["ascii"],
@@ -647,6 +647,7 @@
           "var_type_data": ["analysis"],
           "var_file_in": ["file_result_gridded_outcome", "file_obs_gridded_forcing", "file_obs_point_discharge",
             "file_forecast_gridded_forcing_deterministic_ecmwf", "file_forecast_gridded_forcing_probabilistic_ecmwf",
+            "file_forecast_gridded_forcing_deterministic_lami", "file_forecast_gridded_forcing_probabilistic_lami",
             "file_result_gridded_outcome", "file_result_point_discharge_ws", "file_result_point_discharge_radar",
             "file_result_point_discharge_deterministic_ecmwf", "file_result_point_discharge_probabilistic_ecmwf",
             "file_result_point_discharge_deterministic_lami", "file_result_point_discharge_probabilistic_lami"],

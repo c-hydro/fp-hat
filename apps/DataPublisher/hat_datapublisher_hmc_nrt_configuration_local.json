@@ -14,7 +14,7 @@
       "title": "HAT - Data publisher to create analysis file(s) and plot(s) for hmc model",
       "web-site": "",
       "source": "Python library developed by CIMA Research Foundation",
-      "history": "1.5.2 [20190708]",
+      "history": "1.1.5 [20191022]",
       "project-info": "HAT - Hydrological Analysis Tool",
       "algorithm": "Analysis tools developed by CIMA Research Foundation"
     }
@@ -147,10 +147,18 @@
           "collection": {
             "file_hydrapp_graph_ts_run_obs": {
               "filename": "hydrapp_timeseries_$row_$col_$section_obs.jpg",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/hydrapp/section//$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_ts_run_forecast_nwp_probabilistic_ecmwf": {
+              "filename": "hydrapp_timeseries_$row_$col_$section_nwp_ecmwf.jpg",
               "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/hydrapp/section/$group/$graphname/$yyyy$mm$dd$HH/"
             },
-            "file_hydrapp_graph_ts_run_forecast_probabilistic_ecmwf": {
-              "filename": "hydrapp_timeseries_$row_$col_$section_ecmwf.jpg",
+            "file_hydrapp_graph_ts_run_forecast_nwp_probabilistic_lami": {
+              "filename": "hydrapp_timeseries_$row_$col_$section_nwp_lami.jpg",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/hydrapp/section/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_ts_run_forecast_nwp_probabilistic_comparison": {
+              "filename": "hydrapp_timeseries_$row_$col_$section_nwp_comparison.jpg",
               "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/hydrapp/section/$group/$graphname/$yyyy$mm$dd$HH/"
             }
           }
@@ -162,8 +170,12 @@
               "filename": "hydrapp_gridded_$yyyy$mm$dd$HH$MM_rain_accumulated_obs_hour_$period.jpg",
               "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
             },
-            "file_hydrapp_graph_gridded_accumulated_rain_for": {
-              "filename": "hydrapp_gridded_$yyyy$mm$dd$HH$MM_rain_accumulated_for_hour_$period.jpg",
+            "file_hydrapp_graph_gridded_accumulated_rain_for_ecmwf": {
+              "filename": "hydrapp_gridded_$yyyy$mm$dd$HH$MM_rain_accumulated_for_ecmwf_hour_$period.jpg",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
+            },
+            "file_hydrapp_graph_gridded_accumulated_rain_for_lami": {
+              "filename": "hydrapp_gridded_$yyyy$mm$dd$HH$MM_rain_accumulated_for_lami_hour_$period.jpg",
               "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/analysis/hydrapp/map/$group/$graphname/$yyyy$mm$dd$HH/"
             },
             "file_hydrapp_graph_gridded_sm_hmc": {
@@ -217,60 +229,75 @@
           "var_dims": [
             "var2d",
             "var2d",
+            "var2d",
+            "var2d", "var2d",
             "var2d", "var2d",
             "var2d", "var2d", "var2d",
             "var2d", "var2d", "var2d"
           ],
           "var_type_data": [
             "forecast",
+            "forecast",
             "observed",
+            "forecast", "forecast",
             "forecast", "forecast",
             "result", "result", "result",
             "result", "result", "result"
           ],
           "var_type_experiment": [
             "probabilistic",
+            "probabilistic",
             "deterministic",
+            "deterministic", "deterministic",
             "deterministic", "deterministic",
             "deterministic", "deterministic", "deterministic",
             "deterministic", "deterministic", "deterministic"
           ],
           "var_name_in": [
             "rain_$ensemble_accumulated_hour_$period",
+            "rain_$ensemble_accumulated_hour_$period",
             "rain_accumulated_hour_$period",
+            "air_temperature_avg_hour_$period", "rain_accumulated_hour_$period",
             "air_temperature_avg_hour_$period", "rain_accumulated_hour_$period",
             "evapot", "land_surface_temperature", "soil_moisture",
             "snow_water_equivalent", "snow_melting", "snow_density"
           ],
           "var_name_out": [
-            "rain_for_$ensemble_accumulated_hour_$period",
+            "rain_for_ecmwf_$ensemble_accumulated_hour_$period",
+            "rain_for_lami_$ensemble_accumulated_hour_$period",
             "rain_obs_accumulated_hour_$period",
-            "airtemperature_for_avg_hour_$period", "rain_for_accumulated_hour_$period",
+            "airtemperature_for_ecmwf_avg_hour_$period", "rain_for_ecmwf_accumulated_hour_$period",
+            "airtemperature_for_lami_avg_hour_$period", "rain_for_lami_accumulated_hour_$period",
             "hmc_evapotranspiration", "hmc_lst", "hmc_sm",
             "hmc_swe", "hmc_snow_melting", "hmc_snow_density"
           ],
           "var_name_group": [
             "rain",
             "rain",
+            "rain",
+            "other", "rain",
             "other", "rain",
             "other", "other", "other",
             "other", "other", "other"
           ],
-          "var_file_tag": ["file_product_gridded"],
           "var_file_group": [
             "file_forecast_gridded_forcing_probabilistic_ecmwf",
+            "file_forecast_gridded_forcing_probabilistic_lami",
             "file_obs_gridded_forcing",
             "file_forecast_gridded_forcing_deterministic_ecmwf", "file_forecast_gridded_forcing_deterministic_ecmwf",
+            "file_forecast_gridded_forcing_deterministic_lami", "file_forecast_gridded_forcing_deterministic_lami",
             "file_result_gridded_outcome", "file_result_gridded_outcome",  "file_result_gridded_outcome",
             "file_result_gridded_outcome", "file_result_gridded_outcome",  "file_result_gridded_outcome"
             ],
+          "var_file_tag": ["file_product_gridded"],
           "var_file_ancillary": ["file_buffer_gridded"],
           "var_method_publish": [{
             "graph_type_basic": {
               "graph_name": ["surface"],
               "variable_name" : {
                 "rain_obs_accumulated" : ["rain_obs_accumulated_hour_$period"],
-                "rain_nwp_accumulated_deterministic" : ["rain_for_accumulated_hour_$period"],
+                "rain_nwp_accumulated_deterministic_ecmwf" : ["rain_for_ecmwf_accumulated_hour_$period"],
+                "rain_nwp_accumulated_deterministic_lami" : ["rain_for_lami_accumulated_hour_$period"],
                 "lst_model_obs" : ["hmc_lst"],
                 "sm_model_obs": ["hmc_sm"],
                 "swe_model_obs": ["hmc_swe"],
@@ -279,7 +306,8 @@
               },
               "variable_appearance" : {
                 "rain_obs_accumulated" : ["observed accumulated rain"],
-                "rain_nwp_accumulated_deterministic" : ["nwp accumulated rain"],
+                "rain_nwp_accumulated_deterministic_ecmwf" : ["nwp accumulated rain"],
+                "rain_nwp_accumulated_deterministic_lami" : ["nwp accumulated rain"],
                 "lst_model_obs" : ["hmc lst"],
                 "sm_model_obs": ["hmc soil moisture"],
                 "swe_model_obs": ["hmc snow water equivalent"],
@@ -288,7 +316,8 @@
               },
               "function_graph": {
                 "rain_obs_accumulated" : ["plotGridded_Var2D"],
-                "rain_nwp_accumulated_deterministic": ["plotGridded_Var2D"],
+                "rain_nwp_accumulated_deterministic_ecmwf": ["plotGridded_Var2D"],
+                "rain_nwp_accumulated_deterministic_lami": ["plotGridded_Var2D"],
                 "lst_model_obs": ["plotGridded_Var2D"],
                 "sm_model_obs": ["plotGridded_Var2D"],
                 "swe_model_obs": ["plotGridded_Var2D"],
@@ -297,7 +326,8 @@
               },
               "file_name": {
                 "rain_obs_accumulated" : ["file_hydrapp_graph_gridded_accumulated_rain_obs"],
-                "rain_nwp_accumulated_deterministic": ["file_hydrapp_graph_gridded_accumulated_rain_for"],
+                "rain_nwp_accumulated_deterministic_ecmwf": ["file_hydrapp_graph_gridded_accumulated_rain_for_ecmwf"],
+                "rain_nwp_accumulated_deterministic_lami": ["file_hydrapp_graph_gridded_accumulated_rain_for_lami"],
                 "lst_model_obs": ["file_hydrapp_graph_gridded_lst_hmc"],
                 "sm_model_obs": ["file_hydrapp_graph_gridded_sm_hmc"],
                 "swe_model_obs": ["file_hydrapp_graph_gridded_swe_hmc"],
@@ -306,7 +336,8 @@
               },
               "file_content": {
                 "rain_obs_accumulated" : [null],
-                "rain_nwp_accumulated_deterministic": [null],
+                "rain_nwp_accumulated_deterministic_ecmwf": [null],
+                "rain_nwp_accumulated_deterministic_lami": [null],
                 "lst_model_obs": [null],
                 "sm_model_obs": [null],
                 "swe_model_obs": [null],
@@ -315,7 +346,8 @@
               },
               "colormap_name": {
                 "rain_obs_accumulated" : ["colormap_rain"],
-                "rain_nwp_accumulated_deterministic": ["colormap_rain"],
+                "rain_nwp_accumulated_deterministic_ecmwf": ["colormap_rain"],
+                "rain_nwp_accumulated_deterministic_lami": ["colormap_rain"],
                 "lst_model_obs": ["colormap_lst"],
                 "sm_model_obs": ["colormap_sm"],
                 "swe_model_obs": ["colormap_swe"],
@@ -334,7 +366,10 @@
         "id": {
           "var_dims": [
             "var1d",
+            "var1d",
             "var1d", "var1d", "var1d",
+            "var1d", "var1d",
+            "var1d", "var1d",
             "var1d", "var1d",
             "var1d", "var1d",
             "var1d", "var1d",
@@ -342,57 +377,75 @@
           ],
           "var_type_data": [
             "forecast",
+            "forecast",
             "observed", "observed", "observed",
             "forecast", "forecast",
+            "forecast", "forecast",
             "result", "observed",
+            "result", "result",
             "result", "result",
             "result"
           ],
           "var_type_experiment": [
             "probabilistic",
+            "probabilistic",
             "deterministic", "deterministic", "deterministic",
             "deterministic", "deterministic",
             "deterministic", "deterministic",
+            "deterministic", "deterministic",
+            "probabilistic", "deterministic",
             "probabilistic", "deterministic",
             "deterministic"
           ],
           "var_name_in": [
             "rain_$ensemble",
+            "rain_$ensemble",
             "rain", "air_temperature", "rain_accumulated",
+            "rain", "rain_accumulated",
             "rain", "rain_accumulated",
             "discharge_run_ws", "observed_discharge",
             "discharge_ecmwf_prob_$ensemble", "discharge_ecmwf_det",
+            "discharge_lami_prob_$ensemble", "discharge_lami_det",
             "soil_moisture"
           ],
           "var_name_out": [
             "rain_ecmwf_prob_$ensemble",
+            "rain_lami_prob_$ensemble",
             "rain_ws_obs", "air_temperature_ws_obs", "rain_accumulated_ws_obs",
             "rain_ecmwf_det", "rain_accumulated_ecmwf_for",
+            "rain_lami_det", "rain_accumulated_lami_for",
             "discharge_hmc_obs", "discharge_rs_obs",
             "discharge_hmc_ecmwf_prob_$ensemble", "discharge_hmc_ecmwf_det",
+            "discharge_hmc_lami_prob_$ensemble", "discharge_hmc_lami_det",
             "sm_hmc_obs"
           ],
           "var_name_group": [
             "rain",
+            "rain",
             "rain", "other", "rain",
             "rain", "rain",
+            "rain", "rain",
+            "discharge", "discharge",
             "discharge", "discharge",
             "discharge", "discharge",
             "other"
           ],
-          "var_file_tag": ["file_product_ts"],
           "var_file_group": [
             "file_forecast_gridded_forcing_probabilistic_ecmwf",
+            "file_forecast_gridded_forcing_probabilistic_lami",
             "file_obs_gridded_forcing", "file_obs_gridded_forcing", "file_obs_gridded_forcing",
             "file_forecast_gridded_forcing_deterministic_ecmwf", "file_forecast_gridded_forcing_deterministic_ecmwf",
+            "file_forecast_gridded_forcing_deterministic_lami", "file_forecast_gridded_forcing_deterministic_lami",
             "file_result_point_discharge_ws", "file_obs_point_discharge",
             "file_result_point_discharge_probabilistic_ecmwf", "file_result_point_discharge_deterministic_ecmwf",
+            "file_result_point_discharge_probabilistic_lami", "file_result_point_discharge_deterministic_lami",
             "file_result_gridded_outcome"
             ],
+          "var_file_tag": ["file_product_ts"],
           "var_file_ancillary" : ["file_buffer_ts"],
           "var_method_publish": [{
-            "graph_type_nwp_probabilistic": {
-              "graph_name": ["nwp_ecmwf"],
+            "graph_type_nwp_probabilistic_ecmwf": {
+              "graph_name": ["nwp_ecmwf-0100"],
               "variable_name" : {
                 "rain_obs" : ["rain_ws_obs"],
                 "rain_nwp_deterministic" : ["rain_ecmwf_det"],
@@ -418,7 +471,79 @@
                 "sm_obs": ["hmc sm obs"]
               },
               "function_graph": ["plotTS_NWP_Probabilistic"],
-              "file_name": ["file_hydrapp_graph_ts_run_forecast_probabilistic_ecmwf"],
+              "file_name": ["file_hydrapp_graph_ts_run_forecast_nwp_probabilistic_ecmwf"],
+              "file_content": [null],
+              "colormap_name": [null]
+            },
+            "graph_type_nwp_probabilistic_lami": {
+              "graph_name": ["nwp_lami-2i"],
+              "variable_name" : {
+                "rain_obs" : ["rain_ws_obs"],
+                "rain_nwp_deterministic" : ["rain_lami_det"],
+                "rain_nwp_probabilistic" : ["rain_lami_prob_$ensemble"],
+                "discharge_obs" : ["discharge_rs_obs"],
+                "discharge_model_obs" : ["discharge_hmc_obs"],
+                "discharge_model_nwp_probabilistic": ["discharge_hmc_lami_prob_$ensemble"],
+                "discharge_model_nwp_deterministic": ["discharge_hmc_lami_det"],
+                "rain_accumulated_nwp_deterministic": ["rain_accumulated_lami_for"],
+                "rain_accumulated_obs": ["rain_accumulated_ws_obs"],
+                "sm_obs": ["sm_hmc_obs"]
+              },
+              "variable_appearance" : {
+                "rain_obs" : ["observed rain"],
+                "rain_nwp_deterministic" : ["nwp rain deterministic"],
+                "rain_nwp_probabilistic" : ["nwp rain probabilistic"],
+                "discharge_obs" : ["observed discharge"],
+                "discharge_model_obs" : ["hmc discharge obs"],
+                "discharge_model_nwp_probabilistic": ["hmc discharge obs/for lami probabilistic"],
+                "discharge_model_nwp_deterministic": ["hmc discharge obs/for lami deterministic"],
+                "rain_accumulated_nwp_deterministic": ["nwp rain accumulated deterministic"],
+                "rain_accumulated_obs": ["observed rain accumulated"],
+                "sm_obs": ["hmc sm obs"]
+              },
+              "function_graph": ["plotTS_NWP_Probabilistic"],
+              "file_name": ["file_hydrapp_graph_ts_run_forecast_nwp_probabilistic_lami"],
+              "file_content": [null],
+              "colormap_name": [null]
+            },
+            "graph_type_nwp_comparison": {
+              "graph_name": ["nwp_comparison"],
+              "variable_name" : {
+                "rain_obs" : ["rain_ws_obs"],
+                "rain_nwp_deterministic" :
+                ["rain_ecmwf_det", "rain_lami_det"],
+                "rain_nwp_probabilistic" :
+                ["rain_ecmwf_prob_$ensemble", "rain_lami_prob_$ensemble"],
+                "discharge_obs" : ["discharge_rs_obs"],
+                "discharge_model_obs" : ["discharge_hmc_obs"],
+                "discharge_model_nwp_probabilistic":
+                ["discharge_hmc_ecmwf_prob_$ensemble", "discharge_hmc_lami_prob_$ensemble"],
+                "discharge_model_nwp_deterministic":
+                ["discharge_hmc_ecmwf_det", "discharge_hmc_lami_det"],
+                "rain_accumulated_nwp_deterministic":
+                ["rain_accumulated_ecmwf_for", "rain_accumulated_lami_for"],
+                "rain_accumulated_obs": ["rain_accumulated_ws_obs"],
+                "sm_obs": ["sm_hmc_obs"]
+              },
+              "variable_appearance" : {
+                "rain_obs" : ["observed rain"],
+                "rain_nwp_deterministic" :
+                ["nwp ecmwf rain deterministic", "nwp lami rain deterministic"],
+                "rain_nwp_probabilistic" :
+                ["nwp ecmwf rain probabilistic", "nwp lami rain probabilistic"],
+                "discharge_obs" : ["observed discharge"],
+                "discharge_model_obs" : ["hmc discharge obs"],
+                "discharge_model_nwp_probabilistic":
+                ["hmc discharge obs/for ecmwf probabilistic", "hmc discharge obs/for lami probabilistic"],
+                "discharge_model_nwp_deterministic":
+                ["hmc discharge obs/for ecmwf deterministic", "hmc discharge obs/for lami deterministic"],
+                "rain_accumulated_nwp_deterministic":
+                ["nwp ecmwf rain accumulated deterministic", "nwp lami rain accumulated deterministic"],
+                "rain_accumulated_obs": ["observed rain accumulated"],
+                "sm_obs": ["hmc sm obs"]
+              },
+              "function_graph": ["plotTS_NWP_Comparison"],
+              "file_name": ["file_hydrapp_graph_ts_run_forecast_nwp_probabilistic_comparison"],
               "file_content": [null],
               "colormap_name": [null]
             },

@@ -26,7 +26,7 @@ from src.common.utils.lib_utils_op_string import defineString
 from src.common.utils.lib_utils_op_dict import mergeDict, lookupDictKey, setDictValue
 from src.common.utils.lib_utils_op_list import reduceList, flatList
 
-from src.hat.dataset.generic.lib_generic_io_method import writeFilePickle, appendFilePickle
+from src.hat.dataset.generic.lib_generic_io_method import writeFilePickle, appendFilePickle, readFilePickle
 from src.hat.dataset.generic.lib_generic_io_utils import createDArray1D, mergeVar1D, clipVar1D, \
     createDArray2D, mergeVar2D, createStats1D, createStats2D
 from src.hat.dataset.generic.lib_generic_io_apps import wrapFileReader, findVarName, findVarTag, createVarName
@@ -403,8 +403,8 @@ class DataAnalysisSeeker:
                     oVarData_SEEK_STATS[sAppTag][sVarKey] = {}
                     # -------------------------------------------------------------------------------------
 
-                    # DEBUG
-                    # sVarGroup = 'file_obs_gridded_forcing'
+                    # DEBUG #
+                    # sVarGroup = "file_forecast_gridded_forcing_deterministic_lami"
                     # iVarID = oVarFileGroup.index(sVarGroup)
                     # oVarDims = oVarDims[iVarID:]
                     # oVarTypeData = oVarTypeData[iVarID:]
@@ -444,7 +444,7 @@ class DataAnalysisSeeker:
                             oDataGenerator = oDataPoint.iterrows()
 
                             # DEBUG
-                            # n = 93
+                            # n = 12
                             # oDataGenerator = [next(x for i, x in enumerate(oDataGenerator) if i == n)]
                             # DEBUG
 
@@ -503,80 +503,96 @@ class DataAnalysisSeeker:
                                         # Get file data
                                         oVarDSet_SEEK = wrapFileReader(sVarFileName_SEEK, sVarFileGroup)
 
-                                        ### inserire condizione per il none??
+                                        # Condition to check if data is available for selected group
+                                        if oVarDSet_SEEK is not None:
 
-                                        # Find name(s) of input variable(s)
-                                        oVarNameSource_SEEK = findVarName(list(oVarDSet_SEEK.data_vars), sVarNameSource)
-                                        # Find tag(s) of input variable(s)
-                                        oVarTagPattern_SEEK, oVarTagValue_SEEK = findVarTag(oVarNameSource_SEEK,
-                                                                                            sVarNameSource)
-                                        # Create name of output variable(s)
-                                        oVarNameOutcome_SEEK = createVarName(sVarNameOutcome,
-                                                                             oVarTagPattern_SEEK, oVarTagValue_SEEK)
-                                        # Create name of output variable(s)
-                                        oVarNameGroup_SEEK = createVarName(sVarNameGroup,
-                                                                           oVarTagPattern_SEEK, oVarTagValue_SEEK)
+                                            # Find name(s) of input variable(s)
+                                            oVarNameSource_SEEK = findVarName(list(oVarDSet_SEEK.data_vars), sVarNameSource)
+                                            # Find tag(s) of input variable(s)
+                                            oVarTagPattern_SEEK, oVarTagValue_SEEK = findVarTag(oVarNameSource_SEEK,
+                                                                                                sVarNameSource)
+                                            # Create name of output variable(s)
+                                            oVarNameOutcome_SEEK = createVarName(sVarNameOutcome,
+                                                                                 oVarTagPattern_SEEK, oVarTagValue_SEEK)
+                                            # Create name of output variable(s)
+                                            oVarNameGroup_SEEK = createVarName(sVarNameGroup,
+                                                                               oVarTagPattern_SEEK, oVarTagValue_SEEK)
 
-                                        # Clip data under defined condition (to avoid outliers)
-                                        if (sVarTypeExp == 'probabilistic') and (sVarTypeData == 'result') \
-                                                and (sVarNameGroup == 'discharge'):
-                                            oVarDSet_SEEK = clipVar1D(oVarDSet_SEEK)
+                                            # Clip data under defined condition (to avoid outliers)
+                                            if (sVarTypeExp == 'probabilistic') and (sVarTypeData == 'result') \
+                                                    and (sVarNameGroup == 'discharge'):
+                                                oVarDSet_SEEK = clipVar1D(oVarDSet_SEEK)
 
-                                        # Iterate over variable(s)
-                                        for sVarNameSource_SEEK, sVarNameOutcome_SEEK, sVarNameGroup_SEEK in zip(
-                                                oVarNameSource_SEEK, oVarNameOutcome_SEEK, oVarNameGroup_SEEK):
+                                            # Iterate over variable(s)
+                                            for sVarNameSource_SEEK, sVarNameOutcome_SEEK, sVarNameGroup_SEEK in zip(
+                                                    oVarNameSource_SEEK, oVarNameOutcome_SEEK, oVarNameGroup_SEEK):
 
-                                            # Get variable data
-                                            oVarDArray_SEEK = oVarDSet_SEEK[sVarNameSource_SEEK]
-                                            oVarDArray_SEEK = createDArray1D(oVarDArray_SEEK, oVarTime_PERIOD,
-                                                                             sVarName_IN=sVarNameSource_SEEK,
-                                                                             sVarName_OUT=sVarNameOutcome_SEEK)
-                                            # Create data array list
-                                            vars()[sVarNameOutcome_SEEK] = oVarDArray_SEEK
+                                                # Get variable data
+                                                oVarDArray_SEEK = oVarDSet_SEEK[sVarNameSource_SEEK]
+                                                oVarDArray_SEEK = createDArray1D(oVarDArray_SEEK, oVarTime_PERIOD,
+                                                                                 sVarName_IN=sVarNameSource_SEEK,
+                                                                                 sVarName_OUT=sVarNameOutcome_SEEK)
+                                                # Create data array list
+                                                vars()[sVarNameOutcome_SEEK] = oVarDArray_SEEK
 
-                                            if oVarList_SEEK is None:
-                                                oVarList_SEEK = [vars()[sVarNameOutcome_SEEK]]
+                                                if oVarList_SEEK is None:
+                                                    oVarList_SEEK = [vars()[sVarNameOutcome_SEEK]]
+                                                else:
+                                                    oVarList_SEEK.append(vars()[sVarNameOutcome_SEEK])
+
+                                                # Delete variable(s) from vars()
+                                                if sVarNameOutcome_SEEK in vars():
+                                                    del vars()[sVarNameOutcome_SEEK]
+
+                                                # Variable statistics
+                                                if sVarNameGroup_SEEK != 'other':
+                                                    oVarStats_SEEK = createStats1D(oVarStats_SEEK, oVarDArray_SEEK,
+                                                                                   sVarNameGroup_SEEK)
+                                            # -------------------------------------------------------------------------------------
+
+                                            # -------------------------------------------------------------------------------------
+                                            # Merge data in dataset object
+                                            oVarDSet_SEEK = mergeVar1D(oVarList_SEEK)
+
+                                            # Clip data under defined condition (to avoid outliers)
+                                            #if (sVarTypeExp == 'probabilistic') and (sVarTypeData == 'result') \
+                                            #        and (sVarNameGroup == 'discharge'):
+                                            #    oVarDSet_SEEK = clipVar1D(oVarDSet_SEEK)
+
+                                            # Store in a common dictionary
+                                            oVarPickle_SEEK[sVarKey] = oVarDSet_SEEK
+
+                                            # Dump data in a pickle file
+                                            if not isfile(sVarFileName_ANCILLARY):
+                                                createFolderByFile(sVarFileName_ANCILLARY)
+                                                writeFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK)
                                             else:
-                                                oVarList_SEEK.append(vars()[sVarNameOutcome_SEEK])
+                                                appendFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK, sVarKey)
 
-                                            # Delete variable(s) from vars()
-                                            if sVarNameOutcome_SEEK in vars():
-                                                del vars()[sVarNameOutcome_SEEK]
+                                            # Test
+                                            # oVarFile_TEST = readFilePickle(sVarFileName_ANCILLARY)
 
-                                            # Variable statistics
-                                            if sVarNameGroup_SEEK != 'other':
-                                                oVarStats_SEEK = createStats1D(oVarStats_SEEK, oVarDArray_SEEK,
-                                                                               sVarNameGroup_SEEK)
-                                        # -------------------------------------------------------------------------------------
+                                            # Info end
+                                            oVarData_SEEK_WS[sAppTag][sVarKey][sVarFileGroup][sSectionName] = True
+                                            oVarData_SEEK_STATS[sAppTag][sVarKey][sVarFileGroup][sSectionName] = oVarStats_SEEK
+                                            oLogStream.info(' ------> Seeking time-series data for section ' +
+                                                            sSectionName + ' ... DONE')
+                                            # -------------------------------------------------------------------------------------
 
-                                        # -------------------------------------------------------------------------------------
-                                        # Merge data in dataset object
-                                        oVarDSet_SEEK = mergeVar1D(oVarList_SEEK)
-
-                                        # Clip data under defined condition (to avoid outliers)
-                                        #if (sVarTypeExp == 'probabilistic') and (sVarTypeData == 'result') \
-                                        #        and (sVarNameGroup == 'discharge'):
-                                        #    oVarDSet_SEEK = clipVar1D(oVarDSet_SEEK)
-
-                                        # Store in a common dictionary
-                                        oVarPickle_SEEK[sVarKey] = oVarDSet_SEEK
-
-                                        # Dump data in a pickle file
-                                        if not isfile(sVarFileName_ANCILLARY):
-                                            createFolderByFile(sVarFileName_ANCILLARY)
-                                            writeFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK)
                                         else:
-                                            appendFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK, sVarKey)
 
-                                        # Test
-                                        # oVarFile_TEST = readFilePickle(sVarFileName_ANCILLARY)
+                                            # -------------------------------------------------------------------------------------
+                                            # Exit for missing group in available file
+                                            oVarData_SEEK_WS[sAppTag][sVarKey][sVarFileGroup] = False
+                                            oVarData_SEEK_STATS[sAppTag][sVarKey][sVarFileGroup] = None
 
-                                        # Info end
-                                        oVarData_SEEK_WS[sAppTag][sVarKey][sVarFileGroup][sSectionName] = True
-                                        oVarData_SEEK_STATS[sAppTag][sVarKey][sVarFileGroup][sSectionName] = oVarStats_SEEK
-                                        oLogStream.info(' ------> Seeking time-series data for section ' +
-                                                        sSectionName + ' ... DONE')
-                                        # -------------------------------------------------------------------------------------
+                                            oLogStream.info(
+                                                ' -----> Seeking data for group ' + sVarFileGroup + ' ... SKIPPED')
+                                            Exc.getExc(
+                                                ' =====> WARNING: file ' + sVarFileName_SEEK +
+                                                ' is available; group ' + sVarFileGroup + ' not available in file!',
+                                                2, 1)
+                                            # -------------------------------------------------------------------------------------
 
                                     else:
 
