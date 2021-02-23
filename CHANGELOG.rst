@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Version 1.2.0 [2021-02-22]
+===========
+ APP: HAT_DataManager_HMC_NRT
+- FIX: bugs related to xarray library;
+- FIX: bugs related to progressbar library
 
 Version 1.1.5 [2019-10-22]
 ===========

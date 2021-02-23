@@ -379,12 +379,12 @@ def createVar2D(a2dVarData, a2dVarGeoX, a2dVarGeoY, sVarName=None, oVarDims=None
 
     if sVarName is not None:
         oVarData = xr.DataArray(a2dVarData, name=sVarName, dims=oVarDims,
-                                attrs=oVarAttributes, encoding=oVarEncoding,
+                                attrs=oVarAttributes, # encoding=oVarEncoding,
                                 coords={oVarCoords[0]: (oVarDims, a2dVarGeoX),
                                         oVarCoords[1]: (oVarDims, a2dVarGeoY)})
     else:
         oVarData = xr.DataArray(a2dVarData, dims=oVarDims,
-                                attrs=oVarAttributes, encoding=oVarEncoding,
+                                attrs=oVarAttributes, # encoding=oVarEncoding,
                                 coords={oVarCoords[0]: (oVarDims, a2dVarGeoX),
                                         oVarCoords[1]: (oVarDims, a2dVarGeoY)})
     return oVarData

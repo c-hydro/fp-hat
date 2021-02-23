@@ -16,7 +16,7 @@
       "title": "HAT - Data manager to analyze source and outcome of hmc model",
       "web-site": "",
       "source": "Python library developed by CIMA Research Foundation",
-      "history": "1.6.1 [20191022]",
+      "history": "1.2.0 [20210218]",
       "project-info": "HAT - Hydrological Analysis Tool",
       "algorithm": "Analysis tools developed by CIMA Research Foundation"
     }
@@ -26,37 +26,37 @@
       "section": {
         "section_ref": {
           "filename": "fp_sections_marche.shp",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/shapefile/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/shapefile/"
         },
         "section_mask": {
           "filename": "marche.mask_$section.txt",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/mask/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/mask/"
         },
         "section_ctime": {
           "filename": "marche.ctime_$section.txt",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/mask/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/mask/"
         },
         "section_dem": {
           "filename": "marche.dem_$section.txt",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/mask/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/mask/"
         },
         "section_ancillary": {
           "filename": "info_$section.nc",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/ancillary/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/ancillary/"
         }
       },
       "land": {
         "land_terrain": {
           "filename": "marche.dem.txt",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/land/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/gridded/"
         },
         "land_channel_network": {
           "filename": "marche.choice.txt",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/land/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/gridded/"
         },
         "land_ancillary": {
           "filename": "info_land.nc",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/static_data/ancillary/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_static/ancillary/"
         }
       }
     },
@@ -75,18 +75,18 @@
       "source": {
         "file_obs_gridded_forcing": {
           "filename": "ws.db.$yyyy$mm$dd$HH$MM.nc.gz",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/observation/ws/$yyyy/$mm/$dd/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/obs/weather_stations/$yyyy/$mm/$dd/"
         },
         "file_forecast_gridded_forcing_deterministic": {
           "group": true,
           "collection": {
             "file_forecast_gridded_forcing_deterministic_ecmwf": {
-              "filename": "nwp.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/nwp/ecmwf0100/$yyyy/$mm/$dd/"
+              "filename": "nwp.ecmwf0100.$yyyy$mm$dd$HH$MM.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/nwp/ecmwf0100/$yyyy/$mm/$dd/"
             },
             "file_forecast_gridded_forcing_deterministic_lami": {
               "filename": "nwp.lami-2i.$yyyy$mm$dd$HH$MM.nc.gz",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/nwp/lami-2i/$yyyy/$mm/$dd/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/nwp/lami-2i/$yyyy/$mm/$dd/"
             }
           }
         },
@@ -94,78 +94,78 @@
           "group": true,
           "collection": {
             "file_forecast_gridded_forcing_probabilistic_ecmwf": {
-              "filename": "rf.ecmwf-0100.$yyyy$mm$dd$HH$MM.nc.gz",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/rainfarm/ecmwf0100/$yyyy/$mm/$dd/$ensemble"
+              "filename": "rf.ecmwf0100.$yyyy$mm$dd$HH$MM_$ensemble.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/rfarm/ecmwf0100/$yyyy/$mm/$dd/"
             },
             "file_forecast_gridded_forcing_probabilistic_lami": {
-              "filename": "rf.lami-2i.$yyyy$mm$dd$HH$MM.nc.gz",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/rainfarm/lami-2i/$yyyy/$mm/$dd/$ensemble"
+              "filename": "rf.lami-2i.$yyyy$mm$dd$HH$MM_$ensemble.nc.gz",
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/rfarm/lami-2i/$yyyy/$mm/$dd/"
             }
           }
         },
         "file_obs_point_discharge": {
           "filename": "rs.db.$yyyy$mm$dd$HH$MM.txt",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/dynamic_data/outcome/observation/rs/$yyyy/$mm/$dd/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/obs/river_stations/$yyyy/$mm/$dd/"
         },
         "file_result_point_discharge": {
           "group": true,
           "collection": {
             "file_result_point_discharge_ws": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/point/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/weather_stations_realtime/$RUNTIME/point/discharge/"
             },
             "file_result_point_discharge_radar": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/point/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/radar_mcm_realtime/$RUNTIME/point/discharge/"
             },
             "file_result_point_discharge_probabilistic_ecmwf": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-ecmwf-0100/$RUNTIME/point/section_q/$ensemble/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/rfarm_ecmwf0100_realtime/$RUNTIME/probabilistic_$ensemble/point/discharge/"
             },
             "file_result_point_discharge_deterministic_ecmwf": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-ecmwf-0100/$RUNTIME/point/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/nwp_ecmwf0100_realtime/$RUNTIME/point/discharge/"
             },
             "file_result_point_discharge_probabilistic_lami": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-lami-2i/$RUNTIME/point/section_q/$ensemble/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/rfarm_lami-2i_realtime/$RUNTIME/probabilistic_$ensemble/point/discharge/"
             },
             "file_result_point_discharge_deterministic_lami": {
               "filename": "hmc.discharge.$yyyy$mm$dd$HH$MM.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-lami-2i/$RUNTIME/point/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/nwp_lami-2i_realtime/$RUNTIME/point/discharge/"
             }
           }
         },
         "file_result_gridded_outcome": {
           "filename": "hmc.output-grid.$yyyy$mm$dd$HH$MM.nc.gz",
-          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/gridded/"
+          "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/weather_stations_realtime/$RUNTIME/gridded/"
         },
         "file_result_ts_discharge": {
           "group": true,
           "collection": {
             "file_result_ts_discharge_ws": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/timeseries/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/weather_stations_realtime/$RUNTIME/timeseries/"
             },
             "file_result_ts_discharge_radar": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_ws-db/$RUNTIME/timeseries/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/radar_mcm_realtime/$RUNTIME/timeseries/"
             },
             "file_result_ts_discharge_probabilistic_ecmwf": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-ecmwf-0100/$RUNTIME/timeseries/section_q/$ensemble/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/rfarm_ecmwf0100_realtime/$RUNTIME/timeseries/section_q/$ensemble/"
             },
             "file_result_ts_discharge_deterministic_ecmwf": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-ecmwf-0100/$RUNTIME/timeseries/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/nwp_ecmwf0100_realtime/$RUNTIME/timeseries/discharge/"
             },
             "file_result_ts_discharge_probabilistic_lami": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_rf-lami-2i/$RUNTIME/timeseries/section_q/$ensemble/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/rfarm_lami-2i_realtime/$RUNTIME/timeseries/discharge/$ensemble/"
             },
             "file_result_ts_discharge_deterministic_lami": {
               "filename": "hmc.hydrograph.txt",
-              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/realtime_nwp-lami-2i/$RUNTIME/timeseries/section_q/"
+              "folder": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/archive/nwp_lami-2i_realtime/$RUNTIME/timeseries/discharge/"
             }
           }
         },
@@ -233,7 +233,7 @@
           "var_type_data": ["observed"],
           "var_type_ancillary": ["result"],
           "var_type_experiment": ["deterministic"],
-          "var_name_in": ["Rain", "AirTemperature", "Wind", "Rain"],
+          "var_name_in": ["Rain", "Air_Temperature", "Wind", "Rain"],
           "var_name_out": ["rain", "air_temperature", "wind_speed", "rain_accumulated"],
           "var_file_data": ["file_obs_gridded_forcing"],
           "var_file_ancillary": ["file_result_point_discharge_ws"],
@@ -266,7 +266,7 @@
           "var_type_data": ["forecast"],
           "var_type_ancillary": ["result"],
           "var_type_experiment": ["deterministic"],
-          "var_name_in": ["Rain", "AirTemperature", "Wind", "Rain"],
+          "var_name_in": ["Rain", "Air_Temperature", "Wind", "Rain"],
           "var_name_out": ["rain", "air_temperature", "wind_speed", "rain_accumulated"],
           "var_file_data": ["file_forecast_gridded_forcing_deterministic_ecmwf"],
           "var_file_ancillary": ["file_result_point_discharge_deterministic_ecmwf"],
@@ -301,7 +301,7 @@
           "var_type_data": ["forecast"],
           "var_type_ancillary": ["result"],
           "var_type_experiment": ["deterministic"],
-          "var_name_in": ["Rain", "AirTemperature", "Wind", "Rain"],
+          "var_name_in": ["Rain", "Air_Temperature", "Wind", "Rain"],
           "var_name_out": ["rain", "air_temperature", "wind_speed", "rain_accumulated"],
           "var_file_data": ["file_forecast_gridded_forcing_deterministic_lami"],
           "var_file_ancillary": ["file_result_point_discharge_deterministic_lami"],

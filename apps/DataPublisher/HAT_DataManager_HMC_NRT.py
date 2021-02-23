@@ -1,14 +1,13 @@
 """
 Hydrological Analysis Tool - DataManager for Hydrological Model Continuum - Near Real Time
 
-__date__ = '20191022'
-__version__ = '1.1.5'
+__date__ = '20210218'
+__version__ = '1.2.0'
 __author__ = 'Fabio Delogu (fabio.delogu@cimafoundation.org)'
 __library__ = 'hat'
 
 General command line:
-python3 HAT_DataManager_HMC_NRT.py -settings_file configuration.json -time YYYYMMDDHHMM
-
+python3 HAT_DataManager_HMC_NRT.py -settings_file configuration.json -time "YYYY-MM-DD HH:MM"
 Version(s) in changelog file
 """
 # -------------------------------------------------------------------------------------
@@ -39,37 +38,12 @@ from src.hat.driver.analysis.hmc.nrt.drv_datamanager_hmc_nrt import DataAnalysis
 
 
 # -------------------------------------------------------------------------------------
-# Method to get script argument(s)
-def GetArgs():
-    oParser = argparse.ArgumentParser()
-    oParser.add_argument('-settings_file', action="store", dest="sSettingFile")
-    oParser.add_argument('-time', action="store", dest="sTimeArg")
-    oParserValue = oParser.parse_args()
-
-    sScriptName = oParser.prog
-
-    if oParserValue.sSettingFile:
-        sSettingsFile = oParserValue.sSettingFile
-    else:
-        sSettingsFile = 'configuration.json'
-
-    if oParserValue.sTimeArg:
-        sTimeArg = oParserValue.sTimeArg
-    else:
-        sTimeArg = ''
-
-    return sScriptName, sSettingsFile, sTimeArg
-
-# -------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------
 # Script Main
 def main():
 
     # -------------------------------------------------------------------------------------
     # Version and algorithm information
-    sProgramVersion = '1.1.5'
+    sProgramVersion = '1.2.0'
     sProjectName = 'HAT'
     sAlgType = 'DataManager'
     sAlgName = 'HMC NearRealTime'
@@ -306,6 +280,31 @@ def main():
 
     Exc.getExc('', 0, 0)
     # -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to get script argument(s)
+def GetArgs():
+    oParser = argparse.ArgumentParser()
+    oParser.add_argument('-settings_file', action="store", dest="sSettingFile")
+    oParser.add_argument('-time', action="store", dest="sTimeArg")
+    oParserValue = oParser.parse_args()
+
+    sScriptName = oParser.prog
+
+    if oParserValue.sSettingFile:
+        sSettingsFile = oParserValue.sSettingFile
+    else:
+        sSettingsFile = 'configuration.json'
+
+    if oParserValue.sTimeArg:
+        sTimeArg = oParserValue.sTimeArg
+    else:
+        sTimeArg = ''
+
+    return sScriptName, sSettingsFile, sTimeArg
+
+# -------------------------------------------------------------------------------------
 
 
 # ----------------------------------------------------------------------------

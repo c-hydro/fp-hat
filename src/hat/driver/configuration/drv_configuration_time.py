@@ -99,18 +99,18 @@ class DataTime:
 
     # -------------------------------------------------------------------------------------
     # Method to get time now
-    def __getTimeNow(self):
+    def __getTimeNow(self, sTimeNowFormat='%Y-%m-%d %H:%M'):
 
         oLogStream.info(' ----> Configure time now  ... ')
         oTimeNow = None
         try:
             if self.sTimeNow is None:
                 oLogStream.info(' -----> Time now is not set. Time will be taken using time library.')
-                self.sTimeNow = time.strftime(sTimeFormat, time.gmtime())
+                self.sTimeNow = time.strftime(sTimeNowFormat, time.gmtime())
             else:
                 oLogStream.info(' -----> Time argument is set using script configuration file')
 
-            oTimeNow = pd.to_datetime(self.sTimeNow, format=sTimeFormat)
+            oTimeNow = pd.to_datetime(self.sTimeNow, format=sTimeNowFormat)
             oTimeNow = oTimeNow.floor('min')
             oTimeNow = oTimeNow.replace(minute=0)
 
@@ -126,18 +126,18 @@ class DataTime:
 
     # -------------------------------------------------------------------------------------
     # Method to get time set in argument(s)
-    def __getTimeArg(self):
+    def __getTimeArg(self, sTimeArgFormat='%Y-%m-%d %H:%M'):
 
         oLogStream.info(' ----> Configure time argument  ... ')
         oTimeArg = None
         try:
             if self.sTimeArg is None:
                 oLogStream.info(' -----> Time argument is not set. Time will be taken using time library.')
-                self.sTimeArg = time.strftime(sTimeFormat, time.gmtime())
+                self.sTimeArg = time.strftime(sTimeArgFormat, time.gmtime())
             else:
                 oLogStream.info(' -----> Time argument is set using script arg(s)')
 
-            oTimeArg = pd.to_datetime(self.sTimeArg, format=sTimeFormat)
+            oTimeArg = pd.to_datetime(self.sTimeArg, format=sTimeArgFormat)
             oTimeArg = oTimeArg.floor('min')
             oTimeArg = oTimeArg.replace(minute=0)
 

@@ -390,19 +390,73 @@ def getVar2D(oFileName, oFileTime, oFileVarsSource=None, oFileVarsOutcome=None,
     if oFileName_LIST:
 
         # Preprocess file(s) to control variable(s) and time(s)
-        oFileVarsSource_EXPECTED = []
+        oFileVarsSource_EXPECTED = None
         oFileTime_EXPECTED = []
+        bFileVars_NotEqualFields = False
+        bFileVars_NotEqualLen = False
         for sFileTime_LIST, sFileName_LIST in zip(oFileTime_LIST, oFileName_LIST):
 
             with xr.open_dataset(sFileName_LIST) as oDSet:
                 oFileVars_LIST = list(oDSet.data_vars)
 
-            oFileVarsSource_EXPECTED.extend(oElem for oElem in oFileVars_LIST if oElem not in oFileVarsSource_EXPECTED)
+            if oFileVarsSource_EXPECTED is None:
+                oFileVarsSource_EXPECTED = oFileVars_LIST
+
+            if oFileVarsSource_EXPECTED.__len__() != oFileVars_LIST.__len__():
+                bFileVars_NotEqualLen = True
+
+            for oElem in oFileVars_LIST:
+                if oElem not in oFileVarsSource_EXPECTED:
+                    oFileVarsSource_EXPECTED.extend([oElem])
+                    bFileVars_NotEqualFields = True
+
             oFileTime_EXPECTED.append(sFileTime_LIST)
 
         # Open data filename(s)
         if oFileName_LIST.__len__() > 1:
-            oFileData = xr.open_mfdataset(oFileName_LIST, preprocess=fixVar2D, concat_dim='time')
+            if (not bFileVars_NotEqualFields) and (not bFileVars_NotEqualLen):
+                # Same variables over analysis period
+                oFileData = xr.open_mfdataset(oFileName_LIST, preprocess=fixVar2D, concat_dim='time')
+            else:
+                # Different variables over analysis period
+                oFileData_EXPECTED = None
+                for iFile_STEP, sFileName_STEP in enumerate(oFileName_LIST):
+                    oFileData = xr.open_dataset(sFileName_STEP)
+
+                    # init dataset expected
+                    if oFileData_EXPECTED is None:
+
+                        a2dVarGeoX = oFileData['Longitude'].values
+                        a2dVarGeoY = oFileData['Latitude'].values
+
+                        oFileData_EXPECTED = xr.Dataset(coords={'time': (['time'], oFileTime_EXPECTED)})
+                        oFileData_EXPECTED.coords['time'] = oFileData_EXPECTED.coords['time'].astype('datetime64[ns]')
+
+                        a3dVarData_Default = np.zeros(shape=[oFileTime_EXPECTED.__len__(), a2dVarGeoX.shape[0], a2dVarGeoY.shape[1]])
+                        a3dVarData_Default[:, :, :] = np.nan
+                        for sVarName in oFileVarsSource_EXPECTED:
+                            oVarDA = xr.DataArray(
+                                a3dVarData_Default, name=sVarName, dims=['time', 'south_north', 'west_east'],
+                                coords={'time': (['time'], oFileTime_EXPECTED),
+                                        'Longitude': (['south_north', 'west_east'], a2dVarGeoX),
+                                        'Latitude': (['south_north', 'west_east'], a2dVarGeoY)})
+
+                            oFileData_EXPECTED[sVarName] = oVarDA
+                    # fill dataset expected step by step
+                    for sVarName in oFileVarsSource_EXPECTED:
+                        if sVarName != 'times':
+                            if sVarName in list(oFileData.variables):
+                                oVarValues_EXPECTED = deepcopy(oFileData_EXPECTED[sVarName].values)
+                                oVarValues_STEP = oFileData[sVarName].values
+                                oVarValues_EXPECTED[iFile_STEP, :, :] = oVarValues_STEP
+
+                                oVarDA_STEP = xr.DataArray(
+                                    oVarValues_EXPECTED, name=sVarName, dims=['time', 'south_north', 'west_east'],
+                                    coords={'time': (['time'], oFileTime_EXPECTED),
+                                            'Longitude': (['south_north', 'west_east'], a2dVarGeoX),
+                                            'Latitude': (['south_north', 'west_east'], a2dVarGeoY)})
+                                oFileData_EXPECTED[sVarName] = oVarDA_STEP
+
         else:
             oFileData = xr.open_dataset(oFileName_LIST[0])
             oFileData = removeVar2D(oFileData, oFileVarsSource_EXPECTED, oFileVarsSource_SELECTED)

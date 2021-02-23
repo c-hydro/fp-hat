@@ -13,6 +13,7 @@ import progressbar
 import glob
 import os
 
+
 import pandas as pd
 import xarray as xr
 
@@ -302,7 +303,8 @@ class DataAnalysisManagerGridded:
         # Iterate over dataset(s)
         oGriddedData_WS = {}
         oGriddedAttrs_WS = {}
-        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        #oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets)
         for sVarKey, oVarFields in oVarPBarObj(oVarDef.items()):
 
             # DEBUG
@@ -460,7 +462,8 @@ class DataAnalysisManagerGridded:
                                 if oVarData_WS is None:
                                     oVarData_WS = oVarData_BUFFER
                                 else:
-                                    oVarData_WS = xr.auto_combine([oVarData_WS, oVarData_BUFFER], concat_dim='time')
+                                    #oVarData_WS = xr.auto_combine([oVarData_WS, oVarData_BUFFER], concat_dim='time')
+                                    oVarData_WS = xr.combine_by_coords([oVarData_WS, oVarData_BUFFER])
                                 # -------------------------------------------------------------------------------------
 
                             # -------------------------------------------------------------------------------------
@@ -639,21 +642,25 @@ class DataAnalysisManagerGridded:
                                                 oVarData_FILLED = oVarData_WS
 
                                             # Find finite time step(s)
-                                            _, oVarDateRange_FINITE = oLibCmpTS.findVarFinite(
-                                                oVarData_FILLED, sVarName=sVarNameOutcome_SEL)
-                                            # Find common time step(s) between finite and generic selection
-                                            oVarDateRange_INTER = oVarDateRange_FINITE.intersection(oVarDateRange_SEL)
+                                            if sVarNameOutcome_SEL in list(oVarData_FILLED.variables):
+                                                _, oVarDateRange_FINITE = oLibCmpTS.findVarFinite(
+                                                    oVarData_FILLED, sVarName=sVarNameOutcome_SEL)
+                                                # Find common time step(s) between finite and generic selection
+                                                oVarDateRange_INTER = oVarDateRange_FINITE.intersection(oVarDateRange_SEL)
 
-                                            # Select data by using finite time step(s)
-                                            if oVarDateRange_INTER.size < oVarDateRange_SEL.size:
-                                                oVarDateRange_FINITE_SEL = oVarDateRange_FINITE[-oVarDateRange_SEL.size:]
+                                                # Select data by using finite time step(s)
+                                                if oVarDateRange_INTER.size < oVarDateRange_SEL.size:
+                                                    oVarDateRange_FINITE_SEL = oVarDateRange_FINITE[-oVarDateRange_SEL.size:]
+                                                else:
+                                                    oVarDateRange_FINITE_SEL = oVarDateRange_SEL
+
+                                                # Check availability of all time step(s)
+                                                oVarData_SEL = oVarData_FILLED.sel(time=oVarDateRange_FINITE_SEL)
+                                                bVarData_SEL = list(oVarData_SEL.indexes.values())[0].equals(
+                                                    oVarDateRange_FINITE_SEL)
                                             else:
-                                                oVarDateRange_FINITE_SEL = oVarDateRange_SEL
-
-                                            # Check availability of all time step(s)
-                                            oVarData_SEL = oVarData_FILLED.sel(time=oVarDateRange_FINITE_SEL)
-                                            bVarData_SEL = list(oVarData_SEL.indexes.values())[0].equals(
-                                                oVarDateRange_FINITE_SEL)
+                                                oVarData_SEL = None
+                                                bVarData_SEL = False
                                             # -------------------------------------------------------------------------------------
 
                                             # -------------------------------------------------------------------------------------
@@ -739,8 +746,8 @@ class DataAnalysisManagerGridded:
                                     if oVarDSet_SEL is None:
                                         oVarDSet_SEL = oVarDSet_DATA
                                     else:
-                                        oVarDSet_SEL = xr.auto_combine([oVarDSet_SEL, oVarDSet_DATA],
-                                                                       concat_dim='time')
+                                        #oVarDSet_SEL = xr.auto_combine([oVarDSet_SEL, oVarDSet_DATA], concat_dim='time')
+                                        oVarDSet_SEL = xr.combine_by_coords([oVarDSet_SEL, oVarDSet_DATA])
 
                                     if sVarName_SEL not in oVarAttr_SEL:
                                         oVarAttr_SEL[sVarName_SEL] = oVarGridded_ATTRIBUTES
@@ -869,7 +876,7 @@ class DataAnalysisManagerTimeSeries:
         # Iterate over dataset(s)
         oSectionData_WS = {}
         oSectionAttrs_WS = {}
-        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets)
         for sVarKey, oVarFields in oVarPBarObj(oVarDef.items()):
 
             # DEBUG
@@ -1028,7 +1035,10 @@ class DataAnalysisManagerTimeSeries:
                                 if oVarData_WS is None:
                                     oVarData_WS = oVarData_BUFFER
                                 else:
-                                    oVarData_WS = xr.auto_combine([oVarData_WS, oVarData_BUFFER], concat_dim='time')
+                                    # oVarData_WS = xr.auto_combine([oVarData_WS, oVarData_BUFFER], concat_dim='time')
+                                    oVarData_WS = xr.combine_by_coords(
+                                        [oVarData_WS, oVarData_BUFFER])
+
                                 # -------------------------------------------------------------------------------------
 
                             elif sVarDims == 'var1d':
@@ -1145,46 +1155,50 @@ class DataAnalysisManagerTimeSeries:
                                     oVarArg_SEL in zip(oVarNameOutcome_SEL, oVarMethodName_SEL, oVarUnits_SEL,
                                                        oVarScalarFactor_SEL, oVarMissingValue_SEL, a1oVarValidRange_SEL,
                                                        oVarFillValue_SEL, oVarArgs_SEL):
-                                    # Get variable data
-                                    oSectionData_SUBSET = oSectionData_SEL[sVarNameTS_SEL]
-                                    # Set variable attributes
-                                    oSectionData_ATTRIBUTES = mergeDict(
-                                        {'units': sVarUnits_SEL, 'ScaleFactor': iVarScaleFactor_SEL,
-                                         'Missing_value': dVarMissingValue_SEL,
-                                         'Valid_range': oVarValidRange_SEL,
-                                         '_FillValue': dVarFillValue_SEL}, oVarAttributes)
 
-                                    # Get computing times (from and to)
-                                    oVarCMP_SEL = getDictDeep(oVarArg_SEL, 'var_cmp_ts')
+                                    if sVarNameTS_SEL in list(oSectionData_SEL.variables):
+                                        # Get variable data
+                                        oSectionData_SUBSET = oSectionData_SEL[sVarNameTS_SEL]
+                                        # Set variable attributes
+                                        oSectionData_ATTRIBUTES = mergeDict(
+                                            {'units': sVarUnits_SEL, 'ScaleFactor': iVarScaleFactor_SEL,
+                                             'Missing_value': dVarMissingValue_SEL,
+                                             'Valid_range': oVarValidRange_SEL,
+                                             '_FillValue': dVarFillValue_SEL}, oVarAttributes)
 
-                                    if oVarCMP_SEL is not None:
-                                        oTimeCMP_FROM = setDatasetTime_Cmp(oVarCMP_SEL[0][0],
-                                                                           {'time_starting': oVarTime_STARTING,
-                                                                            'time_run':oVarTime_RUN,
-                                                                            'time_dataset': oVarTime_DATASET})
+                                        # Get computing times (from and to)
+                                        oVarCMP_SEL = getDictDeep(oVarArg_SEL, 'var_cmp_ts')
 
-                                        oTimeCMP_TO = setDatasetTime_Cmp(oVarCMP_SEL[0][1],
-                                                                           {'time_starting': oVarTime_STARTING,
-                                                                            'time_run':oVarTime_RUN,
-                                                                            'time_dataset': oVarTime_DATASET})
-                                    else:
-                                        oTimeCMP_FROM = None
-                                        oTimeCMP_TO = None
+                                        if oVarCMP_SEL is not None:
+                                            oTimeCMP_FROM = setDatasetTime_Cmp(oVarCMP_SEL[0][0],
+                                                                               {'time_starting': oVarTime_STARTING,
+                                                                                'time_run':oVarTime_RUN,
+                                                                                'time_dataset': oVarTime_DATASET})
 
-                                    # Select computing method to get time series
-                                    if sVarMethodName_SEL is not None:
-                                        if hasattr(oLibCmpTS, sVarMethodName_SEL):
-                                            # Set argument(s)
-                                            oFxArgs = {'oVarData': oSectionData_SUBSET, 'oVarMask': oSectionMask,
-                                                       'oVarTime_FROM': oTimeCMP_FROM, 'oVarTime_TO': oTimeCMP_TO}
-
-                                            # Compute variable data
-                                            oSectionTS_SUBSET = configVarFx(sVarMethodName_SEL, oLibCmpTS, oFxArgs)
+                                            oTimeCMP_TO = setDatasetTime_Cmp(oVarCMP_SEL[0][1],
+                                                                               {'time_starting': oVarTime_STARTING,
+                                                                                'time_run':oVarTime_RUN,
+                                                                                'time_dataset': oVarTime_DATASET})
                                         else:
-                                            # Set argument(s)
-                                            oFxArgs = {'oVarData': oSectionData_SUBSET}
-                                            # Compute variable data
-                                            oSectionTS_SUBSET = configVarFx('cmpVarMean', oLibCmpTS, oFxArgs)
+                                            oTimeCMP_FROM = None
+                                            oTimeCMP_TO = None
+
+                                        # Select computing method to get time series
+                                        if sVarMethodName_SEL is not None:
+                                            if hasattr(oLibCmpTS, sVarMethodName_SEL):
+                                                # Set argument(s)
+                                                oFxArgs = {'oVarData': oSectionData_SUBSET, 'oVarMask': oSectionMask,
+                                                           'oVarTime_FROM': oTimeCMP_FROM, 'oVarTime_TO': oTimeCMP_TO}
+
+                                                # Compute variable data
+                                                oSectionTS_SUBSET = configVarFx(sVarMethodName_SEL, oLibCmpTS, oFxArgs)
+                                            else:
+                                                # Set argument(s)
+                                                oFxArgs = {'oVarData': oSectionData_SUBSET}
+                                                # Compute variable data
+                                                oSectionTS_SUBSET = configVarFx('cmpVarMean', oLibCmpTS, oFxArgs)
+                                        else:
+                                            oSectionTS_SUBSET = None
                                     else:
                                         oSectionTS_SUBSET = None
 
@@ -1354,7 +1368,8 @@ class DataAnalysisFinalizer:
 
         # -------------------------------------------------------------------------------------
         # Iterate over dataset(s)
-        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        #oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets)
         for sVarKey, oVarFields in oVarPBarObj(oVarDef.items()):
 
             # DEBUG
@@ -1440,6 +1455,8 @@ class DataAnalysisFinalizer:
                         # -------------------------------------------------------------------------------------
                         # Info group start
                         oLogStream.info(' -----> Save group ' + sVarFileSource_IN_GROUP + ' ... ')
+                        if sVarFileSource_IN_GROUP == "file_result_point_discharge_probabilistic_ecmwf":
+                            print('ciao')
 
                         # Check group name in data workspace
                         if sVarFileSource_IN_GROUP in oVarData_SECTION:
@@ -1663,7 +1680,7 @@ class DataAnalysisBuilder:
         # -------------------------------------------------------------------------------------
         # Iterate over dataset(s)
         oVarWS_INFO = {}
-        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets)
         oVarWS_STORE_STEP = None
         oDatasetTime_MAP = None
         for sVarKey, oVarFields in oVarPBarObj(oVarDef.items()):
@@ -2087,8 +2104,11 @@ class DataAnalysisBuilder:
                                     # Combine dataset with other chunked dataset (if needed)
                                     oVarDSET_COMBINE_CHUNK = xr.Dataset(
                                         coords={'time': (['time'], pd.to_datetime(oVarTime_STORE_SAVE))})
-                                    oVarDSET_COMBINE = xr.auto_combine(
-                                        [oVarDSET_COMBINE_CHUNK, oVarDSET_COMBINE_BUFFER_FILL], concat_dim='time')
+                                    #oVarDSET_COMBINE = xr.auto_combine(
+                                    #    [oVarDSET_COMBINE_CHUNK, oVarDSET_COMBINE_BUFFER_FILL], concat_dim='time')
+
+                                    oVarDSET_COMBINE = xr.combine_by_coords(
+                                        [oVarDSET_COMBINE_CHUNK, oVarDSET_COMBINE_BUFFER_FILL])
 
                                     # Save times already processed
                                     oVarTime_STORE_DEL = oVarTime_COMBINE_INTSEC
@@ -2103,6 +2123,17 @@ class DataAnalysisBuilder:
 
                                 # Write or append data to netcdf buffered file
                                 if oVarDSET_COMBINE is not None:
+
+                                    # Check for encoded dictionary (issue with _FillValue and missing_value)
+                                    if 'longitude' in list(oVarDSET_COMBINE.variables.mapping.keys()):
+                                        var_encoding = oVarDSET_COMBINE['longitude'].encoding
+                                        if var_encoding:
+                                            oVarDSET_COMBINE['longitude'].encoding = {}
+
+                                    if 'latitude' in list(oVarDSET_COMBINE.variables.mapping.keys()):
+                                        var_encoding = oVarDSET_COMBINE['latitude'].encoding
+                                        if var_encoding:
+                                            oVarDSET_COMBINE['latitude'].encoding = {}
 
                                     writeFileNC4(sVarFile_STORE_SAVE, oVarDSET_COMBINE,
                                                  sVarGroup=sVarSourceData, sVarMode=sFileMode_BUFFER)
