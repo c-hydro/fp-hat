@@ -105,7 +105,8 @@ class DataPublisher:
 
         # -------------------------------------------------------------------------------------
         # Iterate over dataset(s)
-        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        #oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+        oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets)
         for sVarKey, oVarFields in oVarPBarObj(oVarDef.items()):
 
             # DEBUG
@@ -671,112 +672,124 @@ class DataPublisher:
                                             oVarNameOutcome_DEF = findVarName(
                                                 list(oVarFile_DEF.data_vars), sVarNameOutcome_DEF)
 
-                                            # Find tag(s) of input variable(s)
-                                            oVarTagPattern_DEF, oVarTagValue_DEF = findVarTag(oVarNameOutcome_DEF,
-                                                                                              sVarNameOutcome_DEF)
+                                            # Check the name of input variable
+                                            if oVarNameOutcome_DEF is not None:
 
-                                            # Create name of output variable(s)
-                                            oVarNameOutcome_DEF = createVarName(sVarNameOutcome_DEF, oVarTagPattern_DEF,
-                                                                                oVarTagValue_DEF)
+                                                # Find tag(s) of input variable(s)
+                                                oVarTagPattern_DEF, oVarTagValue_DEF = findVarTag(oVarNameOutcome_DEF,
+                                                                                                  sVarNameOutcome_DEF)
 
-                                            # Create filename(s) of output variable(s)
-                                            oVarFileName_DEF = createVarName(sVarFileName_DEF, oVarTagPattern_DEF,
-                                                                             oVarTagValue_DEF)
+                                                # Create name of output variable(s)
+                                                oVarNameOutcome_DEF = createVarName(sVarNameOutcome_DEF, oVarTagPattern_DEF,
+                                                                                    oVarTagValue_DEF)
 
-                                            # Create filename(s) of output variable(s)
-                                            oVarFileCMap_DEF = createVarName(sVarFileCMap_DEF, oVarTagPattern_DEF,
-                                                                             oVarTagValue_DEF)
+                                                # Create filename(s) of output variable(s)
+                                                oVarFileName_DEF = createVarName(sVarFileName_DEF, oVarTagPattern_DEF,
+                                                                                 oVarTagValue_DEF)
 
-                                            # Define algorithm attribute(s)
-                                            oVarAlgAttrs_DEF = {'var_dims': sVarDims_DEF,
-                                                                'var_type_data': sVarTypeData_DEF,
-                                                                'var_type_experiment': sVarTypeExp_DEF,
-                                                                'var_name_in': sVarNameSource_DEF,
-                                                                'var_name_out': oVarNameOutcome_DEF,
-                                                                'var_file_tag': sVarFileTag_DEF,
-                                                                'var_file_group': sVarFileGroup_DEF,
-                                                                'var_appearance': sVarAppearance_DEF,
-                                                                'var_content': sFileContent_DEF}
-                                            # -------------------------------------------------------------------------------------
+                                                # Create filename(s) of output variable(s)
+                                                oVarFileCMap_DEF = createVarName(sVarFileCMap_DEF, oVarTagPattern_DEF,
+                                                                                 oVarTagValue_DEF)
 
-                                            # -------------------------------------------------------------------------------------
-                                            # Iterate over variable(s)
-                                            oVarDataAttrs_DEF = None
-                                            for sVarNameOutcome_DEF, sVarFileName_DEF, sVarFileCMap_DEF in zip(
-                                                    oVarNameOutcome_DEF, oVarFileName_DEF, oVarFileCMap_DEF):
-
-                                                # -------------------------------------------------------------------------------------
-                                                # Info map
-                                                oLogStream.info(' -------> Publishing gridded data ' +
-                                                                sVarNameOutcome_DEF + ' ... ')
-
-                                                # Get data for each variable(s)
-                                                oVarDataArray_DEF = oVarFile_DEF[sVarNameOutcome_DEF]
-                                                oVarDataArray_DEF = reduceDArray3D(oVarDataArray_DEF)
-
-                                                if oVarDataAttrs_DEF is None:
-                                                    oVarDataAttrs_DEF = oVarDataArray_DEF.attrs
-
-                                                # Manage attribute(s)
-                                                oVarAttrs_DEF = mergeVarAttrs([oVarAlgAttrs_DEF, oVarDataAttrs_DEF])
-                                                # Update variable appearance
-                                                oVarAttrs_DEF['var_appearance'] = sVarNameOutcome_DEF.replace('_', ' ')
-
-                                                # Add attributes to data array
-                                                oVarDataArray_DEF = addVarAttrs(oVarDataArray_DEF, oVarAttrs_DEF)
+                                                # Define algorithm attribute(s)
+                                                oVarAlgAttrs_DEF = {'var_dims': sVarDims_DEF,
+                                                                    'var_type_data': sVarTypeData_DEF,
+                                                                    'var_type_experiment': sVarTypeExp_DEF,
+                                                                    'var_name_in': sVarNameSource_DEF,
+                                                                    'var_name_out': oVarNameOutcome_DEF,
+                                                                    'var_file_tag': sVarFileTag_DEF,
+                                                                    'var_file_group': sVarFileGroup_DEF,
+                                                                    'var_appearance': sVarAppearance_DEF,
+                                                                    'var_content': sFileContent_DEF}
                                                 # -------------------------------------------------------------------------------------
 
                                                 # -------------------------------------------------------------------------------------
-                                                # Defined fx argument(s)
-                                                oFxArgs_DEF = {'oVarData': oVarDataArray_DEF,
-                                                               "sFileName": sVarFileName_DEF,
-                                                               "sColorMap": sVarFileCMap_DEF,
-                                                               "oTimeRun": oVarTime_RUN,
-                                                               "sTypeRun": sGraphName_DEF}
+                                                # Iterate over variable(s)
+                                                oVarDataAttrs_DEF = None
+                                                for sVarNameOutcome_DEF, sVarFileName_DEF, sVarFileCMap_DEF in zip(
+                                                        oVarNameOutcome_DEF, oVarFileName_DEF, oVarFileCMap_DEF):
 
-                                                # Call graph fx
-                                                oFxData = configVarFx(sFxName_DEF, libFxGridded, oFxArgs_DEF)
-                                                # oFxData = True
-                                                # -------------------------------------------------------------------------------------
-
-                                                # -------------------------------------------------------------------------------------
-                                                # Create registry data for ts
-                                                if oFxData:
-
-                                                    # Info end
+                                                    # -------------------------------------------------------------------------------------
+                                                    # Info map
                                                     oLogStream.info(' -------> Publishing gridded data ' +
-                                                                    sVarNameOutcome_DEF + ' ... DONE')
+                                                                    sVarNameOutcome_DEF + ' ... ')
 
-                                                    if 'filename' not in oVarRegistry_DEF_WS[sVarKey]:
-                                                        oVarRegistry_DEF_WS[sVarKey]['filename'] = {}
-                                                        oVarRegistry_DEF_WS[sVarKey]['filename'] = sVarFileRegistry_DEF
-                                                    if 'registry' not in oVarRegistry_DEF_WS[sVarKey]:
-                                                        oVarRegistry_DEF_WS[sVarKey]['registry'] = {}
+                                                    # Get data for each variable(s)
+                                                    oVarDataArray_DEF = oVarFile_DEF[sVarNameOutcome_DEF]
+                                                    oVarDataArray_DEF = reduceDArray3D(oVarDataArray_DEF)
 
-                                                    sRegistryString = sVarAppearance_DEF.replace(" ", "_")
-                                                    if sRegistryString not in list(oVarRegistry_DEF_WS[sVarKey]['registry']):
-                                                        oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = {}
-                                                        oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_DEF
+                                                    if oVarDataAttrs_DEF is None:
+                                                        oVarDataAttrs_DEF = oVarDataArray_DEF.attrs
+
+                                                    # Manage attribute(s)
+                                                    oVarAttrs_DEF = mergeVarAttrs([oVarAlgAttrs_DEF, oVarDataAttrs_DEF])
+                                                    # Update variable appearance
+                                                    oVarAttrs_DEF['var_appearance'] = sVarNameOutcome_DEF.replace('_', ' ')
+
+                                                    # Add attributes to data array
+                                                    oVarDataArray_DEF = addVarAttrs(oVarDataArray_DEF, oVarAttrs_DEF)
+                                                    # -------------------------------------------------------------------------------------
+
+                                                    # -------------------------------------------------------------------------------------
+                                                    # Defined fx argument(s)
+                                                    oFxArgs_DEF = {'oVarData': oVarDataArray_DEF,
+                                                                   "sFileName": sVarFileName_DEF,
+                                                                   "sColorMap": sVarFileCMap_DEF,
+                                                                   "oTimeRun": oVarTime_RUN,
+                                                                   "sTypeRun": sGraphName_DEF}
+
+                                                    # Call graph fx
+                                                    oFxData = configVarFx(sFxName_DEF, libFxGridded, oFxArgs_DEF)
+                                                    # oFxData = True
+                                                    # -------------------------------------------------------------------------------------
+
+                                                    # -------------------------------------------------------------------------------------
+                                                    # Create registry data for ts
+                                                    if oFxData:
+
+                                                        # Info end
+                                                        oLogStream.info(' -------> Publishing gridded data ' +
+                                                                        sVarNameOutcome_DEF + ' ... DONE')
+
+                                                        if 'filename' not in oVarRegistry_DEF_WS[sVarKey]:
+                                                            oVarRegistry_DEF_WS[sVarKey]['filename'] = {}
+                                                            oVarRegistry_DEF_WS[sVarKey]['filename'] = sVarFileRegistry_DEF
+                                                        if 'registry' not in oVarRegistry_DEF_WS[sVarKey]:
+                                                            oVarRegistry_DEF_WS[sVarKey]['registry'] = {}
+
+                                                        sRegistryString = sVarAppearance_DEF.replace(" ", "_")
+                                                        if sRegistryString not in list(oVarRegistry_DEF_WS[sVarKey]['registry']):
+                                                            oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = {}
+                                                            oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_DEF
+                                                        else:
+                                                            oVarReg_GENERIC = oVarRegistry_DEF_WS[sVarKey]['registry']
+
+                                                            oVarFilePath_STORAGE = oVarReg_GENERIC[sRegistryString]
+                                                            oVarFilePath_UPD = updateRootRegistry(oVarFilePath_STORAGE,oVarFilePath_DEF)
+
+                                                            oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_UPD
+
                                                     else:
-                                                        oVarReg_GENERIC = oVarRegistry_DEF_WS[sVarKey]['registry']
+                                                        # Info end
+                                                        oLogStream.info(' -------> Publishing gridded data ' +
+                                                                        sVarNameOutcome_DEF + ' ... FAILED')
 
-                                                        oVarFilePath_STORAGE = oVarReg_GENERIC[sRegistryString]
-                                                        oVarFilePath_UPD = updateRootRegistry(oVarFilePath_STORAGE,oVarFilePath_DEF)
+                                                        # Exit condition for error(s) in plotting data
+                                                        Exc.getExc(' =====> WARNING: error(s) occurred in plotting data! ',
+                                                                   2, 1)
+                                                    # -------------------------------------------------------------------------------------
 
-                                                        oVarRegistry_DEF_WS[sVarKey]['registry'][sRegistryString] = oVarFilePath_UPD
-
-                                                else:
-                                                    # Info end
-                                                    oLogStream.info(' -------> Publishing gridded data ' +
-                                                                    sVarNameOutcome_DEF + ' ... FAILED')
-
-                                                    # Exit condition for error(s) in plotting data
-                                                    Exc.getExc(' =====> WARNING: error(s) occurred in plotting data! ',
-                                                               2, 1)
+                                                # End iteration(s) over output variable(s)
                                                 # -------------------------------------------------------------------------------------
 
-                                            # End iteration(s) over output variable(s)
-                                            # -------------------------------------------------------------------------------------
+                                            else:
+                                                # -------------------------------------------------------------------------------------
+                                                # Variable name not found
+                                                Exc.getExc(
+                                                    ' =====> WARNING: variable ' + sVarName_DEF +
+                                                    ' not found in input expected variable!', 2, 1)
+                                                # -------------------------------------------------------------------------------------
+
                                         else:
                                             # -------------------------------------------------------------------------------------
                                             # Variable name not found

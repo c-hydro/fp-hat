@@ -130,7 +130,11 @@ def findVarName(oVarList, sVarPattern='rain_$ensemble', oVarTags=None):
         oVarList_FILTERED = [oVarList_FILTERED]
 
     if oVarList_FILTERED.__len__() == 0:
-        Exc.getExc(' =====> ERROR: mismatch between group variable(s) and variable pattern! Check your settings!', 1, 1)
+        #Exc.getExc(' =====> ERROR: mismatch between group variable(s) and variable pattern! Check your settings!', 1, 1)
+        oVarList_FILTERED = None
+
+        Exc.getExc(' =====> WARNING: in finding variable name(s), method returns NONE for variable ' +
+                   sVarPattern + ' !', 2, 1)
 
     return oVarList_FILTERED
 # -------------------------------------------------------------------------------------

@@ -361,7 +361,8 @@ class DataAnalysisSeeker:
 
                 # -------------------------------------------------------------------------------------
                 # Iterate over dataset(s)
-                oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+                # oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets, redirect_stdout=True)
+                oVarPBarObj = progressbar.ProgressBar(widgets=oVarPBarWidgets)
                 for sVarKey, oVarFields in oVarPBarObj(oVarDef.items()):
 
                     # DEBUG
@@ -405,6 +406,7 @@ class DataAnalysisSeeker:
 
                     # DEBUG #
                     # sVarGroup = "file_forecast_gridded_forcing_deterministic_lami"
+                    # sVarGroup = "file_result_gridded_outcome"
                     # iVarID = oVarFileGroup.index(sVarGroup)
                     # oVarDims = oVarDims[iVarID:]
                     # oVarTypeData = oVarTypeData[iVarID:]
@@ -663,75 +665,83 @@ class DataAnalysisSeeker:
 
                                 # Find name(s) of input variable(s)
                                 oVarNameSource_SEEK = findVarName(list(oVarDSet_SEEK.data_vars), sVarNameSource)
-                                # Find tag(s) of input variable(s)
-                                oVarTagPattern_SEEK, oVarTagValue_SEEK = findVarTag(oVarNameSource_SEEK, sVarNameSource)
-                                # Create name of output variable(s)
-                                oVarNameOutcome_SEEK = createVarName(sVarNameOutcome,
-                                                                     oVarTagPattern_SEEK, oVarTagValue_SEEK)
 
-                                # Create name of output variable(s)
-                                oVarNameGroup_SEEK = createVarName(sVarNameGroup,
-                                                                   oVarTagPattern_SEEK, oVarTagValue_SEEK)
+                                # Check variable(s) availability
+                                if oVarNameSource_SEEK is not None:
+                                    # Find tag(s) of input variable(s)
+                                    oVarTagPattern_SEEK, oVarTagValue_SEEK = findVarTag(oVarNameSource_SEEK, sVarNameSource)
+                                    # Create name of output variable(s)
+                                    oVarNameOutcome_SEEK = createVarName(sVarNameOutcome,
+                                                                         oVarTagPattern_SEEK, oVarTagValue_SEEK)
 
-                                # Iterate over variable(s)
-                                for sVarNameSource_SEEK, sVarNameOutcome_SEEK, sVarNameGroup_SEEK in zip(
-                                        oVarNameSource_SEEK, oVarNameOutcome_SEEK, oVarNameGroup_SEEK):
+                                    # Create name of output variable(s)
+                                    oVarNameGroup_SEEK = createVarName(sVarNameGroup,
+                                                                       oVarTagPattern_SEEK, oVarTagValue_SEEK)
 
-                                    # Info variable start
-                                    oLogStream.info(' ------> Seeking data for input variable ' +
-                                                    sVarNameSource_SEEK + ' to outcome variable ' +
-                                                    sVarNameOutcome_SEEK + ' ... ')
+                                    # Iterate over variable(s)
+                                    for sVarNameSource_SEEK, sVarNameOutcome_SEEK, sVarNameGroup_SEEK in zip(
+                                            oVarNameSource_SEEK, oVarNameOutcome_SEEK, oVarNameGroup_SEEK):
 
-                                    # Get variable data
-                                    oVarDArray_SEEK = oVarDSet_SEEK[sVarNameSource_SEEK]
-                                    oVarDArray_SEEK = createDArray2D(oVarDArray_SEEK,
-                                                                     sVarName_IN=sVarNameSource_SEEK,
-                                                                     sVarName_OUT=sVarNameOutcome_SEEK)
-                                    # Create data array list
-                                    vars()[sVarNameOutcome_SEEK] = oVarDArray_SEEK
+                                        # Info variable start
+                                        oLogStream.info(' ------> Seeking data for input variable ' +
+                                                        sVarNameSource_SEEK + ' to outcome variable ' +
+                                                        sVarNameOutcome_SEEK + ' ... ')
 
-                                    if oVarList_SEEK is None:
-                                        oVarList_SEEK = [deepcopy(vars()[sVarNameOutcome_SEEK])]
-                                    else:
-                                        oVarList_SEEK.append(deepcopy(vars()[sVarNameOutcome_SEEK]))
+                                        # Get variable data
+                                        oVarDArray_SEEK = oVarDSet_SEEK[sVarNameSource_SEEK]
+                                        oVarDArray_SEEK = createDArray2D(oVarDArray_SEEK,
+                                                                         sVarName_IN=sVarNameSource_SEEK,
+                                                                         sVarName_OUT=sVarNameOutcome_SEEK)
+                                        # Create data array list
+                                        vars()[sVarNameOutcome_SEEK] = oVarDArray_SEEK
 
-                                    # Delete variable(s) from vars()
-                                    if sVarNameOutcome_SEEK in vars():
-                                        del vars()[sVarNameOutcome_SEEK]
+                                        if oVarList_SEEK is None:
+                                            oVarList_SEEK = [deepcopy(vars()[sVarNameOutcome_SEEK])]
+                                        else:
+                                            oVarList_SEEK.append(deepcopy(vars()[sVarNameOutcome_SEEK]))
 
-                                    # Variable statistics
-                                    if sVarNameGroup_SEEK != 'other':
-                                        oVarStats_SEEK = createStats2D(oVarStats_SEEK, oVarDArray_SEEK,
-                                                                       sVarNameGroup_SEEK)
+                                        # Delete variable(s) from vars()
+                                        if sVarNameOutcome_SEEK in vars():
+                                            del vars()[sVarNameOutcome_SEEK]
 
-                                    # Info variable end
-                                    oLogStream.info(' ------> Seeking data for input variable ' +
-                                                    sVarNameSource_SEEK + ' to outcome variable ' +
-                                                    sVarNameOutcome_SEEK + ' ... DONE')
-                                # -------------------------------------------------------------------------------------
+                                        # Variable statistics
+                                        if sVarNameGroup_SEEK != 'other':
+                                            oVarStats_SEEK = createStats2D(oVarStats_SEEK, oVarDArray_SEEK,
+                                                                           sVarNameGroup_SEEK)
 
-                                # -------------------------------------------------------------------------------------
-                                # Merge data in dataset object
-                                oVarDSet_SEEK = mergeVar2D(oVarList_SEEK)
-                                # Store in a common dictionary
-                                if sVarKey in oVarPickle_SEEK:
-                                    oVarPickle_SEEK = {}
-                                oVarPickle_SEEK[sVarKey] = oVarDSet_SEEK
-
-                                # Dump data in a pickle file
-                                if not isfile(sVarFileName_ANCILLARY):
-                                    createFolderByFile(sVarFileName_ANCILLARY)
-                                    writeFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK)
+                                        # Info variable end
+                                        oLogStream.info(' ------> Seeking data for input variable ' +
+                                                        sVarNameSource_SEEK + ' to outcome variable ' +
+                                                        sVarNameOutcome_SEEK + ' ... DONE')
                                 else:
-                                    appendFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK, sVarKey)
-
-                                # Test
-                                # oVarFile_TEST = readFilePickle(sVarFileName_ANCILLARY)
-
-                                # Store seeking step(s)
-                                oVarData_SEEK_WS[sAppTag][sVarKey][sVarFileGroup] = True
-                                oVarData_SEEK_STATS[sAppTag][sVarKey][sVarFileGroup] = oVarStats_SEEK
+                                    oVarList_SEEK = None
                                 # -------------------------------------------------------------------------------------
+
+                                # -------------------------------------------------------------------------------------
+                                # Check variable list
+                                if oVarList_SEEK is not None:
+
+                                    # Merge data in dataset object
+                                    oVarDSet_SEEK = mergeVar2D(oVarList_SEEK)
+                                    # Store in a common dictionary
+                                    if sVarKey in oVarPickle_SEEK:
+                                        oVarPickle_SEEK = {}
+                                    oVarPickle_SEEK[sVarKey] = oVarDSet_SEEK
+
+                                    # Dump data in a pickle file
+                                    if not isfile(sVarFileName_ANCILLARY):
+                                        createFolderByFile(sVarFileName_ANCILLARY)
+                                        writeFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK)
+                                    else:
+                                        appendFilePickle(sVarFileName_ANCILLARY, oVarPickle_SEEK, sVarKey)
+
+                                    # Test
+                                    # oVarFile_TEST = readFilePickle(sVarFileName_ANCILLARY)
+
+                                    # Store seeking step(s)
+                                    oVarData_SEEK_WS[sAppTag][sVarKey][sVarFileGroup] = True
+                                    oVarData_SEEK_STATS[sAppTag][sVarKey][sVarFileGroup] = oVarStats_SEEK
+                                    # -------------------------------------------------------------------------------------
 
                                 # -------------------------------------------------------------------------------------
                                 # Info group
