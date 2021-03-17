@@ -36,12 +36,15 @@ def fill_tags2string(string_raw, tags_format=None, tags_filling=None):
         tags_format_tmp = deepcopy(tags_format)
         for tag_key, tag_value in tags_format.items():
             tag_key_tmp = '{' + tag_key + '}'
-            if tag_value is not None:
-                if tag_key_tmp in string_raw:
-                    string_filled = string_raw.replace(tag_key_tmp, tag_value)
-                    string_raw = string_filled
-                else:
-                    tags_format_tmp.pop(tag_key, None)
+            if tag_key in list(tags_filling.keys()):
+                tag_filled = tags_filling[tag_key]
+                if tag_value is not None:
+                    if tag_key_tmp in string_raw:
+                        if tag_filled is not None:
+                            string_filled = string_raw.replace(tag_key_tmp, tag_value)
+                            string_raw = string_filled
+                    else:
+                        tags_format_tmp.pop(tag_key, None)
 
         dim_max = 1
         for tags_filling_values_tmp in tags_filling.values():

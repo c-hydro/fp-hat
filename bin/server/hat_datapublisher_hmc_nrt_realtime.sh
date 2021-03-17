@@ -2,7 +2,7 @@
 
 #-----------------------------------------------------------------------------------------
 # Script information
-script_name='HAT - DataPublisher HMC NRT - REALTIME'
+script_name='HAT - Analyzer_Datasets HMC NRT - REALTIME'
 script_version="1.5.0"
 script_date='2019/03/04'
 
@@ -13,7 +13,7 @@ fp_env_libs='fp_env_python'
 
 #-----------------------------------------------------------------------------------------
 # Get file information
-script_file='/home/dpc-marche/library/hat-master/apps/HAT_DataPublisher_HMC_NRT.py'
+script_file='/home/dpc-marche/library/hat-master/apps/HAT_RunPublisher_HMC_NRT.py'
 setting_file='/home/dpc-marche/library/hat-master/apps/hat_datapublisher_hmc_nrt_configuration_server_realtime.json'
 script_folder='/home/dpc-marche/library/hat-master/'
 

@@ -13,9 +13,9 @@ fp_env_libs='fp_env_python'
 
 #-----------------------------------------------------------------------------------------
 # Get file information
-script_file_manager='/home/dpc-marche/library/hat-master/apps/HAT_DataManager_HMC_NRT.py'
+script_file_manager='/home/dpc-marche/library/hat-master/apps/HAT_RunOrganizer_HMC_NRT.py'
 setting_file_manager='/home/dpc-marche/library/hat-master/apps/hat_datamanager_hmc_nrt_configuration_server_realtime.json'
-script_file_publisher='/home/dpc-marche/library/hat-master/apps/HAT_DataPublisher_HMC_NRT.py'
+script_file_publisher='/home/dpc-marche/library/hat-master/apps/HAT_RunPublisher_HMC_NRT.py'
 setting_file_publisher='/home/dpc-marche/library/hat-master/apps/hat_datapublisher_hmc_nrt_configuration_server_realtime.json'
 script_folder='/home/dpc-marche/library/hat-master/'
 

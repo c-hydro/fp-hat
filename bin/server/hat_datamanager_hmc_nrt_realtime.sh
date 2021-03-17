@@ -13,7 +13,7 @@ fp_env_libs='fp_env_python'
 
 #-----------------------------------------------------------------------------------------
 # Get file information
-script_file='/home/dpc-marche/library/hat-master/apps/HAT_DataManager_HMC_NRT.py'
+script_file='/home/dpc-marche/library/hat-master/apps/HAT_RunOrganizer_HMC_NRT.py'
 setting_file='/home/dpc-marche/library/hat-master/apps/hat_datamanager_hmc_nrt_configuration_server_realtime.json'
 script_folder='/home/dpc-marche/library/hat-master/'
 

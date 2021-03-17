@@ -2,7 +2,7 @@
 
 #-----------------------------------------------------------------------------------------
 # Script information
-script_name='HAT - DataPublisher HMC NRT - LOCAL'
+script_name='HAT - Analyzer_Datasets HMC NRT - LOCAL'
 script_version="1.5.0"
 script_date='2019/03/04'
 
@@ -13,8 +13,8 @@ fp_env_libs='virtualenv_python3'
 
 #-----------------------------------------------------------------------------------------
 # Get file information
-script_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps//HAT_DataPublisher_HMC_NRT.py'
-settings_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps/hat_datapublisher_hmc_nrt_configuration_example_generic.json'
+script_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps//HAT_RunPublisher_HMC_NRT.py'
+settings_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps/hat_runpublisher_hmc_nrt_configuration_example_generic.json'
 script_folder='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/'
 stats_folder='/home/fabio/Desktop/PyCharm_Workspace/hat-master/bin/local/'
 

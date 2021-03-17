@@ -13,8 +13,8 @@ fp_env_libs='virtualenv_python3'
 
 #-----------------------------------------------------------------------------------------
 # Get file information
-script_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps/HAT_DataManager_HMC_NRT.py'
-setting_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps/hat_datamanager_hmc_nrt_configuration_example_generic.json'
+script_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps/HAT_RunOrganizer_HMC_NRT.py'
+setting_file='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/apps/hat_runorganizer_hmc_nrt_configuration_example_generic.json'
 script_folder='/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-master/'
 
 # Get information (-u to get gmt time)
