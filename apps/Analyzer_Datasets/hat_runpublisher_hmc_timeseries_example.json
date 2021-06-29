@@ -1,0 +1,336 @@
+{
+  "algorithm": {
+    "general": {
+      "title": "HMC Time-Series Publisher",
+      "web-site": "",
+      "source": "Python library developed by CIMA Research Foundation",
+      "history": "1.5.0 [20210429]",
+      "project-info": "HAT - Hydrological Analysis Tools",
+      "algorithm": "Time-series publisher postprocessing tool"
+    },
+    "flags": {
+      "cleaning_static": false,
+      "cleaning_dynamic_registry": false,
+      "cleaning_dynamic_source": false,
+      "cleaning_dynamic_analysis": false,
+      "cleaning_dynamic_destination": false,
+      "cleaning_dynamic_tmp": true
+    },
+    "template": {
+      "run": {
+        "domain_name": "string_domain_name",
+        "section_order": "string_section_order",
+        "section_name": "string_section_name",
+        "basin_name": "string_basin_name",
+        "ensemble_name": "string_ensemble_name"
+      },
+      "time": {
+        "time_series_datetime": "%Y%m%d%H%M",
+        "time_series_sub_path": "%Y/%m/%d/%H/",
+        "registry_datetime": "%Y%m%d%H%M",
+        "registry_sub_path": "%Y/%m/%d/%H/",
+        "info_datetime": "%Y%m%d%H%M",
+        "info_sub_path": "%Y/%m/%d/%H/",
+        "plot_datetime": "%Y%m%d%H%M",
+        "plot_sub_path": "%Y/%m/%d/%H/"
+      },
+      "registry":{
+        "tag_name" : "string_tag_name"
+      }
+    },
+    "info": {
+      "domain_name": "marche",
+      "variable_limits": {
+        "rain"  : [0, null],
+        "discharge":  [0, null],
+        "air_temperature":  [-30, 50],
+        "soil_moisture": [0, 1]}
+    }
+  },
+  "data": {
+    "static": {
+      "source": {
+        "terrain": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/gridded/",
+          "file_name": "marche.dem.txt"
+        },
+        "flow_directions": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/gridded/",
+          "file_name": "marche.pnt.txt"
+        },
+        "river_network": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/gridded/",
+          "file_name": "marche.choice.txt"
+        },
+        "sections": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/shapefile/",
+          "file_name": "fp_sections_marche.shp"
+        }
+      },
+      "destination": {
+        "info": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/info/",
+          "file_name": "marche.info.workspace"
+        }
+      }
+    },
+    "dynamic": {
+      "source": {
+        "time_series_01": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/weather_stations_realtime/{time_series_sub_path}/collections/",
+          "file_name": "hmc.collections.{time_series_datetime}.nc",
+          "run_mode": "deterministic",
+          "run_description": "observed",
+          "run_n": 1,
+          "run_variables": {
+            "forcing_data": {
+              "rain": "Rain:hmc_forcing_datasets:{basin_name}:{section_name}",
+              "air_temperature": "AirTemperature:hmc_forcing_datasets:{basin_name}:{section_name}"
+            },
+            "observed_data": {
+              "discharge": "Discharge:section_discharge_obs:{basin_name}:{section_name}"
+            },
+            "outcome_data": {
+              "soil_moisture": "SM:hmc_outcome_datasets:{basin_name}:{section_name}",
+              "discharge": "Discharge:section_discharge_sim:{basin_name}:{section_name}"
+            }
+          },
+          "time_search_period": 10,
+          "time_search_frequency": "H"
+        },
+        "time_series_02": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/nwp_ecmwf0100_realtime/{time_series_sub_path}/collections/",
+          "file_name": "hmc.collections.{time_series_datetime}.nc",
+          "run_mode": "deterministic",
+          "run_description": "deterministic lami-2i",
+          "run_n": 1,
+          "run_variables": {
+            "forcing_data": {
+              "rain": "Rain:hmc_forcing_datasets:{basin_name}:{section_name}",
+              "air_temperature": "AirTemperature:hmc_forcing_datasets:{basin_name}:{section_name}"
+            },
+            "observed_data": {
+              "discharge": "Discharge:section_discharge_obs:{basin_name}:{section_name}"
+            },
+            "outcome_data": {
+              "soil_moisture": "SM:hmc_outcome_datasets:{basin_name}:{section_name}",
+              "discharge": "Discharge:section_discharge_sim:{basin_name}:{section_name}"
+            }
+          },
+          "time_search_period": 48,
+          "time_search_frequency": "H"
+        },
+        "time_series_03": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/nwp_ecmwf0100_realtime/{time_series_sub_path}/collections/",
+          "file_name": "hmc.collections.{time_series_datetime}.nc",
+          "run_mode": "deterministic",
+          "run_description": "deterministic ecmwf0100",
+          "run_n": 1,
+          "run_variables": {
+            "forcing_data": {
+              "rain": "Rain:hmc_forcing_datasets:{basin_name}:{section_name}",
+              "air_temperature": "AirTemperature:hmc_forcing_datasets:{basin_name}:{section_name}"
+            },
+            "observed_data": {
+              "discharge": "Discharge:section_discharge_obs:{basin_name}:{section_name}"
+            },
+            "outcome_data": {
+              "soil_moisture": "SM:hmc_outcome_datasets:{basin_name}:{section_name}",
+              "discharge": "Discharge:section_discharge_sim:{basin_name}:{section_name}"
+            }
+          },
+          "time_search_period": 48,
+          "time_search_frequency": "H"
+        },
+        "time_series_04": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/rfarm_lami-2i_realtime/{time_series_sub_path}/probabilistic_ensemble/collections/",
+          "file_name": "hmc.collections.{time_series_datetime}_{ensemble_name}.nc",
+          "run_mode": "probabilistic",
+          "run_description": "probabilistic lami-2i",
+          "run_n": 30,
+          "run_variables": {
+            "forcing_data": {
+              "rain": "Rain:hmc_forcing_datasets:{basin_name}:{section_name}",
+              "air_temperature": "AirTemperature:hmc_forcing_datasets:{basin_name}:{section_name}"
+            },
+            "observed_data": {
+              "discharge": "Discharge:section_discharge_obs:{basin_name}:{section_name}"
+            },
+            "outcome_data": {
+              "soil_moisture": "SM:hmc_outcome_datasets:{basin_name}:{section_name}",
+              "discharge": "Discharge:section_discharge_sim:{basin_name}:{section_name}"
+            }
+          },
+          "time_search_period": 48,
+          "time_search_frequency": "H"
+        },
+        "time_series_05": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/rfarm_ecmwf0100_realtime/{time_series_sub_path}/probabilistic_ensemble/collections/",
+          "file_name": "hmc.collections.{time_series_datetime}_{ensemble_name}.nc",
+          "run_mode": "probabilistic",
+          "run_description": "probabilistic ecmwf0100",
+          "run_n": 30,
+          "run_variables": {
+            "forcing_data": {
+              "rain": "Rain:hmc_forcing_datasets:{basin_name}:{section_name}",
+              "air_temperature": "AirTemperature:hmc_forcing_datasets:{basin_name}:{section_name}"
+            },
+            "observed_data": {
+              "discharge": "Discharge:section_discharge_obs:{basin_name}:{section_name}"
+            },
+            "outcome_data": {
+              "soil_moisture": "SM:hmc_outcome_datasets:{basin_name}:{section_name}",
+              "discharge": "Discharge:section_discharge_sim:{basin_name}:{section_name}"
+            }
+          },
+          "time_search_period": 48,
+          "time_search_frequency": "H"
+        }
+      },
+      "ancillary": {
+        "time_series_01": {
+          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "file_name": "hmc.collections.{time_series_datetime}_weather_stations.workspace"
+        },
+        "time_series_02": {
+          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "file_name": "hmc.collections.{time_series_datetime}_nwp_lami-2i.workspace"
+        },
+        "time_series_03": {
+          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "file_name": "hmc.collections.{time_series_datetime}_nwp_ecmwf0100.workspace"
+        },
+        "time_series_04": {
+          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "file_name": "hmc.collections.{time_series_datetime}_rfarm_lami-2i.workspace"
+        },
+        "time_series_05": {
+          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "file_name": "hmc.collections.{time_series_datetime}_rfarm_ecmwf0100.workspace"
+        }
+      },
+      "analysis" : {
+        "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+        "file_name": "hmc.collections.{time_series_datetime}_analysis.workspace"
+      },
+      "destination": {
+        "registry": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/registry/{registry_sub_path}",
+          "file_name": "section_{registry_datetime}.csv"
+        },
+        "collections" : {
+          "info": {
+            "time_series_observed": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.weather_stations.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.json"
+            },
+            "time_series_nwp_deterministic_ecmwf0100": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.nwp_ecmwf0100_deterministic.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.json"
+            },
+            "time_series_nwp_probabilistic_lami2i": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.nwp_lami2i_probabilistic.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.json"
+            },
+            "time_series_nwp_probabilistic_comparison": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.nwp_comparison_probabilistic.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.json"
+            }
+          },
+          "datasets": {
+            "time_series_observed": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.weather_stations.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.workspace"
+            },
+            "time_series_nwp_deterministic_ecmwf0100": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.nwp_ecmwf0100_deterministic.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.workspace"
+            },
+            "time_series_nwp_probabilistic_lami2i": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.nwp_lami2i_probabilistic.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.workspace"
+            },
+            "time_series_nwp_probabilistic_comparison": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.nwp_comparison_probabilistic.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.workspace"
+            }
+          },
+          "plot": {
+            "time_series_observed": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{plot_sub_path}/",
+              "file_name": "hat.weather_stations.ts_discharge_{basin_name}_{section_order}_{section_name}.{plot_datetime}.png",
+              "graph_tag_name": "observed",
+              "graph_dependencies": {
+                "time_series_01":  {"type":  "observed", "mode": "reference"}
+              },
+              "graph_fx": {
+                "name": "plot_ts_discharge_obs",
+                "attrs": {"graph_description": ""},
+                "map": "time_series_observed"
+              }
+            },
+            "time_series_nwp_deterministic_ecmwf0100": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{plot_sub_path}/",
+              "file_name": "hat.nwp_ecmwf0100_deterministic.ts_discharge_{basin_name}_{section_order}_{section_name}.{plot_datetime}.png",
+              "graph_tag_name": "nwp_deterministic_ecmwf0100",
+              "graph_dependencies": {
+                "time_series_01":  {"type":  "observed", "mode": "other"},
+                "time_series_03":  {"type":  "nwp_deterministic", "mode": "reference"}
+              },
+              "graph_fx": {
+                "name": "plot_ts_discharge_nwp_deterministic",
+                "attrs": null,
+                "map": "time_series_nwp_deterministic"
+              }
+            },
+            "time_series_nwp_probabilistic_lami2i": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{plot_sub_path}/",
+              "file_name": "hat.nwp_lami2i_probabilistic.ts_discharge_{basin_name}_{section_order}_{section_name}.{plot_datetime}.png",
+              "graph_tag_name": "nwp_probabilistic_lami2i",
+              "graph_dependencies": {
+                "time_series_01":  {"type":  "observed", "mode": "other"},
+                "time_series_02":  {"type":  "nwp_deterministic", "mode": "other"},
+                "time_series_04":  {"type":  "nwp_probabilistic", "mode": "reference"}
+              },
+              "graph_fx": {
+                "name": "plot_ts_discharge_nwp_probabilistic",
+                "attrs": {"graph_description": ""},
+                "map": "time_series_nwp_probabilistic"
+              }
+            },
+            "time_series_nwp_probabilistic_comparison": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{basin_name}/{tag_name}/{plot_sub_path}/",
+              "file_name": "hat.nwp_comparison_probabilistic.ts_discharge_{basin_name}_{section_order}_{section_name}.{plot_datetime}.png",
+              "graph_tag_name": "nwp_probabilistic_comparison",
+              "graph_dependencies": {
+                "time_series_01":  {"type":  "observed", "mode": "reference"},
+                "time_series_02":  {"type":  "nwp_deterministic_dset_01", "mode": "other"},
+                "time_series_03":  {"type":  "nwp_deterministic_dset_02", "mode": "other"},
+                "time_series_04":  {"type":  "nwp_probabilistic_dset_01", "mode": "other"},
+                "time_series_05":  {"type":  "nwp_probabilistic_dset_02", "mode": "other"}
+              },
+              "graph_fx": {
+                "name": "plot_ts_discharge_nwp_probabilistic_comparison",
+                "attrs": {"graph_description": ""},
+                "map":  "time_series_nwp_probabilistic_comparison"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "log": {
+    "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/log/",
+    "file_name": "hat_runpublisher_hmc_timeseries.txt",
+    "file_history": true
+  },
+  "time": {
+    "time_run": null,
+    "time_start": null,
+    "time_end": null,
+    "time_period": 3,
+    "time_frequency": "H",
+    "time_rounding": "H"
+  }
+}

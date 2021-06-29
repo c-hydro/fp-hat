@@ -113,7 +113,7 @@ def write_file_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', time_m
                 else:
                     time_str_elapsed = 'NA'
 
-                time_str_end = '2021-02-25 12:49'
+                # time_str_end = '2021-02-25 12:49'
 
                 # CASE CONDITIONS
                 if time_str_start != 'NA' and time_str_end != 'NA':
