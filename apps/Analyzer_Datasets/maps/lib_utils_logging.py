@@ -14,12 +14,11 @@ import os
 import logging.config
 import glob
 
-from tools.preprocessing_tool_source2nc_converter.lib_info_args import logger_name as logger_name_default
-from tools.preprocessing_tool_source2nc_converter.lib_info_args import logger_file as logger_file_default
-from tools.preprocessing_tool_source2nc_converter.lib_info_args import logger_handle as logger_handle_default
-from tools.preprocessing_tool_source2nc_converter.lib_info_args import logger_format as logger_formatter_default
-
-from tools.preprocessing_tool_source2nc_converter.lib_utils_system import make_folder
+from lib_info_args import logger_name as logger_name_default
+from lib_info_args import logger_file as logger_file_default
+from lib_info_args import logger_handle as logger_handle_default
+from lib_info_args import logger_format as logger_formatter_default
+from lib_utils_system import make_folder
 
 # Debug
 # import matplotlib.pylab as plt

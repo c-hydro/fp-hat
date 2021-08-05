@@ -89,18 +89,23 @@ class DriverGraph:
 
         fx_table = self.fx_table
 
-        if os.path.exists(fx_table):
-
-            fx_collections_methods = read_ts_table(fx_table)
-            if self.fx_map in list(fx_collections_methods.keys()):
-                fx_lut = fx_collections_methods[self.fx_map]
+        if isinstance(fx_table, str):
+            if os.path.exists(fx_table):
+                fx_collections_methods = read_ts_table(fx_table)
             else:
-                log_stream.error(' ===> Fx lut is not available in the fx collection lut')
-                raise RuntimeError('Lut not defined in the selected fx collection lut')
-
+                log_stream.error(' ===> Fx table "' + fx_table + '" does not exist.')
+                raise IOError('Fx table is not available in the selected location')
+        elif isinstance(fx_table, dict):
+            fx_collections_methods = deepcopy(fx_table)
         else:
-            log_stream.error(' ===> Fx table "' + fx_table + '" does not exist.')
-            raise IOError('Fx table is not available in the selected location')
+            log_stream.error(' ===> Fx table object is not allowed.')
+            raise NotImplemented('Case not implemented yet')
+
+        if self.fx_map in list(fx_collections_methods.keys()):
+            fx_lut = fx_collections_methods[self.fx_map]
+        else:
+            log_stream.error(' ===> Fx lut is not available in the fx collection lut')
+            raise RuntimeError('Lut not defined in the selected fx collection lut')
 
         return fx_lut
 

@@ -9,6 +9,7 @@ Version:       '1.0.0'
 #######################################################################################
 # Libraries
 import logging
+import os
 import json
 import pandas as pd
 import numpy as np
@@ -23,10 +24,15 @@ log_stream = logging.getLogger(logger_name)
 # -------------------------------------------------------------------------------------
 # Method to read ts table
 def read_ts_table(file_name):
-    with open(file_name) as file_handle:
-        file_table = json.load(file_handle)
+    if os.path.exists(file_name):
+        with open(file_name) as file_handle:
+            file_table = json.load(file_handle)
+    else:
+        log_stream.error(' ===> Fx table "' + file_name + '" does not exist.')
+        raise IOError('Fx table is not available in the selected location')
     return file_table
 # -------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------
 # Method to compute ensemble avg

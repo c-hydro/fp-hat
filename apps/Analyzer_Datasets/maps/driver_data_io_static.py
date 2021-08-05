@@ -16,7 +16,9 @@ from lib_data_geo_ascii import read_data_grid
 from lib_data_geo_shapefile import read_data_section
 from lib_utils_geo import compute_section_mask, compute_section_area, order_section_area
 from lib_utils_io import read_obj, write_obj
-from lib_utils_system import make_folder
+from lib_utils_system import make_folder, join_path
+
+from lib_graph_ts_utils import read_ts_table
 
 from lib_info_args import logger_name
 
@@ -38,7 +40,7 @@ class DriverStatic:
                  alg_ancillary=None, alg_template_tags=None,
                  flag_terrain_data='terrain',
                  flag_river_network_data='river_network', flag_flow_directions_data='flow_directions',
-                 flag_section_data='sections',
+                 flag_section_data='sections', flag_table_graph_data='table_graph_lut',
                  flag_info_data='info',
                  flag_static_source='source', flag_static_destination='destination',
                  flag_cleaning_static=True):
@@ -47,6 +49,7 @@ class DriverStatic:
         self.flag_section_data = flag_section_data
         self.flag_river_network_data = flag_river_network_data
         self.flag_flow_directions_data = flag_flow_directions_data
+        self.flag_table_graph_data = flag_table_graph_data
         self.flag_info_data = flag_info_data
 
         self.flag_static_source = flag_static_source
@@ -60,25 +63,29 @@ class DriverStatic:
 
         self.folder_name_terrain_src = src_dict[self.flag_terrain_data][self.folder_name_tag]
         self.file_name_terrain_src = src_dict[self.flag_terrain_data][self.file_name_tag]
-        self.file_path_terrain_src = os.path.join(self.folder_name_terrain_src, self.file_name_terrain_src)
+        self.file_path_terrain_src = join_path(self.folder_name_terrain_src, self.file_name_terrain_src)
 
         self.folder_name_flow_directions_src = src_dict[self.flag_flow_directions_data][self.folder_name_tag]
         self.file_name_flow_directions_src = src_dict[self.flag_flow_directions_data][self.file_name_tag]
-        self.file_path_flow_directions_src = os.path.join(self.folder_name_flow_directions_src,
+        self.file_path_flow_directions_src = join_path(self.folder_name_flow_directions_src,
                                                           self.file_name_flow_directions_src)
 
         self.folder_name_river_network_src = src_dict[self.flag_river_network_data][self.folder_name_tag]
         self.file_name_river_network_src = src_dict[self.flag_river_network_data][self.file_name_tag]
-        self.file_path_river_network_src = os.path.join(self.folder_name_river_network_src,
+        self.file_path_river_network_src = join_path(self.folder_name_river_network_src,
                                                         self.file_name_river_network_src)
 
         self.folder_name_section_src = src_dict[self.flag_section_data][self.folder_name_tag]
         self.file_name_section_src = src_dict[self.flag_section_data][self.file_name_tag]
-        self.file_path_section_src = os.path.join(self.folder_name_section_src, self.file_name_section_src)
+        self.file_path_section_src = join_path(self.folder_name_section_src, self.file_name_section_src)
+
+        self.folder_name_table_graph_src = src_dict[self.flag_table_graph_data][self.folder_name_tag]
+        self.file_name_table_graph_src = src_dict[self.flag_table_graph_data][self.file_name_tag]
+        self.file_path_table_graph_src = join_path(self.folder_name_table_graph_src, self.file_name_table_graph_src)
 
         self.folder_name_info_dst = dst_dict[self.flag_info_data][self.folder_name_tag]
         self.file_name_info_dst = dst_dict[self.flag_info_data][self.file_name_tag]
-        self.file_path_info_dst = os.path.join(self.folder_name_info_dst, self.file_name_info_dst)
+        self.file_path_info_dst = join_path(self.folder_name_info_dst, self.file_name_info_dst)
 
         self.flag_cleaning_static = flag_cleaning_static
 
@@ -110,6 +117,9 @@ class DriverStatic:
             # Read sections shapefile
             df_section = read_data_section(self.file_path_section_src)
 
+            # Read table_graph_lut
+            dict_table_graph = read_ts_table(self.file_name_table_graph_src)
+
             # Compute section mask
             # obj_section_mask = compute_section_mask(da_flow_directions, terrain_da=da_terrain, section_dframe=df_section)
             # Compute section area
@@ -118,8 +128,10 @@ class DriverStatic:
             df_section = order_section_area(df_section)
 
             # Data collection object
-            static_data_collections = {self.flag_terrain_data: da_terrain, self.flag_river_network_data: da_river_network,
-                                       self.flag_section_data: df_section}
+            static_data_collections = {self.flag_terrain_data: da_terrain,
+                                       self.flag_river_network_data: da_river_network,
+                                       self.flag_section_data: df_section,
+                                       self.flag_table_graph_data: dict_table_graph}
 
             # Write info datasets
             folder_name_info, file_name_info = os.path.split(file_path_info)

@@ -1,12 +1,12 @@
 {
   "algorithm": {
     "general": {
-      "title": "HMC Time-Series Publisher",
+      "title": "HMC Maps Publisher",
       "web-site": "",
       "source": "Python library developed by CIMA Research Foundation",
-      "history": "1.5.0 [20210429]",
+      "history": "1.5.0 [XXXXXXXX]",
       "project-info": "HAT - Hydrological Analysis Tools",
-      "algorithm": "Time-series publisher postprocessing tool"
+      "algorithm": "Maps publisher postprocessing tool"
     },
     "flags": {
       "cleaning_static": false,
@@ -65,7 +65,11 @@
         "sections": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/shapefile/",
           "file_name": "fp_sections_marche.shp"
-        }
+        },
+        "table_graph_lut" : {
+  		  "folder_name": null,
+      	  "file_name": "table_graph_lut.json"
+      	}
       },
       "destination": {
         "info": {
@@ -76,7 +80,7 @@
     },
     "dynamic": {
       "source": {
-        "time_series_01": {
+        "maps_01": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/weather_stations_realtime/{time_series_sub_path}/collections/",
           "file_name": "hmc.collections.{time_series_datetime}.nc",
           "run_mode": "deterministic",
@@ -98,7 +102,7 @@
           "time_search_period": 10,
           "time_search_frequency": "H"
         },
-        "time_series_02": {
+        "maps_02": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/nwp_ecmwf0100_realtime/{time_series_sub_path}/collections/",
           "file_name": "hmc.collections.{time_series_datetime}.nc",
           "run_mode": "deterministic",
@@ -120,7 +124,7 @@
           "time_search_period": 48,
           "time_search_frequency": "H"
         },
-        "time_series_03": {
+        "maps_03": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/nwp_ecmwf0100_realtime/{time_series_sub_path}/collections/",
           "file_name": "hmc.collections.{time_series_datetime}.nc",
           "run_mode": "deterministic",
@@ -142,7 +146,7 @@
           "time_search_period": 48,
           "time_search_frequency": "H"
         },
-        "time_series_04": {
+        "maps_04": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/rfarm_lami-2i_realtime/{time_series_sub_path}/probabilistic_ensemble/collections/",
           "file_name": "hmc.collections.{time_series_datetime}_{ensemble_name}.nc",
           "run_mode": "probabilistic",
@@ -164,7 +168,7 @@
           "time_search_period": 48,
           "time_search_frequency": "H"
         },
-        "time_series_05": {
+        "maps_05": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/rfarm_ecmwf0100_realtime/{time_series_sub_path}/probabilistic_ensemble/collections/",
           "file_name": "hmc.collections.{time_series_datetime}_{ensemble_name}.nc",
           "run_mode": "probabilistic",

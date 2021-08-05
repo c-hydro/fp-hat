@@ -22,7 +22,7 @@ import numpy as np
 
 from copy import deepcopy
 
-from tools.preprocessing_tool_source2nc_converter.lib_info_args import logger_name
+from lib_info_args import logger_name
 
 # Logging
 log_stream = logging.getLogger(logger_name)

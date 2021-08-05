@@ -17,7 +17,7 @@ import numpy as np
 from datetime import datetime
 from copy import deepcopy
 
-from tools.preprocessing_tool_source2nc_converter.lib_info_args import logger_name
+from lib_info_args import logger_name
 
 # Logging
 log_stream = logging.getLogger(logger_name)
@@ -72,6 +72,21 @@ def random_string(string_root='temporary', string_separator='_', rand_min=0, ran
     rand_string = string_separator.join([string_root, rand_time, rand_n])
 
     return rand_string
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to join folder and filename (managing some exceptions)
+def join_path(folder_name, file_name):
+    if folder_name and file_name:
+        path_name = os.path.join(folder_name, file_name)
+    elif (folder_name is None) and file_name:
+        path_name = file_name
+    else:
+        log_stream.error(' ===> FolderName: "' + str(folder_name) + '" FileName: "' +
+                         str(file_name) + '". Join folder and file names ... FAILED. ')
+        raise NotImplemented('Case not implemented yet')
+    return path_name
 # -------------------------------------------------------------------------------------
 
 

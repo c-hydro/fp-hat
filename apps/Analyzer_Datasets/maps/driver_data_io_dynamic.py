@@ -23,7 +23,7 @@ from lib_utils_io import read_obj, write_obj, create_dset, write_dset
 from lib_utils_system import fill_tags2string, make_folder
 from lib_info_args import logger_name, time_format_algorithm, zip_extension
 
-from driver_graphs_timeseries import DriverGraph
+from driver_graphs_maps import DriverGraph
 
 # Logging
 log_stream = logging.getLogger(logger_name)
@@ -44,7 +44,7 @@ class DriverDynamic:
                  static_data_collection=None,
                  registry_data_collection=None,
                  alg_info=None, alg_template=None,
-                 tag_terrain_data='terrain', tag_section_data='sections',
+                 tag_terrain_data='terrain', tag_section_data='sections', tag_table_graph_data='table_graph_lut',
                  tag_static_source='source', tag_static_destination='destination',
                  tag_dynamic_source='source', tag_dynamic_destination='destination',
                  flag_cleaning_dynamic_src=True, flag_cleaning_dynamic_anl=True, flag_cleaning_dynamic_dst=True,
@@ -60,6 +60,7 @@ class DriverDynamic:
 
         self.tag_terrain_data = tag_terrain_data
         self.tag_section_data = tag_section_data
+        self.tag_table_graph_data = tag_table_graph_data
 
         self.tag_static_source = tag_static_source
         self.tag_static_destination = tag_static_destination
@@ -76,6 +77,7 @@ class DriverDynamic:
 
         self.static_data_terrain = static_data_collection[self.tag_terrain_data]
         self.static_data_section = static_data_collection[self.tag_section_data]
+        self.static_data_table_graph = static_data_collection[self.tag_table_graph_data]
 
         self.registry_data_collection = registry_data_collection
 
@@ -598,6 +600,7 @@ class DriverDynamic:
         dst_dict_datasets = self.dst_dict_datasets
 
         static_data_section = self.static_data_section
+        static_data_table_graph = self.static_data_table_graph
 
         run_file_collections_dst_plot = self.run_file_collections_dst_plot
         run_file_collections_dst_info = self.run_file_collections_dst_info
@@ -693,7 +696,9 @@ class DriverDynamic:
                             file_name_info=graph_section_file_info,
                             file_name_datasets=graph_section_file_datasets,
                             ts_obj=graph_analysis_collections, ts_deps=graph_deps,
-                            fx_name=graph_fx['name'], fx_attrs=graph_fx['attrs'], fx_map=graph_fx['map'])
+                            fx_name=graph_fx['name'], fx_attrs=graph_fx['attrs'], fx_map=graph_fx['map'],
+                            fx_table=static_data_table_graph
+                        )
 
                         driver_graph.compute_data()
 
