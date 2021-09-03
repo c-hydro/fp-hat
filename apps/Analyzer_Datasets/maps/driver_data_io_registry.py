@@ -13,6 +13,8 @@ import logging
 import os
 import numpy as np
 
+from copy import deepcopy
+
 from lib_data_io_csv import write_file_registry, read_file_registry
 from lib_utils_system import make_folder, extract_dict_values, fill_tags2string
 
@@ -53,6 +55,7 @@ class DriverRegistry:
         self.folder_name_tag = 'folder_name'
 
         dst_registry_dict = dst_dict['registry']
+        dst_plot_dict = dst_dict['collections']['plot']
         dst_analysis_dict = anl_dict
 
         folder_name_registry = dst_registry_dict[self.folder_name_tag]
@@ -62,12 +65,13 @@ class DriverRegistry:
 
         self.flag_cleaning_registry = flag_cleaning_registry
 
-        self.analysis_name_tag = "tag"
-        self.analysis_name_level = 'level'
+        self.tag_var_name = "var_name_graph"
+        self.tag_var_level = 'var_level'
         self.str_delimiter_order = ';'
 
         self.map_registry_tag = self.define_registry_tag(
-            dst_analysis_dict, ref_field=self.analysis_name_level, other_fields=[self.analysis_name_tag])
+            ref_dict=dst_plot_dict, ref_fields=self.tag_var_name,
+            other_dict=dst_analysis_dict, other_fields=self.tag_var_level)
 
     # -------------------------------------------------------------------------------------
 
@@ -91,34 +95,46 @@ class DriverRegistry:
 
     # -------------------------------------------------------------------------------------
     # Method to define registry tags
-    def define_registry_tag(self, dst_dict, ref_field=None, other_fields=None):
+    def define_registry_tag(self, ref_dict=None, ref_fields=None, other_dict=None, other_fields=None):
 
-        if ref_field is None:
-            ref_field = 'level'
+        if ref_fields is None:
+            ref_fields = ['level']
         if other_fields is None:
-            other_fields = ['level']
-        if not isinstance(other_fields, list):
-            other_fields = list(other_fields)
+            other_fields = None
 
-        other_fields = [ref_field] + other_fields
+        if ref_fields is not None:
+            if not isinstance(ref_fields, list):
+                ref_fields = [ref_fields]
+        if other_fields is not None:
+            if not isinstance(other_fields, list):
+                other_fields = [other_fields]
 
-        id_field = None
+        ref_values = []
+        for id_field, name_field in enumerate(ref_fields):
+            values_field = extract_dict_values(ref_dict, name_field)
+            ref_values.append(values_field)
+        ref_id = deepcopy(id_field)
+
         other_values = []
-        for id_field, name_field in enumerate(other_fields):
-            values_field = extract_dict_values(dst_dict, name_field)
-            other_values.append(values_field)
+        if other_fields is not None:
+            for id_field, name_field in enumerate(other_fields):
+                values_field = extract_dict_values(other_dict, name_field)
+                other_values.append(values_field)
+        else:
+            id_field = None
+        other_id = deepcopy(id_field)
 
         dict_values = {}
-        for id_step in np.arange(1, id_field + 1):
-            for first_value, other_value in zip(other_values[0], other_values[id_step]):
+        for id_step in np.arange(0, other_id + 1):
+            for ref_value, other_value in zip(ref_values[0], other_values[id_step]):
 
-                if first_value not in list(dict_values.keys()):
-                    dict_values[first_value] = {}
-                    dict_values[first_value] = self.str_delimiter_order.join([first_value, other_value])
+                if ref_value not in list(dict_values.keys()):
+                    dict_values[ref_value] = {}
+                    dict_values[ref_value] = self.str_delimiter_order.join([ref_value, other_value])
                 else:
-                    tmp_values = dict_values[first_value]
+                    tmp_values = dict_values[ref_value]
                     update_values = self.str_delimiter_order.join([tmp_values, other_value])
-                    dict_values[first_value] = update_values
+                    dict_values[ref_value] = update_values
 
         return dict_values
 
