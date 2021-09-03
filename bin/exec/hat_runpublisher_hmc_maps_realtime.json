@@ -11,8 +11,8 @@
     "flags": {
       "cleaning_static": false,
       "cleaning_dynamic_registry": false,
-      "cleaning_dynamic_source": false,
-      "cleaning_dynamic_analysis": false,
+      "cleaning_dynamic_source": true,
+      "cleaning_dynamic_analysis": true,
       "cleaning_dynamic_destination": true,
       "cleaning_dynamic_tmp": true
     },
@@ -41,11 +41,11 @@
         "registry_datetime": "%Y%m%d%H%M",
         "registry_sub_path": "%Y/%m/%d/%H/",
         "info_datetime": "%Y%m%d%H%M",
-        "info_sub_path": "%Y/%m/%d/%H/",
+        "info_sub_path": "%Y%m%d%H/",
         "datasets_datetime": "%Y%m%d%H%M",
-        "datasets_sub_path": "%Y/%m/%d/%H/",
+        "datasets_sub_path": "%Y/%m/%d/",
         "plot_datetime": "%Y%m%d%H%M",
-        "plot_sub_path": "%Y/%m/%d/%H/"
+        "plot_sub_path": "%Y%m%d%H/"
       },
       "registry":{
         "tag_name" : "string_tag_name"
@@ -68,39 +68,39 @@
     "static": {
       "source": {
         "terrain": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/gridded/",
+          "folder_name": "/hydro/data/data_static/gridded/",
           "file_name": "marche.dem.txt"
         },
         "flow_directions": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/gridded/",
+          "folder_name": "/hydro/data/data_static/gridded/",
           "file_name": "marche.pnt.txt"
         },
         "river_network": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/gridded/",
+          "folder_name": "/hydro/data/data_static/gridded/",
           "file_name": "marche.choice.txt"
         },
         "table_graph_lut" : {
-  		  "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-dev/apps/Analyzer_Datasets/maps/",
-      	  "file_name": "table_graph_lut.json"
+  		  "folder_name": "/hydro/data/data_static/graph_lut_table/",
+      	  "file_name": "map_table_graph_lut.json"
       	},
         "colormap": {
           "cmap_rain": {
-            "folder_name": null,
+            "folder_name": "/hydro/data/data_static/graph_colormap/",
             "file_name": "rain.cmap"
           },
           "cmap_sm": {
-            "folder_name": null,
+            "folder_name": "/hydro/data/data_static/graph_colormap/",
             "file_name": "sm.cmap"
           },
           "cmap_lst": {
-            "folder_name": null,
+            "folder_name": "/hydro/data/data_static/graph_colormap/",
             "file_name": "lst.cmap"
           }
         }
       },
       "destination": {
         "info": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/info/",
+          "folder_name": "/hydro/data/data_static/ancillary/analyzer_datasets/maps/",
           "file_name": "marche.info_maps.workspace"
         }
       }
@@ -108,7 +108,7 @@
     "dynamic": {
       "source": {
         "maps_01": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/obs/weather_stations/{maps_sub_path_type_01}/",
+          "folder_name": "/hydro/data/data_dynamic/outcome/obs/weather_stations/{maps_sub_path_type_01}/",
           "file_name": "ws.db.{maps_datetime_type_01}.nc.gz",
           "data_variables": {
             "rain": {
@@ -145,7 +145,7 @@
           }
         },
         "maps_02": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/archive/weather_stations_realtime/{maps_sub_path_type_02}/gridded",
+          "folder_name": "/hydro/archive/weather_stations_realtime/{maps_sub_path_type_02}/gridded",
           "file_name": "hmc.output-grid.{maps_datetime_type_02}.nc.gz",
           "data_variables": {
             "soil_moisture": {
@@ -167,7 +167,7 @@
           }
         },
         "maps_03": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/nwp/ecmwf0100/{maps_sub_path_type_03}/",
+          "folder_name": "/hydro/data/data_dynamic/outcome/nwp/ecmwf0100/{maps_sub_path_type_03}/",
           "file_name": "nwp.ecmwf0100.{maps_datetime_type_03}.nc.gz",
           "data_variables": {
             "rain": {
@@ -189,7 +189,7 @@
           }
         },
         "maps_04": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/nwp/lami-2i/{maps_sub_path_type_04}/",
+          "folder_name": "/hydro/data/data_dynamic/outcome/nwp/lami-2i/{maps_sub_path_type_04}/",
           "file_name": "nwp.ecmwf0100.{maps_datetime_type_04}.nc.gz",
           "data_variables": {
             "rain": {
@@ -216,44 +216,44 @@
       "ancillary": {
         "raw" : {
           "maps_01": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_weather_stations.raw"
           },
           "maps_02": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_hmc.raw"
           },
           "maps_03": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_nwp_ecmwf0100.raw"
           },
           "maps_04": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_nwp_lami-2i.raw"
           }
         },
         "group" : {
           "maps_01": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_weather_stations.group"
           },
           "maps_02": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_hmc.group"
           },
           "maps_03": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_nwp_ecmwf0100.group"
           },
           "maps_04": {
-            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_ancillary}/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_nwp_lami-2i.group"
           }
         }
       },
       "analysis" : {
         "maps_01": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_analysis}/",
           "file_name": "maps.collections.{maps_datetime_analysis}_analysis_weather_stations.workspace",
           "analysis_variables": {
             "rain" : {
@@ -277,7 +277,7 @@
           }
         },
         "maps_02": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_analysis}/",
           "file_name": "maps.collections.{maps_datetime_analysis}_analysis_hmc.workspace",
           "analysis_variables": {
             "land_surface_temperature" : {
@@ -296,7 +296,7 @@
           }
         },
         "maps_03": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_analysis}/",
           "file_name": "maps.collections.{maps_datetime_analysis}_analysis_nwp_ecmwf0100.workspace",
           "analysis_variables": {
             "rain" : {
@@ -314,7 +314,7 @@
           }
         },
         "maps_04": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "folder_name": "/hydro/analysis/ancillary/maps/{maps_sub_path_analysis}/",
           "file_name": "maps.collections.{maps_datetime_analysis}_analysis_nwp_lami-2i.workspace",
           "analysis_variables": {
             "rain" : {
@@ -334,50 +334,50 @@
       },
       "destination": {
         "registry": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/registry/{registry_sub_path}",
-          "file_name": "map_{registry_datetime}.csv"
+          "folder_name": "/hydro/analysis/hydrapp/registry/", 
+          "file_name": "map.csv"
         },
         "collections" : {
           "info": {
             "maps_01": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{info_sub_path}",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{info_datetime}.json"
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{info_sub_path}",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.json"
             },
             "maps_02": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{info_sub_path}",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{info_datetime}.json"
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{info_sub_path}",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.json"
             },
             "maps_03": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{info_sub_path}",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{info_datetime}.json"
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{info_sub_path}",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.json"
             },
             "maps_04": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{info_sub_path}",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{info_datetime}.json"
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{info_sub_path}",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.json"
             }
           },
           "datasets": {
             "maps_01": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{datasets_sub_path}",
+              "folder_name": "/hydro/analysis/hydrapp/workspace/maps/{datasets_sub_path}/",
               "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{datasets_datetime}.workspace"
             },
             "maps_02": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{datasets_sub_path}",
+              "folder_name": "/hydro/analysis/hydrapp/workspace/maps/{datasets_sub_path}/",
               "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{datasets_datetime}.workspace"
             },
             "maps_03": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{datasets_sub_path}",
+              "folder_name": "/hydro/analysis/hydrapp/workspace/maps/{datasets_sub_path}/",
               "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{datasets_datetime}.workspace"
             },
             "maps_04": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{datasets_sub_path}",
+              "folder_name": "/hydro/analysis/hydrapp/workspace/maps/{datasets_sub_path}/",
               "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{datasets_datetime}.workspace"
             }
           },
           "plot": {
             "maps_01": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{plot_sub_path}/",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{plot_datetime}.png",
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{plot_sub_path}/",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.png",
               "graph_variables": {
                 "rain": {
                   "var_name_analysis": "rain_analysis", "var_name_graph": "weather_station_rain",
@@ -401,8 +401,8 @@
               }
             },
             "maps_02": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{plot_sub_path}/",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{plot_datetime}.png",
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{plot_sub_path}/",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.png",
               "graph_variables": {
                 "land_surface_temperature": {
                   "var_name_analysis": "land_surface_temperature_analysis", "var_name_graph": "hmc_lst",
@@ -421,8 +421,8 @@
               }
             },
             "maps_03": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{plot_sub_path}/",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{plot_datetime}.png",
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{plot_sub_path}/",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.png",
               "graph_variables": {
                 "rain": {
                   "var_name_analysis": "rain_analysis", "var_name_graph": "nwp_ecmwf0100_rain",
@@ -441,8 +441,8 @@
               }
             },
             "maps_04": {
-              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{plot_sub_path}/",
-              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{plot_datetime}.png",
+              "folder_name": "/hydro/analysis/hydrapp/map/{var_name}/{var_level}/{plot_sub_path}/",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.png",
               "graph_variables": {
                 "rain": {
                   "var_name_analysis": "rain_analysis", "var_name_graph": "nwp_lami2i_rain",
@@ -466,19 +466,19 @@
     }
   },
   "tmp": {
-    "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/tmp/",
+    "folder_name": "/hydro/analysis/tmp/",
     "file_name": null
   },
   "log": {
-    "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/log/",
-    "file_name": "hat_runpublisher_hmc_maps.txt",
+    "folder_name": "/hydro/log/analyzer_datasets/maps/",
+    "file_name": "hat_runpublisher_hmc_maps_realtime.txt",
     "file_history": true
   },
   "time": {
     "time_run": null,
     "time_start": null,
     "time_end": null,
-    "time_period": 1,
+    "time_period": 2,
     "time_frequency": "H",
     "time_rounding": "H"
   }

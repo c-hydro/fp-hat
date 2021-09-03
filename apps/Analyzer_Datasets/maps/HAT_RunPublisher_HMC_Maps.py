@@ -12,6 +12,11 @@ python HAT_RunPublisher_HMC_Maps.py -settings_file configuration.json -time "YYY
 Version(s):
 20210903 (1.5.0) --> Beta release
 20210804 (1.0.0) --> Last stable version of library in the old development
+
+DA CONTROLLARE:
+ - creazioen registry in accordo con le cartelle finali
+ - calcolo del time period tenendo in considerazione tutte le freq e i periods
+ - ogni tanto darray.values non ha values ... errore da capire
 """
 # -------------------------------------------------------------------------------------
 

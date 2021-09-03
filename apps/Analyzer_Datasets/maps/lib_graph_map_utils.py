@@ -8,8 +8,14 @@ Version:       '1.0.0'
 """
 #######################################################################################
 # Libraries
+import logging
 import os
 import json
+
+from lib_info_args import logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
 #######################################################################################
 
 

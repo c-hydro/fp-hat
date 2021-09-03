@@ -124,7 +124,7 @@ class DriverStatic:
             dict_colormap_graph = read_data_colormap(self.file_collections_colormap_src)
 
             # Read table_graph_lut
-            dict_table_graph = read_map_table(self.file_name_table_graph_src)
+            dict_table_graph = read_map_table(self.file_path_table_graph_src)
 
             # Data collection object
             static_data_collections = {self.flag_terrain_data: da_terrain,

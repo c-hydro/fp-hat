@@ -895,25 +895,32 @@ class DriverDynamic:
                                     else:
                                         dst_colormap_obj = None
 
-                                    driver_graph = DriverGraph(
-                                        file_name_graph=dst_file_path_plot,
-                                        file_name_info=dst_file_path_info,
-                                        file_name_datasets=dst_file_path_datasets,
-                                        map_time_stamp=dst_time_stamp_plot, map_time_description=anl_var_t_period,
-                                        map_obj=anl_var_darray, map_attrs=dst_attrs_info, map_colormap=dst_colormap_obj,
-                                        map_var_name_geo_x=self.dim_name_geo_x, map_var_name_geo_y=self.dim_name_geo_y,
-                                        fx_name=dst_fx_info[self.dst_fx_name_tag],
-                                        fx_map=dst_fx_info[self.dst_fx_map_tag],
-                                        fx_table=static_data_table_graph,
-                                        tag_src_attributes=self.src_attrs_tag,
-                                        tag_anl_attributes=self.anl_attrs_tag,
-                                        tag_dst_attributes=self.dst_attrs_tag
-                                    )
+                                    if isinstance(anl_var_darray, xr.DataArray):
 
-                                    driver_graph.compute_data()
+                                        driver_graph = DriverGraph(
+                                            file_name_graph=dst_file_path_plot,
+                                            file_name_info=dst_file_path_info,
+                                            file_name_datasets=dst_file_path_datasets,
+                                            map_time_stamp=dst_time_stamp_plot, map_time_description=anl_var_t_period,
+                                            map_obj=anl_var_darray, map_attrs=dst_attrs_info, map_colormap=dst_colormap_obj,
+                                            map_var_name_geo_x=self.dim_name_geo_x, map_var_name_geo_y=self.dim_name_geo_y,
+                                            fx_name=dst_fx_info[self.dst_fx_name_tag],
+                                            fx_map=dst_fx_info[self.dst_fx_map_tag],
+                                            fx_table=static_data_table_graph,
+                                            tag_src_attributes=self.src_attrs_tag,
+                                            tag_anl_attributes=self.anl_attrs_tag,
+                                            tag_dst_attributes=self.dst_attrs_tag
+                                        )
 
-                                    log_stream.info(' -------> Period "' +
-                                                    anl_var_t_period + '"  ... DONE')
+                                        driver_graph.compute_data()
+
+                                        log_stream.info(' -------> Period "' +
+                                                        anl_var_t_period + '"  ... DONE')
+                                    else:
+                                        log_stream.warning(' ===> Plot data failed due to not completed data obj')
+                                        log_stream.info(
+                                            ' -------> Period "' + anl_var_t_period +
+                                            '"  ... SKIPPED. Map object is not in the expected DataArray format')
 
                                 else:
                                     log_stream.info(' -------> Period "' +
