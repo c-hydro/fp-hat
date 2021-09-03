@@ -184,6 +184,30 @@ def fill_tags2string(string_raw, tags_format=None, tags_filling=None):
 
 
 # -------------------------------------------------------------------------------------
+# Method to map dictionary using a list of keys
+def map_dict_by_list(dict_obj, key_list=None):
+
+    if not isinstance(key_list, list):
+        key_list = [key_list]
+
+    key_tmp = deepcopy(key_list)
+    for key_id, key_step in enumerate(key_list):
+
+        if key_step in list(dict_obj.keys()):
+            obj_step = dict_obj[key_step]
+            key_list.pop(key_id)
+            if isinstance(obj_step, dict) and (key_tmp.__len__() > 0):
+                value_dict = map_dict_by_list(obj_step, key_list)
+            else:
+                value_dict = deepcopy(obj_step)
+        else:
+            value_dict = None
+
+    return value_dict
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
 # Method to extract all dict values using a reference key
 def extract_dict_values(dict_obj, select_key='tag_name', select_list=None):
     if select_list is None:

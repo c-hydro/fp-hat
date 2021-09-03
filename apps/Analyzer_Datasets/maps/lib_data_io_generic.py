@@ -11,6 +11,7 @@ Version:       '1.0.0'
 import logging
 import os
 import re
+import tempfile
 
 import xarray as xr
 import pandas as pd
@@ -22,6 +23,19 @@ from lib_info_args import logger_name
 # Logging
 log_stream = logging.getLogger(logger_name)
 #######################################################################################
+
+
+# -------------------------------------------------------------------------------------
+# Method to create a temporary filename
+def create_filename_tmp(prefix='tmp_', suffix='.tiff', folder=None):
+
+    if folder is None:
+        folder = '/tmp'
+
+    with tempfile.NamedTemporaryFile(dir=folder, prefix=prefix, suffix=suffix, delete=False) as tmp:
+        temp_file_name = tmp.name
+    return temp_file_name
+# -------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------
@@ -315,15 +329,15 @@ def create_dframe_ts(df_generic,
 
 # -------------------------------------------------------------------------------------
 # Method to create a data array
-def create_darray_2d(data, geo_x, geo_y, geo_1d=True, time=None,
-                     coord_name_x='west_east', coord_name_y='south_north', coord_name_time='time',
-                     dim_name_x='west_east', dim_name_y='south_north', dim_name_time='time',
-                     dims_order=None):
+def create_darray(data, geo_x, geo_y, geo_1d=True, time=None, var_name=None,
+                  coord_name_x='west_east', coord_name_y='south_north', coord_name_time='time',
+                  dim_name_x='west_east', dim_name_y='south_north', dim_name_time='time',
+                  dims_order=None):
 
     if dims_order is None:
         dims_order = [dim_name_y, dim_name_x]
-    if time is not None:
-        dims_order = [dim_name_y, dim_name_x, dim_name_time]
+        if time is not None:
+            dims_order = [dim_name_y, dim_name_x, dim_name_time]
 
     if geo_1d:
         if geo_x.shape.__len__() == 2:
@@ -353,6 +367,9 @@ def create_darray_2d(data, geo_x, geo_y, geo_1d=True, time=None,
     else:
         log_stream.error(' ===> Longitude and Latitude must be 1d')
         raise IOError('Variable shape is not valid')
+
+    if var_name is not None:
+        data_da.name = var_name
 
     return data_da
 # -------------------------------------------------------------------------------------

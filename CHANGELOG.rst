@@ -2,8 +2,10 @@
 Changelog
 =========
 
-Version 1.5.0 [2021-05-01]
+Version 1.5.0 [2021-09-03]
 ===========
+APP: **HAT_RunPublisher_HMC_Maps.py**
+	- Release for refactoring maps app.
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 	- Release for refactoring time-series app.
 

@@ -1,7 +1,7 @@
 """
 Class Features
 
-Name:          lib_jupyter_data_geo_ascii
+Name:          lib_data_geo_ascii
 Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
 Date:          '20210113'
 Version:       '1.0.0'
@@ -17,7 +17,7 @@ import numpy as np
 
 from rasterio.crs import CRS
 
-from lib_data_io_generic import create_darray_2d
+from lib_data_io_generic import create_darray
 from lib_info_args import logger_name
 
 # Logging
@@ -93,16 +93,16 @@ def read_data_grid(file_name, output_format='data_array', output_dtype='float32'
         assert max_lat_round == center_top_round
 
         data_attrs = {'transform': transform, 'crs': crs,
-                        'bbox': [bounds.left, bounds.bottom, bounds.right, bounds.top],
-                        'bb_left': bounds.left, 'bb_right': bounds.right,
-                        'bb_top': bounds.top, 'bb_bottom': bounds.bottom,
-                        'res_lon': res[0], 'res_lat': res[1]}
+                      'bbox': [bounds.left, bounds.bottom, bounds.right, bounds.top],
+                      'bb_left': bounds.left, 'bb_right': bounds.right,
+                      'bb_top': bounds.top, 'bb_bottom': bounds.bottom,
+                      'res_lon': res[0], 'res_lat': res[1]}
 
         if output_format == 'data_array':
 
-            data_obj = create_darray_2d(values, lons[0, :], lats[:, 0],
-                                        coord_name_x='west_east', coord_name_y='south_north',
-                                        dim_name_x='west_east', dim_name_y='south_north')
+            data_obj = create_darray(values, lons[0, :], lats[:, 0],
+                                     coord_name_x='west_east', coord_name_y='south_north',
+                                     dim_name_x='west_east', dim_name_y='south_north')
 
             data_obj.attrs = data_attrs
 

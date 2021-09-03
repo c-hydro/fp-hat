@@ -16,148 +16,360 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 import pandas as pd
+
+from lib_utils_io import read_obj
+from lib_data_io_generic import create_darray
+from lib_data_io_gzip import unzip_filename
+from lib_utils_zip import remove_zip_extension
+from lib_info_args import zip_extension, time_format_algorithm, logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
+
+import matplotlib.pylab as plt
 #######################################################################################
 
 
 # -------------------------------------------------------------------------------------
-# Method to set netcdf time-series file
-def set_time_collections(var_data_collections,
-                         var_header='header', var_attrs='attributes',
-                         tag_time_series='times',
-                         tag_time_delta_obs='time_observed_delta', tag_time_delta_for='time_forecast_delta'):
+# Method to merge raw datasets list
+def merge_file_gridded(file_list_in,
+                       var_name_terrain='terrain',
+                       var_dim_x='west_east', var_dim_y='south_north', var_dim_time='time',
+                       var_coord_x='west_east', var_coord_y='south_north', var_coord_time='time',
+                       var_dim_order_2d=None, var_dim_order_3d=None,
+                       tag_field_datasets='datasets', tag_field_attrs='attributes'
+                       ):
 
-    time_stamp_start_collections = []
-    time_stamp_end_collections = []
-    time_delta_obs_collections = []
-    time_delta_for_collections = []
-    for var_key, var_obj in var_data_collections.items():
-        if var_obj is not None:
-            time_array = var_obj[var_header][tag_time_series]
-            time_delta_obs = var_obj[var_attrs][tag_time_delta_obs]
-            time_delta_for = var_obj[var_attrs][tag_time_delta_for]
+    if not isinstance(file_list_in, list):
+        file_list_in = [file_list_in]
 
-            time_idx = pd.DatetimeIndex(time_array)
-            time_stamp_start_step = time_idx[0]
-            time_stamp_end_step = time_idx[-1]
+    if var_dim_order_2d is None:
+        var_dim_order_2d = [var_dim_y, var_dim_x]
+    if var_dim_order_3d is None:
+        var_dim_order_3d = [var_dim_y, var_dim_x, var_dim_time]
 
-            time_stamp_start_collections.append(time_stamp_start_step)
-            time_stamp_end_collections.append(time_stamp_end_step)
+    time_collections = []
+    var_collections_obj = {}
+    var_collections_attrs = {}
+    var_terrain_darray = None
+    for file_step_in in file_list_in:
 
-            time_delta_obs_collections.append(time_delta_obs)
-            time_delta_for_collections.append(time_delta_for)
-        else:
-            logging.warning(' ===> Time obj is not defined for time-series ' + var_key)
+        obj_in = read_obj(file_step_in)
 
-    time_delta_int = list(set(time_delta_obs_collections + time_delta_for_collections))[0]
-    time_delta_obj = pd.Timedelta(time_delta_int, unit='seconds')
+        dset_in = obj_in[tag_field_datasets]
+        attrs_in = obj_in[tag_field_attrs]
 
-    time_stamp_start = pd.DatetimeIndex(time_stamp_start_collections).min()
-    time_stamp_end = pd.DatetimeIndex(time_stamp_end_collections).max()
+        time_obj_in = dset_in[var_dim_time]
 
-    time_range = pd.date_range(start=time_stamp_start, end=time_stamp_end, freq=time_delta_obj.resolution_string)
+        var_name_list = list(dset_in.data_vars)
 
-    return time_range
-# -------------------------------------------------------------------------------------
+        if var_terrain_darray is None:
+            if var_name_terrain in var_name_list:
+                var_terrain_values = dset_in[var_name_terrain].values
+                var_terrain_geo_y = dset_in[var_dim_y].values
+                var_terrain_geo_x = dset_in[var_dim_x].values
+                var_terrain_attrs = dset_in.attrs
 
+                var_terrain_darray = create_darray(var_terrain_values, var_terrain_geo_x, var_terrain_geo_y,
+                                                   var_name=var_name_terrain,
+                                                   coord_name_x=var_coord_x, coord_name_y=var_coord_y,
+                                                   dim_name_x=var_dim_x, dim_name_y=var_dim_y,
+                                                   dims_order=var_dim_order_2d)
 
-# -------------------------------------------------------------------------------------
-# Method to filter netcdf time-series file
-def filter_file_collections(var_data_collections, var_structure, var_points, var_delimiter=':',
-                            var_observed='observed_data'):
+            else:
+                log_stream.error(' ===> Terrain variable is not defined in the DataSet')
+                raise IOError('Terrain variable must be defined in the DataSet')
 
-    var_data_filter = {}
-    for var_datasets_key, var_datasets_collections in var_structure.items():
+        if time_obj_in.shape[0] == 1:
 
-        for var_field_key, var_field_name in var_datasets_collections.items():
+            time_values_in = time_obj_in.values[0]
 
-            var_field_part = var_field_name.split(var_delimiter)
-            var_field_root = var_delimiter.join([var_field_part[0], var_field_part[1]])
+            time_stamp_in = pd.Timestamp(time_values_in).strftime(time_format_algorithm)
+            datetime_idx_in = pd.DatetimeIndex([time_values_in])
 
-            for var_key, var_data in var_data_collections.items():
-                var_data_part = var_key.split(var_delimiter)
-                var_data_root = var_delimiter.join([var_data_part[0], var_data_part[1]])
+            log_stream.info(' --------> Collect time "' + time_stamp_in + '" ... ')
 
-                var_data_point = var_delimiter.join(var_data_part[2:])
+            for var_name_step in var_name_list:
+                if var_name_step != var_name_terrain:
 
-                if var_data_root == var_field_root:
+                    var_darray = dset_in[var_name_step]
+                    var_darray = var_darray.expand_dims(time=datetime_idx_in, axis=-1)
 
-                    if var_datasets_key == var_observed:
-                        if var_data.ndim == 2:
-                            var_data_filtered = var_data[0, :].reshape([1, var_data.shape[1]])
-                        elif var_data.ndim == 1:
-                            var_data_filtered = var_data.reshape([1, var_data.shape[0]])
-                        else:
-                            logging.error(' ===> Variable datasets format is not allowed')
-                            raise IOError('Array format must be 1D or 2D')
+                    attr_darray = attrs_in[var_name_step]
+
+                    if var_name_step not in list(var_collections_obj):
+                        var_collections_obj[var_name_step] = var_darray
+                        var_collections_attrs[var_name_step] = attr_darray
                     else:
-                        if var_data.ndim == 1:
-                            var_data_filtered = deepcopy(var_data.reshape([1, var_data.shape[0]]))
-                        else:
-                            var_data_filtered = deepcopy(var_data)
+                        tmp_darray = var_collections_obj[var_name_step]
+                        merge_darray = xr.merge([tmp_darray, var_darray])
+                        var_collections_obj[var_name_step] = merge_darray
 
-                    if var_data_point not in list(var_data_filter.keys()):
-                        var_data_filter[var_data_point] = {}
-                    if var_delimiter.join([var_datasets_key, var_field_key]) not in list(var_data_filter[var_data_point].keys()):
-                        var_data_filter[var_data_point][var_delimiter.join([var_datasets_key, var_field_key])] = {}
+            time_collections.append(time_values_in)
 
-                    var_data_filter[var_data_point][var_delimiter.join(
-                        [var_datasets_key, var_field_key])] = var_data_filtered
+            log_stream.info(' --------> Collect time "' + time_stamp_in + '" ... DONE')
 
-    return var_data_filter
+        elif time_obj_in.shape[0] > 1:
 
-# -------------------------------------------------------------------------------------
+            time_collections = []
+            for time_value in time_obj_in.values:
+                time_collections.append(time_value)
 
-# -------------------------------------------------------------------------------------
-# Method to read netcdf time-series file
-def read_file_collections(file_name_list, variable_name_common=None, attr_name_common=None):
+            for var_name_step in var_name_list:
+                if var_name_step != var_name_terrain:
 
-    if variable_name_common is None:
-        variable_name_common = ['times', 'File_Type', 'Exec_Type']
-    if attr_name_common is None:
-        attr_name_common = ['run_var', 'run_mode']
+                    var_darray = dset_in[var_name_step]
+                    attr_darray = attrs_in[var_name_step]
 
-    file_header_collections = {}
-    file_data_collections = {}
-    file_attrs_collections = {}
-    for file_name_step in file_name_list:
+                    var_collections_obj[var_name_step] = var_darray
+                    var_collections_attrs[var_name_step] = attr_darray
 
-        if os.path.exists(file_name_step):
-            file_dset = xr.open_dataset(file_name_step)
-            attrs_dset = file_dset.attrs
         else:
-            logging.warning(' ===> File ' + file_name_step + ' not found!')
+            log_stream.error(' ===> Variable time steps are equal to zero')
+            raise IOError('Variable time must be greater than 0')
 
-        # Iterate over file attributes
-        for attr_key, attr_value in attrs_dset.items():
+    # Compose DataSet
+    log_stream.info(' --------> Compose unique datasets  ... ')
+    datetime_idx_collections = pd.DatetimeIndex(time_collections)
 
-            if attr_key not in list(file_attrs_collections.keys()):
-                file_attrs_collections[attr_key] = attr_value
-            elif (attr_key in list(file_attrs_collections.keys())) and (attr_key in attr_name_common):
-                tmp_value = file_attrs_collections[attr_key]
-                if not isinstance(tmp_value, list):
-                    tmp_value = [tmp_value, attr_value]
-                elif isinstance(tmp_value, list):
-                    tmp_value.append(attr_value)
-                file_attrs_collections[attr_key] = tmp_value
+    var_dset_collections = xr.Dataset(coords={var_coord_time: ([var_dim_time], datetime_idx_collections)})
+    var_dset_collections.coords[var_coord_time] = var_dset_collections.coords[var_coord_time].astype('datetime64[ns]')
 
-        # Iterate over file variable(s)
-        variable_name_list = list(file_dset.data_vars)
-        for variable_name_step in variable_name_list:
+    var_dset_collections[var_name_terrain] = var_terrain_darray
+    var_dset_collections[var_name_terrain].attrs = var_terrain_attrs
 
-            variable_data_step = file_dset[variable_name_step].values
+    var_attrs_collections = {}
+    for var_key, var_obj in var_collections_obj.items():
+        var_attrs = var_collections_attrs[var_key]
 
-            if variable_name_step in variable_name_common:
-                if variable_name_step not in list(file_header_collections.keys()):
-                    file_header_collections[variable_name_step] = variable_data_step
+        if isinstance(var_obj, xr.Dataset):
+            var_darray = var_obj[var_key]
+        elif isinstance(var_obj, xr.DataArray):
+            var_darray = deepcopy(var_obj)
+        else:
+            log_stream.error(' ===> Variable obj format is not allowed')
+            raise IOError('Variable obj format must be DataArray or DataSet')
 
-            if (variable_name_step not in list(file_data_collections.keys())) and \
-                    (variable_name_step not in variable_name_common):
-                file_data_collections[variable_name_step] = variable_data_step
-            elif (variable_name_step in list(file_data_collections.keys())) and \
-                    (variable_name_step not in variable_name_common):
-                variable_data_tmp = deepcopy(file_data_collections[variable_name_step])
-                variable_data_stack = np.vstack((variable_data_tmp, variable_data_step))
-                file_data_collections[variable_name_step] = variable_data_stack
+        var_dset_collections[var_key] = var_darray
+        var_dset_collections[var_key].attrs = var_attrs
 
-    return file_header_collections, file_data_collections, file_attrs_collections
+        var_attrs_collections[var_key] = var_attrs
+
+    log_stream.info(' --------> Compose unique datasets  ... DONE')
+
+    return var_dset_collections, var_attrs_collections
+
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to organize netcdf gridded attributes
+def organize_attrs_gridded(data_file_dset, data_attr_settings, data_map_variable, data_attr_ref='var_name_data'):
+
+    data_attr_tmp = {}
+    for data_key, data_fields in data_attr_settings.items():
+        for field_key, field_value in data_fields.items():
+            if field_key == data_attr_ref:
+                data_attr_tmp[field_value] = data_fields
+                break
+
+    data_attr_collection = {}
+    for data_key, data_attr_fields in data_attr_tmp.items():
+
+        data_attr_file = data_file_dset[data_key].attrs
+        data_attr_merge = {**data_attr_file, **data_attr_fields}
+
+        data_attr_collection[data_key] = data_attr_merge
+
+    return data_attr_collection
+
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to organize netcdf gridded file
+def organize_file_gridded(data_time_step, data_file_dset, data_file_variables,
+                          data_terrain_darray, data_limits_variables=None,
+                          var_name_terrain='terrain',
+                          var_dim_x='west_east', var_dim_y='south_north', var_dim_time='time',
+                          var_coord_x='west_east', var_coord_y='south_north', var_coord_time='time',
+                          var_dim_order_2d=None, var_dim_order_3d=None, var_nodata=None):
+
+    var_list_geo_x = ['Longitude', 'longitude']
+    var_list_geo_y = ['Latitude', 'latitude']
+
+    if var_dim_order_2d is None:
+        var_dim_order_2d = [var_dim_y, var_dim_x]
+    if var_dim_order_3d is None:
+        var_dim_order_3d = [var_dim_y, var_dim_x, var_dim_time]
+    if var_nodata is None:
+        var_nodata = np.nan
+
+    var_terrain_values = data_terrain_darray.values
+    var_terrain_geo_y = data_terrain_darray['south_north'].values
+    var_terrain_geo_x = data_terrain_darray['west_east'].values
+    var_terrain_attrs = data_terrain_darray.attrs
+
+    if isinstance(data_file_dset, xr.Dataset):
+        pass
+    else:
+        log_stream.error(' ===> DataObj format is not allowed')
+        raise IOError('DataObj format must be DataSet')
+
+    if 'time' in list(data_file_dset.coords):
+        if data_file_dset['time'].shape[0] == 1:
+            var_datetime_index = pd.DatetimeIndex(data_file_dset['time'].values)
+        else:
+            var_datetime_index = pd.DatetimeIndex(data_file_dset['time'].values)
+    else:
+        var_datetime_index = pd.DatetimeIndex([data_time_step])
+
+    var_geo_x = None
+    for var_step_geo_x in var_list_geo_x:
+        if var_step_geo_x in list(data_file_dset.variables):
+            var_geo_x = var_step_geo_x
+            break
+    var_geo_y = None
+    for var_step_geo_y in var_list_geo_y:
+        if var_step_geo_y in list(data_file_dset.variables):
+            var_geo_y = var_step_geo_y
+            break
+
+    if (var_geo_x is not None) and (var_geo_y is not None):
+
+        tmp_file_geo_y = data_file_dset[var_geo_y].values
+        tmp_file_geo_x = data_file_dset[var_geo_x].values
+
+        if tmp_file_geo_y.ndim == 1:
+            data_file_geo_x, data_file_geo_y = np.meshgrid(tmp_file_geo_x, tmp_file_geo_y)
+        elif tmp_file_geo_y.ndim == 2:
+            data_file_geo_y = deepcopy(tmp_file_geo_y)
+        else:
+            log_stream.error(' ===> Format of y coordinates is not supported')
+            raise NotImplemented('Case not implemented yet')
+
+        data_file_geo_y_upper = data_file_geo_y[0, 0]
+        data_file_geo_y_lower = data_file_geo_y[-1, 0]
+        if data_file_geo_y_lower > data_file_geo_y_upper:
+            data_file_flipud_flag = True
+        else:
+            data_file_flipud_flag = False
+    else:
+        log_stream.error(' ===> Variables "' + str(var_list_geo_y) +
+                         '" and/or "' + str(var_list_geo_x) + '" is/are not available in the DataSet')
+        raise IOError('Check your DataSet to find the name of x and y coordinates')
+
+    var_dset = xr.Dataset(coords={var_coord_time: ([var_dim_time], var_datetime_index)})
+    var_dset.coords[var_coord_time] = var_dset.coords[var_coord_time].astype('datetime64[ns]')
+
+    var_terrain_darray = create_darray(var_terrain_values, var_terrain_geo_x, var_terrain_geo_y,
+                                       var_name=var_name_terrain,
+                                       coord_name_x=var_coord_x, coord_name_y=var_coord_y,
+                                       dim_name_x=var_dim_x, dim_name_y=var_dim_y)
+    var_dset[var_name_terrain] = var_terrain_darray
+    var_dset[var_name_terrain].attrs = var_terrain_attrs
+
+    for var_key, var_name in data_file_variables.items():
+        if var_name in list(data_file_dset.variables):
+            var_data_values = data_file_dset[var_name].values
+            var_data_attrs = data_file_dset[var_name].attrs
+
+            if data_file_flipud_flag:
+                var_data_values = np.flipud(var_data_values)
+
+            var_limits = None
+            if data_limits_variables is not None:
+                if var_key in list(data_limits_variables.keys()):
+                    var_limits = data_limits_variables[var_key]
+                    if var_limits[0] is not None:
+                        var_data_values[var_data_values < var_limits[0]] = var_nodata
+                    if var_limits[1] is not None:
+                        var_data_values[var_data_values > var_limits[1]] = var_nodata
+            if 'Valid_range' in list(var_data_attrs.keys()):
+                if var_limits is not None:
+                    var_limits_str = [str(item) for item in var_limits]
+                    var_limits_str = ','.join(var_limits_str)
+                    var_data_attrs['Valid_range'] = var_limits_str
+            else:
+                var_data_attrs['Valid_range'] = None
+
+            if var_data_values.ndim == 2:
+
+                var_data_darray_unmasked = create_darray(var_data_values, var_terrain_geo_x, var_terrain_geo_y,
+                                                         var_name=var_key,
+                                                         coord_name_x=var_coord_x, coord_name_y=var_coord_y,
+                                                         dim_name_x=var_dim_x, dim_name_y=var_dim_y,
+                                                         dims_order=var_dim_order_2d)
+
+                var_data_darray_masked = var_data_darray_unmasked.where(np.isfinite(var_terrain_darray), np.nan)
+
+            elif var_data_values.ndim == 3:
+
+                var_data_darray_unmasked = create_darray(var_data_values, var_terrain_geo_x, var_terrain_geo_y,
+                                                         var_name=var_key,
+                                                         coord_name_x=var_coord_x, coord_name_y=var_coord_y,
+                                                         coord_name_time=var_coord_time,
+                                                         dim_name_x=var_dim_x, dim_name_y=var_dim_y,
+                                                         dim_name_time=var_dim_time,
+                                                         dims_order=var_dim_order_3d)
+
+                var_data_darray_masked = var_data_darray_unmasked.where(np.isfinite(var_terrain_darray), np.nan)
+
+            else:
+                log_stream.error(' ===> Variable DataArray format is not allowed')
+                raise IOError('DataArray format must be 2D or 3D')
+
+            '''
+            # Debug variable(s)
+            map_terrain_geo_x, map_terrain_geo_y = np.meshgrid(var_terrain_geo_x, var_terrain_geo_y)
+            
+            plt.figure()
+            plt.imshow(var_data_darray_masked[:,:,5])
+            plt.colorbar()
+
+            plt.figure()
+            plt.imshow(var_terrain_darray)
+            plt.colorbar()
+            plt.show()
+            '''
+
+            var_dset[var_key] = var_data_darray_masked
+            var_dset[var_key].attrs = var_data_attrs
+
+    return var_dset
+
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to read netcdf gridded file
+def read_file_gridded(file_path, folder_name_tmp=None, clean_tmp=True):
+
+    if folder_name_tmp is None:
+        folder_name_tmp = '/tmp'
+
+    if os.path.exists(file_path):
+        if file_path.endswith(zip_extension):
+            file_path_noext = remove_zip_extension(file_path)
+            folder_name_noext, file_name_noext = os.path.split(file_path_noext)
+            file_path_tmp = os.path.join(folder_name_tmp, file_name_noext)
+
+            unzip_filename(file_path, file_path_tmp)
+
+        else:
+            file_path_tmp = file_path
+    else:
+        file_path_tmp = None
+
+    if file_path_tmp is not None:
+        file_dset_tmp = xr.open_mfdataset(file_path_tmp)
+        if file_path_tmp != file_path:
+            if clean_tmp:
+                if os.path.exists(file_path_tmp):
+                    os.remove(file_path_tmp)
+    else:
+        file_dset_tmp = None
+
+    return file_dset_tmp
+
 # -------------------------------------------------------------------------------------

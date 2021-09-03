@@ -1,7 +1,7 @@
 """
 Library Features:
 
-Name:          lib_graph_ts_ancillary
+Name:          lib_graph_map_ancillary
 Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
 Date:          '20210508'
 Version:       '1.0.0'
@@ -27,8 +27,8 @@ log_stream = logging.getLogger(logger_name)
 
 
 # -------------------------------------------------------------------------------------
-# Method to write file time-series datasets
-def write_file_datasets_ts(file_name, file_datasets):
+# Method to write file map datasets
+def write_file_datasets_map(file_name, file_datasets):
 
     folder_string, file_string = os.path.split(file_name)
     make_folder(folder_string)
@@ -40,8 +40,8 @@ def write_file_datasets_ts(file_name, file_datasets):
 
 
 # -------------------------------------------------------------------------------------
-# Method to write file time-series info
-def write_file_info_ts(file_name, file_info, file_indent=4, field_sep=','):
+# Method to write file map info
+def write_file_info_map(file_name, file_info, file_indent=4, field_sep=','):
 
     file_dict2json = {}
     for file_key, file_fields in file_info.items():

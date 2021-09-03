@@ -1,7 +1,7 @@
 """
 HAT - Analyzer HMC maps
 
-__date__ = 'XXXXXXXX'
+__date__ = '20210903'
 __version__ = '1.5.0'
 __author__ = 'Fabio Delogu (fabio.delogu@cimafoundation.org'
 __library__ = 'hat'
@@ -10,7 +10,7 @@ General command line:
 python HAT_RunPublisher_HMC_Maps.py -settings_file configuration.json -time "YYYY-MM-DD HH:MM"
 
 Version(s):
-XXXXXXXX (1.5.0) --> Beta release
+20210903 (1.5.0) --> Beta release
 20210804 (1.0.0) --> Last stable version of library in the old development
 """
 # -------------------------------------------------------------------------------------
@@ -40,9 +40,9 @@ log_stream = logging.getLogger(logger_name)
 # Algorithm information
 project_name = 'HAT'
 alg_name = 'Analyzer Datasets'
-alg_type = 'HMC TimeSeries'
+alg_type = 'HMC Maps'
 alg_version = '1.5.0'
-alg_release = 'XXXX-XX-XX'
+alg_release = '2021-09-03'
 # -------------------------------------------------------------------------------------
 
 
@@ -110,6 +110,7 @@ def main():
             time_step,
             static_data_collection=static_data_collection,
             src_dict=data_settings['data']['dynamic']['source'],
+            anl_dict=data_settings['data']['dynamic']['analysis'],
             dst_dict=data_settings['data']['dynamic']['destination'],
             alg_template=data_settings['algorithm']['template'],
             flag_cleaning_registry=data_settings['algorithm']['flags']['cleaning_dynamic_registry']
@@ -127,6 +128,7 @@ def main():
             anc_dict=data_settings['data']['dynamic']['ancillary'],
             anl_dict=data_settings['data']['dynamic']['analysis'],
             dst_dict=data_settings['data']['dynamic']['destination'],
+            tmp_dict=data_settings['tmp'],
             alg_info=data_settings['algorithm']['info'],
             alg_template=data_settings['algorithm']['template'],
             flag_cleaning_dynamic_src=data_settings['algorithm']['flags']['cleaning_dynamic_source'],
@@ -144,13 +146,13 @@ def main():
     # Info algorithm
     alg_time_elapsed = round(time.time() - alg_time_start, 1)
 
-    logging.info(' ')
-    logging.info('[' + project_name + ' ' + alg_type + ' - ' + alg_name + ' (Version ' + alg_version +
-                 ' - Release ' + alg_release + ')]')
-    logging.info(' ==> TIME ELAPSED: ' + str(alg_time_elapsed) + ' seconds')
-    logging.info(' ==> ... END')
-    logging.info(' ==> Bye, Bye')
-    logging.info(' ============================================================================ ')
+    log_stream.info(' ')
+    log_stream.info('[' + project_name + ' ' + alg_type + ' - ' + alg_name + ' (Version ' + alg_version +
+                    ' - Release ' + alg_release + ')]')
+    log_stream.info(' ==> TIME ELAPSED: ' + str(alg_time_elapsed) + ' seconds')
+    log_stream.info(' ==> ... END')
+    log_stream.info(' ==> Bye, Bye')
+    log_stream.info(' ============================================================================ ')
     # -------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------

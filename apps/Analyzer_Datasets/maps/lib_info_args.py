@@ -22,8 +22,8 @@ time_format_algorithm = '%Y-%m-%d %H:%M'
 time_machine = pd.Timestamp.now
 
 # Logging information
-logger_name = 'hat_publisher_timeseries_logger'
-logger_file = 'hat_publisher_timeseries.txt'
+logger_name = 'hat_publisher_maps_logger'
+logger_file = 'hat_publisher_maps.txt'
 logger_handle = 'file'  # 'file' or 'stream'
 logger_format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)-80s %(filename)s:[%(lineno)-6s - %(funcName)-20s()] '
 

@@ -1,3 +1,12 @@
+"""
+Library Features:
+
+Name:          lib_utils_time
+Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
+Date:          '20210408'
+Version:       '1.0.0'
+"""
+
 # -------------------------------------------------------------------------------------
 # Libraries
 import logging

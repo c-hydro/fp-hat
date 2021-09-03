@@ -19,8 +19,8 @@ log_stream = logging.getLogger(logger_name)
 
 
 # -------------------------------------------------------------------------------------
-# Method to write file registry time-series
-def write_file_registry_ts(file_name, file_data, file_newline='\n', file_sep=' ', file_quoting=csv.QUOTE_NONE):
+# Method to write file registry
+def write_file_registry(file_name, file_data, file_newline='\n', file_sep=' ', file_quoting=csv.QUOTE_NONE):
     with open(file_name, "w", newline=file_newline) as file_handle:
         file_writer = csv.writer(file_handle, quoting=file_quoting, delimiter=file_sep)
         for row_data in file_data:
@@ -29,8 +29,8 @@ def write_file_registry_ts(file_name, file_data, file_newline='\n', file_sep=' '
 
 
 # -------------------------------------------------------------------------------------
-# Method to write file registry time-series
-def read_file_registry_ts(file_name, file_sep=' '):
+# Method to write file registry
+def read_file_registry(file_name, file_sep=' '):
     with open(file_name, 'r') as file_handle:
         file_reader = csv.reader(file_handle, delimiter=file_sep)
         file_data = []

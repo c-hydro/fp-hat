@@ -107,6 +107,7 @@ def filter_file_collections(var_data_collections, var_structure, var_points, var
 
 # -------------------------------------------------------------------------------------
 
+
 # -------------------------------------------------------------------------------------
 # Method to read netcdf time-series file
 def read_file_collections(file_name_list, variable_name_common=None, attr_name_common=None):
