@@ -39,7 +39,8 @@ class DriverGraph:
     # Method to initialize class
     def __init__(self, file_name_graph=None,  file_name_info=None, file_name_datasets=None,
                  map_time_stamp=None, map_time_description=None,
-                 map_obj=None, map_attrs=None, map_colormap=None,
+                 map_obj=None, map_attrs=None,
+                 map_color_map=None, map_color_label=None,
                  map_var_name_geo_x='longitude', map_var_name_geo_y='latitude',
                  fx_name=None, fx_attrs=None, fx_map=None, fx_table='table_graph_lut.json',
                  tag_src_attributes='data_attributes', tag_anl_attributes='analysis_attributes',
@@ -53,7 +54,8 @@ class DriverGraph:
         self.map_time_stamp = map_time_stamp
         self.map_time_description = map_time_description
         self.map_attrs = map_attrs
-        self.map_colormap = map_colormap
+        self.map_color_map = map_color_map
+        self.map_color_label = map_color_label
         self.fx_name = fx_name
         self.fx_attrs = fx_attrs
         self.fx_map = fx_map
@@ -277,7 +279,8 @@ class DriverGraph:
         fx_map_time_description = self.map_time_description
         fx_map_obj = self.map_obj
         fx_map_attrs = self.map_attrs
-        fx_map_colormap = self.map_colormap
+        fx_map_color_map = self.map_color_map
+        fx_map_color_label = self.map_color_label
 
         # Check the function availability
         if self.fx_obj:
@@ -290,7 +293,7 @@ class DriverGraph:
                 'file_name': file_name_graph,
                 'fx_map_obj': fx_map_obj, 'fx_map_time': fx_map_time_stamp,
                 'fx_geo_x': self.var_name_geo_x, 'fx_geo_y': self.var_name_geo_y,
-                'fx_map_colormap': fx_map_colormap}
+                'fx_map_color_map': fx_map_color_map, 'fx_map_color_label': fx_map_color_label}
             fx_map_attrs_extra = deepcopy(fx_map_attrs)
 
             # Create fx data

@@ -10,7 +10,8 @@
       "var_time": "fx_map_time",
       "var_name_geo_x": "fx_geo_x",
       "var_name_geo_y": "fx_geo_y",
-      "fig_color_map_type": "fx_map_colormap"
+      "fig_color_map_type": "fx_map_color_map",
+      "fig_color_map_label": "fx_map_color_label"
     },
     "args": {
       "var_limit_min": "data_attributes:Valid_range",

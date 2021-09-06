@@ -101,3 +101,25 @@ def set_chunks(time_range, time_period='D'):
 
     return time_chunks
 # -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to convert timedelta string to seconds
+def convert_timedelta_str2seconds(time_delta_list):
+
+    if not isinstance(time_delta_list, list):
+        time_delta_list = [time_delta_list]
+
+    time_delta_seconds = []
+    for time_delta_step in time_delta_list:
+        if isinstance(time_delta_step, str):
+            if time_delta_step.isalpha():
+                time_delta_step = '1' + time_delta_step
+            time_delta_tmp = pd.to_timedelta(time_delta_step).total_seconds()
+            time_delta_seconds.append(time_delta_tmp)
+        else:
+            log_stream.error(' ===> Timedelta type is not allowed. Must be a string.')
+            raise NotImplementedError('Case not implemented yet')
+
+    return time_delta_seconds
+# -------------------------------------------------------------------------------------

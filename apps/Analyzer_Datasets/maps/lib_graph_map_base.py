@@ -43,7 +43,9 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
                  var_name_data='air_temperature', var_units='C', var_description=None,
                  var_temporal_window='NA',
                  var_name_geo_x='longitude', var_name_geo_y='latitude',
-                 tag_sep=' ', fig_background='stamen', fig_color_map_type=None, fig_dpi=150, fig_show=False):
+                 tag_sep=' ', fig_background='stamen',
+                 fig_color_map_type=None, fig_color_map_label=None,
+                 fig_dpi=150, fig_show=False):
     
     file_folder, file_name = os.path.split(file_path)
     if not os.path.exists(file_folder):
@@ -54,7 +56,10 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
         var_units = '[' + var_units
     if not var_units.endswith(']'):
         var_units = var_units + ']'
-    var_label = tag_sep.join([var_name_data, var_units])
+    if fig_color_map_label is None:
+        var_label = tag_sep.join([var_name_data, var_units])
+    else:
+        var_label = tag_sep.join([fig_color_map_label, var_units])
 
     if fig_color_map_type is None:
         fig_color_map_type = 'RdYlBu'

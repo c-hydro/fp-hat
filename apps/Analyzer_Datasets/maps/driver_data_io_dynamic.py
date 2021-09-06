@@ -21,9 +21,11 @@ from lib_analysis_fx import var_cmp_accumulated, var_cmp_average, var_cmp_instan
 
 from lib_data_io_nc import read_file_gridded, organize_file_gridded, organize_attrs_gridded, merge_file_gridded
 
+from lib_utils_time import convert_timedelta_str2seconds
 from lib_utils_io import read_obj, write_obj
 from lib_utils_system import make_folder, extract_dict_values, fill_tags2string
 from lib_info_args import logger_name, time_format_algorithm
+
 
 from driver_graphs_maps import DriverGraph
 
@@ -31,7 +33,7 @@ from driver_graphs_maps import DriverGraph
 log_stream = logging.getLogger(logger_name)
 
 # Debug
-import matplotlib.pylab as plt
+# import matplotlib.pylab as plt
 ######################################################################################
 
 
@@ -166,12 +168,18 @@ class DriverDynamic:
                              )
             raise Exception("Keys in the datasets are not correctly defined")
 
-        self.src_time_search_period = self.define_data_common_field(
-            self.info_time_src, field_select=self.src_time_search_period_tag, field_cmp='max')
         self.src_var_n = self.define_data_common_field(
             self.info_variable_src, field_select=self.src_var_n_tag, field_cmp='max')
-        self.src_time_search_freq = self.define_data_common_field(
-            self.info_time_src, field_select=self.src_time_search_freq_tag, field_cmp='unique')
+
+        self.src_time_search_freq_all = self.define_data_common_field(
+            self.info_time_src, field_select=self.src_time_search_freq_tag, field_cmp='all')
+        self.src_time_search_period_all = self.define_data_common_field(
+            self.info_time_src, field_select=self.src_time_search_period_tag, field_cmp='all')
+
+        self.src_time_search_period, self.src_time_search_freq = self.define_data_time_info(
+            time_period_list=self.src_time_search_period_all, time_frequency_list=self.src_time_search_freq_all,
+            time_frequency_base='H', time_flag='max')
+
         self.src_time_range = self.define_data_time_range(
             time_reference, time_period=self.src_time_search_period, time_frequency=self.src_time_search_freq)
 
@@ -488,7 +496,7 @@ class DriverDynamic:
                                     pass
                                 else:
                                     log_stream.error(' ===> Time folder reference value is not allowed')
-                                    raise RuntimeError('Time folder reference value must pe "time_run" or "time_period"')
+                                    raise RuntimeError('Time folder reference value must be "time_run" or "time_period"')
 
                     ancillary_name = None
                     if ancillary_args:
@@ -574,9 +582,51 @@ class DriverDynamic:
                 template_values_upd = [template_values] * template_len_max
             elif isinstance(template_values, list):
                 template_values_upd = template_values
+            else:
+                log_stream.warning(' ===> Adjust dictionary deep object is not allowed. Check obj format.')
+                template_values_upd = None
             template_dict_upd[template_key] = template_values_upd
 
         return template_dict_upd, template_len_max
+
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # Method to define data time information
+    @staticmethod
+    def define_data_time_info(time_period_list=None, time_frequency_list=None,
+                              time_frequency_base='H', time_flag='max'):
+
+        if time_frequency_list is None:
+            time_frequency_list = ['H']
+        if time_period_list is None:
+            time_period_list = [1]
+
+        if time_frequency_base.isalpha():
+            time_frequency_base = '1' + time_frequency_base
+        time_frequency_base_seconds = pd.to_timedelta(time_frequency_base).total_seconds()
+
+        time_n_list = []
+        for time_period_step, time_frequency_step in zip(time_period_list, time_frequency_list):
+            if time_frequency_step.isalpha():
+                time_frequency_step = '1' + time_frequency_step
+            time_frequency_seconds_step = pd.to_timedelta(time_frequency_step).total_seconds()
+            time_n_step = time_period_step * (time_frequency_seconds_step / time_frequency_base_seconds)
+
+            time_n_list.append(time_n_step)
+
+        if time_flag == 'max':
+            time_idx = np.argmax(time_n_list)
+        elif time_flag == 'min':
+            time_idx = np.argmin(time_n_list)
+        else:
+            log_stream.error(' ===> Time "flag" for computing time info is not allowed')
+            raise NotImplementedError('Case not implemented yet')
+
+        time_period_select = int(time_n_list[time_idx])
+        time_frequency_select = deepcopy(time_frequency_base)
+
+        return time_period_select, time_frequency_select
 
     # -------------------------------------------------------------------------------------
 
@@ -633,39 +683,65 @@ class DriverDynamic:
                     raise NotImplementedError('Case not implemented yet')
 
         if fields_common_values.__len__() >= 1:
+
             if field_cmp == 'max':
-                fields_common_value = max(fields_common_values)
+
+                if fields_common_values.__len__() > 1:
+                    if all(isinstance(item, str) for item in fields_common_values):
+                        fields_tmp_values = convert_timedelta_str2seconds(fields_common_values)
+                        field_max_idx = np.argmax(fields_tmp_values)
+                        fields_common_obj = fields_common_values[field_max_idx]
+                    elif all(isinstance(item, (float, int)) for item in fields_common_values):
+                        fields_common_obj = max(fields_common_values)
+                    else:
+                        log_stream.error(' ===> Fields format for "max" tag is not defined')
+                        raise NotImplementedError('Case not implemented yet')
+                else:
+                    log_stream.error(' ===> Run common fields for "max" tag not defined')
+                    raise NotImplementedError('Case not implemented yet')
+
             elif field_cmp == 'min':
-                fields_common_value = min(fields_common_values)
+
+                if fields_common_values.__len__() > 1:
+                    if all(isinstance(item, str) for item in fields_common_values):
+                        fields_tmp_values = convert_timedelta_str2seconds(fields_common_values)
+                        field_max_idx = np.argmin(fields_tmp_values)
+                        fields_common_obj = fields_common_values[field_max_idx]
+                    elif all(isinstance(item, (float, int)) for item in fields_common_values):
+                        fields_common_obj = min(fields_common_values)
+                    else:
+                        log_stream.error(' ===> Fields format for "min" tag is not defined')
+                        raise NotImplementedError('Case not implemented yet')
+                else:
+                    log_stream.error(' ===> Run common fields for "min" tag not defined')
+                    raise NotImplementedError('Case not implemented yet')
+
             elif field_cmp == 'unique':
+
                 fields_common_value = list(set(fields_common_values))
                 if fields_common_value.__len__() == 1:
-                    fields_common_value = fields_common_value[0]
+                    fields_common_obj = fields_common_value[0]
                 elif fields_common_value.__len__() > 1:
-                    fields_tmp_value = []
-                    for field_value in fields_common_value:
-                        if isinstance(field_value, str):
-                            if field_value.isalpha():
-                                field_value = '1' + field_value
-                            field_td_seconds = pd.to_timedelta(field_value).total_seconds()
-                            fields_tmp_value.append(field_td_seconds)
-                        else:
-                            log_stream.error(' ===> Run common fields type for multiple values is not allowed')
-                            raise NotImplementedError('Case not implemented yet')
-                    field_min_idx = np.argmin(fields_tmp_value)
-                    fields_common_value = fields_common_value[field_min_idx]
+                    fields_tmp_values = convert_timedelta_str2seconds(fields_common_values)
+                    field_min_idx = np.argmin(fields_tmp_values)
+                    fields_common_obj = fields_common_value[field_min_idx]
                 else:
-                    log_stream.error(' ===> Run common fields not defined')
+                    log_stream.error(' ===> Run common fields for "unique" tag not defined')
                     raise NotImplementedError('Case not implemented yet')
+
+            elif field_cmp == 'all':
+
+                fields_common_obj = deepcopy(fields_common_values)
+
             else:
                 log_stream.error(' ===> Run common fields method is unavailable')
                 raise NotImplementedError('Case not implemented yet')
         else:
-            fields_common_value = None
+            fields_common_obj = None
             log_stream.warning(' ===> Run common field "' + field_select +
                                '" is empty. Variable is initialized by None')
 
-        return fields_common_value
+        return fields_common_obj
 
     # -------------------------------------------------------------------------------------
 
@@ -883,8 +959,8 @@ class DriverDynamic:
                                         dst_attrs_info[self.anl_attrs_tag]['var_temporal_window'] = {}
                                         dst_attrs_info[self.anl_attrs_tag]['var_temporal_window'] = anl_var_t_period
 
-                                    if 'var_colormap' in list(anl_info_attrs[self.dst_attrs_tag].keys()):
-                                        dst_colormap_name = dst_attrs_info[self.dst_attrs_tag]['var_colormap']
+                                    if 'var_color_map' in list(anl_info_attrs[self.dst_attrs_tag].keys()):
+                                        dst_colormap_name = dst_attrs_info[self.dst_attrs_tag]['var_color_map']
                                         if dst_colormap_name is not None:
                                             if dst_colormap_name in list(static_colormap_graph.keys()):
                                                 dst_colormap_obj = static_colormap_graph[dst_colormap_name]
@@ -895,6 +971,11 @@ class DriverDynamic:
                                     else:
                                         dst_colormap_obj = None
 
+                                    if 'var_color_label' in list(anl_info_attrs[self.dst_attrs_tag].keys()):
+                                        dst_colormap_label = dst_attrs_info[self.dst_attrs_tag]['var_color_label']
+                                    else:
+                                        dst_colormap_label = None
+
                                     if isinstance(anl_var_darray, xr.DataArray):
 
                                         driver_graph = DriverGraph(
@@ -902,8 +983,10 @@ class DriverDynamic:
                                             file_name_info=dst_file_path_info,
                                             file_name_datasets=dst_file_path_datasets,
                                             map_time_stamp=dst_time_stamp_plot, map_time_description=anl_var_t_period,
-                                            map_obj=anl_var_darray, map_attrs=dst_attrs_info, map_colormap=dst_colormap_obj,
-                                            map_var_name_geo_x=self.dim_name_geo_x, map_var_name_geo_y=self.dim_name_geo_y,
+                                            map_obj=anl_var_darray, map_attrs=dst_attrs_info,
+                                            map_color_map=dst_colormap_obj, map_color_label=dst_colormap_label,
+                                            map_var_name_geo_x=self.dim_name_geo_x,
+                                            map_var_name_geo_y=self.dim_name_geo_y,
                                             fx_name=dst_fx_info[self.dst_fx_name_tag],
                                             fx_map=dst_fx_info[self.dst_fx_map_tag],
                                             fx_table=static_data_table_graph,
@@ -973,6 +1056,7 @@ class DriverDynamic:
     @staticmethod
     def select_attrs_obj(dict_attr_base, dict_attr_file, reference_key='var_name_data'):
 
+        dict_attr_select = None
         for attr_base_key, attr_base_field in dict_attr_base.items():
             if attr_base_key == reference_key:
                 for attr_file_key, attr_file_obj in dict_attr_file.items():

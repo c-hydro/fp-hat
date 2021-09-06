@@ -9,7 +9,7 @@
       "algorithm": "Maps publisher postprocessing tool"
     },
     "flags": {
-      "cleaning_static": false,
+      "cleaning_static": true,
       "cleaning_dynamic_registry": false,
       "cleaning_dynamic_source": false,
       "cleaning_dynamic_analysis": false,
@@ -382,17 +382,20 @@
                 "rain": {
                   "var_name_analysis": "rain_analysis", "var_name_graph": "weather_station_rain",
                   "var_description": "Accumulated Rain - Weather Stations",
-                  "var_colormap": "cmap_rain", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "cmap_rain", "var_color_label": "rain",
+                  "var_dpi": 160, "var_background": "stamen"
                 },
                 "air_temperature": {
                   "var_name_analysis": "air_temperature_analysis", "var_name_graph": "weather_station_air_temperature",
                   "var_description": "Average AirTemperature - Weather Stations",
-                  "var_colormap": "coolwarm", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "coolwarm", "var_color_label": "air temperature",
+                  "var_dpi": 160, "var_background": "stamen"
                 },
                 "incoming_radiation": {
                   "var_name_analysis": "incoming_radiation_analysis", "var_name_graph": "weather_station_incoming_radiation",
                   "var_description": "Instantaneous Incoming Radiation - Weather Stations",
-                  "var_colormap": null, "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": null, "var_color_label": "incoming radiation",
+                  "var_dpi": 160, "var_background": "stamen"
                 }
               },
               "graph_fx": {
@@ -407,12 +410,14 @@
                 "land_surface_temperature": {
                   "var_name_analysis": "land_surface_temperature_analysis", "var_name_graph": "hmc_lst",
                   "var_description": "Instantaneous Land Surface Temperature - HMC",
-                  "var_colormap": "cmap_lst", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "cmap_lst", "var_color_label": "land surface temperature",
+                  "var_dpi": 160, "var_background": "stamen"
                 },
                 "soil_moisture": {
                   "var_name_analysis": "soil_moisture_analysis", "var_name_graph": "hmc_sm",
                   "var_description": "Instantaneous Soil Moisture - HMC",
-                  "var_colormap": "cmap_sm", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "cmap_sm", "var_color_label": "soil moisture",
+                  "var_dpi": 160, "var_background": "stamen"
                 }
               },
               "graph_fx": {
@@ -427,12 +432,14 @@
                 "rain": {
                   "var_name_analysis": "rain_analysis", "var_name_graph": "nwp_ecmwf0100_rain",
                   "var_description": "Accumulated Rain - NWP ECMWF0100",
-                  "var_colormap": "cmap_rain", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "cmap_rain", "var_color_label": "rain",
+                  "var_dpi": 160, "var_background": "stamen"
                 },
                 "air_temperature": {
                   "var_name_analysis": "air_temperature_analysis", "var_name_graph": "nwp_ecmwf0100_air_temperature",
                   "var_description": "Average Air Temperature - NWP ECMWF0100",
-                  "var_colormap": "coolwarm", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "coolwarm", "var_color_label": "air temperature",
+                  "var_dpi": 160, "var_background": "stamen"
                 }
               },
               "graph_fx": {
@@ -447,12 +454,14 @@
                 "rain": {
                   "var_name_analysis": "rain_analysis", "var_name_graph": "nwp_lami2i_rain",
                   "var_description": "Accumulated Rain - NWP LAMI-2I",
-                  "var_colormap": "cmap_rain", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "cmap_rain", "var_color_label": "rain",
+                  "var_dpi": 160, "var_background": "stamen"
                 },
                 "air_temperature": {
                   "var_name_analysis": "air_temperature_analysis", "var_name_graph": "nwp_lami2i_air_temperature",
                   "var_description": "Average Air Temperature - NWP LAMI-2I",
-                  "var_colormap": "coolwarm", "var_dpi": 160, "var_background": "stamen"
+                  "var_color_map": "coolwarm", "var_color_label": "air temperature",
+                  "var_dpi": 160, "var_background": "stamen"
                 }
               },
               "graph_fx": {
