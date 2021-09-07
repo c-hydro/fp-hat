@@ -17,6 +17,9 @@ from pysheds.grid import Grid
 import numpy as np
 import xarray as xr
 
+import pandas as pd
+pd.options.mode.chained_assignment = None
+
 from lib_info_args import logger_name
 
 # Debug
@@ -205,6 +208,7 @@ def order_section_area(section_df,
 
     return section_df
 # -------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------
 # Method to create a data array

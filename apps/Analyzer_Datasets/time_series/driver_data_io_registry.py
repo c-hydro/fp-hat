@@ -50,12 +50,11 @@ class DriverRegistry:
         self.alg_template_time = alg_template['time']
         self.alg_template_registry = alg_template['registry']
 
-        self.section_name_type = ['River']
-
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
 
         self.static_data_section = static_data_collection[self.tag_section_data]
+        self.section_name_type = [self.static_data_section.attrs['filter_value']]
 
         dst_registry_dict = dst_dict['registry']
         dst_plot_dict = dst_dict['collections']['plot']
@@ -97,11 +96,17 @@ class DriverRegistry:
     # -------------------------------------------------------------------------------------
     # Method to define plot tags
     @staticmethod
-    def define_plot_tag(dst_dict, dst_field=None):
+    def define_plot_tag(dst_dict, dst_field=None, dst_order_reverse=True):
         if dst_field is None:
             dst_field = 'tag_name'
         dst_values = extract_dict_values(dst_dict, dst_field)
-        return dst_values
+
+        if dst_order_reverse:
+            dst_values_ordered = sorted(dst_values, reverse=True)
+        else:
+            dst_values_ordered = sorted(dst_values, reverse=False)
+
+        return dst_values_ordered
 
     # -------------------------------------------------------------------------------------
 
@@ -115,9 +120,6 @@ class DriverRegistry:
             section_domain = self.static_data_section['section_domain']
         section_type = self.static_data_section['section_type']
 
-        if name_type is None:
-            name_type = ['River']
-
         run_point_domain_list = section_domain.values.tolist()
         run_point_type_list = section_type.values.tolist()
 
@@ -125,8 +127,9 @@ class DriverRegistry:
         for run_point_domain_step, run_point_type_step in zip(run_point_domain_list, run_point_type_list):
             if name_capitalize:
                 run_point_domain_step = run_point_domain_step.capitalize()
-            if run_point_type_step in name_type:
-                point_tag_registry.append(run_point_domain_step)
+            if name_type is not None:
+                if run_point_type_step in name_type:
+                    point_tag_registry.append(run_point_domain_step)
         point_tag_registry = sorted(list(set(point_tag_registry)))
 
         return point_tag_registry

@@ -96,7 +96,7 @@ class DriverDynamic:
         self.time_search_period_tag = 'time_search_period'
         self.time_search_freq_tag = 'time_search_frequency'
 
-        self.section_name_type = ['River']
+        self.section_name_type = [self.static_data_section.attrs['filter_value']]
 
         self.str_delimiter = ':'
 
@@ -182,10 +182,13 @@ class DriverDynamic:
     @staticmethod
     def define_point_db(static_data, name_type=None, column_name='section_type'):
 
-        if name_type is None:
-            name_type = ['River']
+        if (name_type.__len__() == 1) and (name_type[0] is None):
+            name_type = name_type[0]
 
-        static_data_selection = static_data[static_data[column_name].isin(name_type)]
+        if name_type is not None:
+            static_data_selection = static_data[static_data[column_name].isin(name_type)]
+        else:
+            static_data_selection = deepcopy(static_data)
 
         return static_data_selection
     # -------------------------------------------------------------------------------------
@@ -195,14 +198,14 @@ class DriverDynamic:
     def define_point_registry(self, name_lower=True, name_type=None,
                               str_delimiter_registry=','):
 
+        if (name_type.__len__() == 1) and (name_type[0] is None):
+            name_type = name_type[0]
+
         if name_lower:
             section_domain = self.static_data_section['section_domain'].str.lower()
         else:
             section_domain = self.static_data_section['section_domain']
         section_type = self.static_data_section['section_type']
-
-        if name_type is None:
-            name_type = ['River']
 
         run_point_domain_list = section_domain.values.tolist()
         run_point_type_list = section_type.values.tolist()
@@ -211,7 +214,11 @@ class DriverDynamic:
 
         point_registry_list = []
         for run_point_domain_step, run_point_type_step in zip(run_point_domain_list, run_point_type_list):
-            if run_point_type_step in name_type:
+            if name_type is not None:
+                if run_point_type_step in name_type:
+                    point_registry_tmp = str_delimiter_registry.join([run_point_domain_step] + run_plot_list)
+                    point_registry_list.append(point_registry_tmp)
+            else:
                 point_registry_tmp = str_delimiter_registry.join([run_point_domain_step] + run_plot_list)
                 point_registry_list.append(point_registry_tmp)
 
@@ -225,20 +232,25 @@ class DriverDynamic:
     # Method to define point name
     def define_point_name(self, name_type=None, str_delimiter_name=':'):
 
+        if (name_type.__len__() == 1) and (name_type[0] is None):
+            name_type = name_type[0]
+
         section_name_list = self.static_data_section['section_name'].values.tolist()
         section_domain_list = self.static_data_section['section_domain'].values.tolist()
         section_type_list = self.static_data_section['section_type'].values.tolist()
         section_order_list = self.static_data_section['section_domain_order'].values.tolist()
-
-        if name_type is None:
-            name_type = ['River']
 
         section_order_selection = []
         section_point_selection = []
         for section_name_step, section_domain_step, section_order_step, section_type_step in zip(
                 section_name_list, section_domain_list, section_order_list, section_type_list):
 
-            if section_type_step in name_type:
+            if name_type is not None:
+                if section_type_step in name_type:
+                    section_point_tmp = str_delimiter_name.join([section_domain_step, section_name_step])
+                    section_point_selection.append(section_point_tmp)
+                    section_order_selection.append(section_order_step)
+            else:
                 section_point_tmp = str_delimiter_name.join([section_domain_step, section_name_step])
                 section_point_selection.append(section_point_tmp)
                 section_order_selection.append(section_order_step)
@@ -645,14 +657,14 @@ class DriverDynamic:
                 run_section_domain = run_section_info[1]['section_domain']
                 run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
 
-                log_stream.info(' ------> Section "' + run_section_tag + '" ... ')
+                log_stream.info(' ------> Domain "' + run_section_tag + '" ... ')
 
                 if run_section_tag in list(run_section_file_plot.keys()):
                     graph_section_file_plot = deepcopy(run_section_file_plot[run_section_tag])
                     graph_section_file_plot = fill_tags2string(graph_section_file_plot,
                                                                self.alg_template_registry, {'tag_name': graph_tag_name})
                 else:
-                    log_stream.error(' ===> Section tag "' + run_section_tag + '" is not defined in expected file keys')
+                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
                     raise RuntimeError('Keys of "plot" destination datasets are not defined as expected')
                 if run_section_tag in list(run_section_file_info.keys()):
                     graph_section_file_info = deepcopy(run_section_file_info[run_section_tag])
@@ -660,7 +672,7 @@ class DriverDynamic:
                                                                self.alg_template_registry, {'tag_name': graph_tag_name})
 
                 else:
-                    log_stream.error(' ===> Section tag "' + run_section_tag + '" is not defined in expected file keys')
+                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
                     raise RuntimeError('Keys of "info" destination datasets are not defined as expected')
 
                 if run_section_tag in list(run_section_file_datasets.keys()):
@@ -669,13 +681,13 @@ class DriverDynamic:
                                                                self.alg_template_registry, {'tag_name': graph_tag_name})
 
                 else:
-                    log_stream.error(' ===> Section tag "' + run_section_tag + '" is not defined in expected file keys')
+                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
                     raise RuntimeError('Keys of "datasets" destination datasets are not defined as expected')
 
                 if run_section_tag in list(run_analysis_collections.keys()):
                     graph_analysis_collections = run_analysis_collections[run_section_tag]
                 else:
-                    log_stream.error(' ===> Section tag "' + run_section_tag + '" is not defined in expected file keys')
+                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
                     raise RuntimeError('Keys of "analysis" destination datasets are not defined as expected')
 
                 if flag_dynamic_dst:
@@ -702,12 +714,12 @@ class DriverDynamic:
 
                         driver_graph.compute_data()
 
-                        log_stream.info(' ------> Section "' + run_section_tag + '" ... DONE')
+                        log_stream.info(' ------> Domain "' + run_section_tag + '" ... DONE')
                     else:
-                        log_stream.info(' ------> Section "' + run_section_tag + '" ... FAILED')
+                        log_stream.info(' ------> Domain "' + run_section_tag + '" ... FAILED')
 
                 else:
-                    log_stream.info(' ------> Section "' + run_section_tag +
+                    log_stream.info(' ------> Domain "' + run_section_tag +
                                     '" ... SKIPPED. Datasets previously plotted and dumped')
 
             log_stream.info(' -----> Run name "' + run_type_key + '" ... DONE')
@@ -776,6 +788,8 @@ class DriverDynamic:
 
                     for run_domain_key, run_domain_fields in run_type_workspace.items():
 
+                        log_stream.info(' ------> Domain: "' + run_domain_key + '" ... ')
+
                         if (run_domain_key == 'DomainAverage') or (run_domain_key in self.run_point_name):
 
                             if run_domain_key in self.run_point_name:
@@ -834,6 +848,12 @@ class DriverDynamic:
 
                                 run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary][run_var_key] = {}
                                 run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary][run_var_key] = run_values_filled
+
+                            log_stream.info(' ------> Domain: "' + run_domain_key + '" ... DONE')
+
+                        else:
+                            log_stream.info(' ------> Domain: "' + run_domain_key +
+                                            '" ... SKIPPED. Domain is not available in the datasets collection.')
 
                     log_stream.info(' -----> Run "' + run_type_key + '"  ... DONE')
 

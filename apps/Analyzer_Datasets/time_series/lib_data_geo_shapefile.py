@@ -1,7 +1,7 @@
 """
 Class Features
 
-Name:          lib_jupyter_data_geo_shapefile
+Name:          lib_data_geo_shapefile
 Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
 Date:          '20210113'
 Version:       '1.0.0'
@@ -9,8 +9,16 @@ Version:       '1.0.0'
 
 #######################################################################################
 # Libraries
+import logging
 import pandas as pd
 import geopandas as gpd
+
+from copy import deepcopy
+
+from lib_info_args import logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
 
 # Debug
 # import matplotlib.pylab as plt
@@ -44,11 +52,38 @@ def find_data_section(section_df, section_name=None, basin_name=None,
         point_dict[tag_column_basin_out] = point_dict.pop(tag_column_basin_in)
 
     elif point_idx.shape[0] == 0:
+        log_stream.error(' ===> Section idx not found in the section dictionary.')
         raise IOError('Section selection failed; section not found')
     else:
+        log_stream.error(' ===> Section idx not found. Procedure will be exit for unexpected error.')
         raise NotImplementedError('Section selection failed for unknown reason.')
 
     return point_dict
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to filter data section
+def filter_data_section(dframe_obj, filter_column='section_type', filter_value='River'):
+
+    if filter_column in list(dframe_obj.columns):
+        if filter_value is not None:
+            dframe_selection = dframe_obj.loc[dframe_obj[filter_column] == filter_value]
+        else:
+            dframe_selection = deepcopy(dframe_obj)
+        dframe_selection.attrs = {'filter_column': filter_column, 'filter_value': filter_value}
+    else:
+        log_stream.error(' ===> Column name "' + filter_column + '" to filter dataframe not found')
+        raise IOError('Check your shapefile and your "filter_column" option')
+
+    if dframe_selection.empty:
+        log_stream.error(' ===> Column value "' +
+                         str(filter_value) + '" to filter dataframe not found. Empty dataframe was selected.')
+        raise IOError('Check your shapefile and your "filter_value" options')
+
+    return dframe_selection
+
+
 # -------------------------------------------------------------------------------------
 
 
@@ -86,6 +121,7 @@ def read_data_section(file_name, columns_name_expected_in=None, columns_name_exp
             elif column_type == 'float':
                 column_data = [-9999.0] * file_rows
             else:
+                log_stream.error(' ===> Column Datatype is not allowed.')
                 raise NotImplementedError('Datatype not implemented yet')
 
         section_obj[column_name_out] = column_data

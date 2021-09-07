@@ -9,10 +9,10 @@
       "algorithm": "Time-series publisher postprocessing tool"
     },
     "flags": {
-      "cleaning_static": true,
+      "cleaning_static": false,
       "cleaning_dynamic_registry": true,
-      "cleaning_dynamic_source": true,
-      "cleaning_dynamic_analysis": true,
+      "cleaning_dynamic_source": false,
+      "cleaning_dynamic_analysis": false,
       "cleaning_dynamic_destination": true,
       "cleaning_dynamic_tmp": true
     },
@@ -65,8 +65,10 @@
           "file_name": "marche.choice.txt"
         },
         "sections": {
+          "__file_type__" : "River, Dam",
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/shapefile/",
-          "file_name": "fp_sections_marche.shp"
+          "file_name": "fp_sections_marche.shp",
+          "type": null
         },
         "table_graph_lut" : {
   		  "folder_name": null,
@@ -222,7 +224,7 @@
       "destination": {
         "registry": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/registry/{registry_sub_path}",
-          "file_name": "section_{registry_datetime}.csv"
+          "file_name": "all_{registry_datetime}.csv"
         },
         "collections" : {
           "info": {
