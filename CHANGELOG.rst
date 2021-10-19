@@ -11,6 +11,8 @@ APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 
 APP: **HAT_RunAnalyzer_HMC_MAIN.py**
 	- FIX: bugs related to real-time mode.
+APP: **HAT_RunPublisher_HMC_Maps.py**
+	- FIX: bugs related to real-time mode.
 
 Version 1.2.0 [2021-02-22]
 ===========

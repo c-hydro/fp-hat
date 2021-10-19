@@ -273,6 +273,22 @@ def organize_file_gridded(data_time_step, data_file_dset, data_file_variables,
         if var_name in list(data_file_dset.variables):
             var_data_values = data_file_dset[var_name].values
             var_data_attrs = data_file_dset[var_name].attrs
+            var_data_dims = data_file_dset[var_name].dims
+
+            if var_dim_time in list(var_data_dims):
+                loc_time_dim = list(var_data_dims).index(var_dim_time)
+                if loc_time_dim != 2 and loc_time_dim == 0:
+                    log_stream.warning(' ===> The "' + var_dim_time +
+                                       '" dimension for 3D datasets not in last dims position')
+                    log_stream.warning(' ===> Actual "' + var_dim_time + '" position is ' + str(loc_time_dim))
+
+                    var_data_shape = var_data_values.shape
+                    var_data_reshape = np.zeros([var_data_shape[1], var_data_shape[2], var_data_shape[0]])
+                    for id in range(0, var_data_shape[0]):
+                        var_data_tmp = var_data_values[id, :, :]
+                        var_data_reshape[:, :, id] = var_data_tmp
+
+                    var_data_values = deepcopy(var_data_reshape)
 
             if data_file_flipud_flag:
                 var_data_values = np.flipud(var_data_values)

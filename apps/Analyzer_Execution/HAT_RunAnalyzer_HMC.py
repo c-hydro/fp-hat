@@ -121,11 +121,10 @@ def main():
 
     # -------------------------------------------------------------------------------------
     # Info algorithm
-    alg_time_elapsed = round(time.time() - alg_time_start, 1)
+    alg_time_elapsed = round(time.time() - start_time, 1)
 
     logging.info(' ')
-    logging.info('[' + project_name + ' ' + alg_type + ' - ' + alg_name + ' (Version ' + alg_version +
-                 ' - Release ' + alg_release + ')]')
+    logging.info(' ==> ' + alg_name + ' (Version: ' + alg_version + ' Release_Date: ' + alg_release + ')')
     logging.info(' ==> TIME ELAPSED: ' + str(alg_time_elapsed) + ' seconds')
     logging.info(' ==> ... END')
     logging.info(' ==> Bye, Bye')
