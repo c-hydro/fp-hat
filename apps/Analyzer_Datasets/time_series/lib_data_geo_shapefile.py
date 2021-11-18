@@ -63,33 +63,9 @@ def find_data_section(section_df, section_name=None, basin_name=None,
 
 
 # -------------------------------------------------------------------------------------
-# Method to filter data section
-def filter_data_section(dframe_obj, filter_column='section_type', filter_value='River'):
-
-    if filter_column in list(dframe_obj.columns):
-        if filter_value is not None:
-            dframe_selection = dframe_obj.loc[dframe_obj[filter_column] == filter_value]
-        else:
-            dframe_selection = deepcopy(dframe_obj)
-        dframe_selection.attrs = {'filter_column': filter_column, 'filter_value': filter_value}
-    else:
-        log_stream.error(' ===> Column name "' + filter_column + '" to filter dataframe not found')
-        raise IOError('Check your shapefile and your "filter_column" option')
-
-    if dframe_selection.empty:
-        log_stream.error(' ===> Column value "' +
-                         str(filter_value) + '" to filter dataframe not found. Empty dataframe was selected.')
-        raise IOError('Check your shapefile and your "filter_value" options')
-
-    return dframe_selection
-
-
-# -------------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------------
 # Method to read shapefile section(s)
-def read_data_section(file_name, columns_name_expected_in=None, columns_name_expected_out=None, columns_name_type=None):
+def read_data_section(file_name, file_filter=None,
+                      columns_name_expected_in=None, columns_name_expected_out=None, columns_name_type=None):
 
     if columns_name_expected_in is None:
         columns_name_expected_in = [
@@ -108,6 +84,23 @@ def read_data_section(file_name, columns_name_expected_in=None, columns_name_exp
     file_dframe_raw = gpd.read_file(file_name)
     file_rows = file_dframe_raw.shape[0]
 
+    if file_filter is not None:
+        file_dframe_step = deepcopy(file_dframe_raw)
+        for filter_key, filter_value in file_filter.items():
+            file_columns_check = [x.lower() for x in list(file_dframe_raw.columns)]
+            if filter_key.lower() in file_columns_check:
+                if isinstance(filter_value, str):
+                    id_key = file_columns_check.index(filter_key)
+                    filter_column = list(file_dframe_raw.columns)[id_key]
+
+                    file_dframe_step = file_dframe_step.loc[
+                        file_dframe_step[filter_column].str.lower() == filter_value.lower()]
+                else:
+                    log_stream.error(' ===> Filter datatype is not allowed.')
+                    raise NotImplementedError('Datatype not implemented yet')
+
+        file_dframe_raw = deepcopy(file_dframe_step)
+
     section_obj = {}
     for column_name_in, column_name_out, column_type in zip(columns_name_expected_in,
                                                             columns_name_expected_out, columns_name_type):
@@ -121,12 +114,15 @@ def read_data_section(file_name, columns_name_expected_in=None, columns_name_exp
             elif column_type == 'float':
                 column_data = [-9999.0] * file_rows
             else:
-                log_stream.error(' ===> Column Datatype is not allowed.')
+                log_stream.error(' ===> Column datatype is not allowed.')
                 raise NotImplementedError('Datatype not implemented yet')
 
         section_obj[column_name_out] = column_data
 
     section_df = pd.DataFrame(data=section_obj)
+
+    if file_filter is not None:
+        section_df.attrs = file_filter
 
     return section_df
 # -------------------------------------------------------------------------------------

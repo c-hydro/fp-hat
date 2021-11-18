@@ -83,6 +83,7 @@ class DriverDynamic:
 
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
+        self.filter_type_tag = 'type'
 
         self.run_mode_tag = 'run_mode'
         self.run_description_tag = 'run_description'
@@ -96,7 +97,12 @@ class DriverDynamic:
         self.time_search_period_tag = 'time_search_period'
         self.time_search_freq_tag = 'time_search_frequency'
 
-        self.section_name_type = [self.static_data_section.attrs['filter_value']]
+        self.section_name_type = 'section'
+        if self.static_data_section.attrs:
+            for attr_key, attr_value in self.static_data_section.attrs.items():
+                if attr_key.lower() == self.filter_type_tag.lower():
+                    self.section_name_type = attr_value
+                    break
 
         self.str_delimiter = ':'
 
@@ -124,8 +130,6 @@ class DriverDynamic:
             src_dict, field_select=self.time_search_freq_tag, field_cmp='unique')
         self.run_time_range = self.define_run_time_range(time_reference, time_period=self.run_search_period,
                                                          time_frequency=self.run_search_freq)
-
-        self.static_data_section = self.define_point_db(self.static_data_section, name_type=self.section_name_type)
 
         self.run_point_order, self.run_point_name = self.define_point_name(name_type=self.section_name_type)
         self.run_point_registry = self.define_point_registry(name_type=self.section_name_type)
@@ -176,22 +180,6 @@ class DriverDynamic:
         self.run_attributes_removed = ['outlet_name', 'basin_name', 'plant_name', 'section_name']
 
         # -------------------------------------------------------------------------------------
-
-    # -------------------------------------------------------------------------------------
-    # Method to define point database
-    @staticmethod
-    def define_point_db(static_data, name_type=None, column_name='section_type'):
-
-        if (name_type.__len__() == 1) and (name_type[0] is None):
-            name_type = name_type[0]
-
-        if name_type is not None:
-            static_data_selection = static_data[static_data[column_name].isin(name_type)]
-        else:
-            static_data_selection = deepcopy(static_data)
-
-        return static_data_selection
-    # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
     # Method to define point registry

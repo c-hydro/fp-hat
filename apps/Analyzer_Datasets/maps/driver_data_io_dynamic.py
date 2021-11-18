@@ -33,7 +33,7 @@ from driver_graphs_maps import DriverGraph
 log_stream = logging.getLogger(logger_name)
 
 # Debug
-# import matplotlib.pylab as plt
+import matplotlib.pylab as plt
 ######################################################################################
 
 

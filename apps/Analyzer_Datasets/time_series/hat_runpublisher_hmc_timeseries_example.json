@@ -68,7 +68,7 @@
           "__file_type__" : "River, Dam",
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_static/shapefile/",
           "file_name": "fp_sections_marche.shp",
-          "type": null
+          "file_data_filter": {"domain": "marche", "type": "river"}
         },
         "table_graph_lut" : {
   		  "folder_name": null,
@@ -224,7 +224,7 @@
       "destination": {
         "registry": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/registry/{registry_sub_path}",
-          "file_name": "all_{registry_datetime}.csv"
+          "file_name": "marche_{registry_datetime}.csv"
         },
         "collections" : {
           "info": {

@@ -133,7 +133,7 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
 
             var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
             var_time_end = pd.date_range(
-                start=var_time_start, periods=var_t_period, freq=var_t_frequency)[0].strftime(time_format_algorithm)
+                start=var_time_start, periods=var_t_period, freq=var_t_frequency)[-1].strftime(time_format_algorithm)
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
@@ -214,7 +214,7 @@ def var_cmp_average(var_time, var_darray_src, var_darray_terrain,
 
             var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
             var_time_end = pd.date_range(
-                start=var_time_start, periods=var_t_period, freq=var_t_frequency)[0].strftime(time_format_algorithm)
+                start=var_time_start, periods=var_t_period, freq=var_t_frequency)[-1].strftime(time_format_algorithm)
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 

@@ -52,9 +52,16 @@ class DriverRegistry:
 
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
+        self.filter_type_tag = 'type'
 
         self.static_data_section = static_data_collection[self.tag_section_data]
-        self.section_name_type = [self.static_data_section.attrs['filter_value']]
+
+        self.section_name_type = 'section'
+        if self.static_data_section.attrs:
+            for attr_key, attr_value in self.static_data_section.attrs.items():
+                if attr_key.lower() == self.filter_type_tag.lower():
+                    self.section_name_type = attr_value
+                    break
 
         dst_registry_dict = dst_dict['registry']
         dst_plot_dict = dst_dict['collections']['plot']
@@ -125,10 +132,11 @@ class DriverRegistry:
 
         point_tag_registry = []
         for run_point_domain_step, run_point_type_step in zip(run_point_domain_list, run_point_type_list):
+
             if name_capitalize:
                 run_point_domain_step = run_point_domain_step.capitalize()
             if name_type is not None:
-                if run_point_type_step in name_type:
+                if run_point_type_step.lower() in name_type.lower():
                     point_tag_registry.append(run_point_domain_step)
         point_tag_registry = sorted(list(set(point_tag_registry)))
 
