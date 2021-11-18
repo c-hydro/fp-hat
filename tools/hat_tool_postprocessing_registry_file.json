@@ -1,0 +1,21 @@
+{
+  "flags" : {
+    "update_file_destination" : true
+  },
+  "datasets": {
+    "source": {
+      "file_datasets_domain_1": {
+        "folder_name": "/hydro/analysis/hydrapp/registry/",
+        "file_name": "section_marche.csv"
+      },
+      "file_datasets_domain_2": {
+        "folder_name": "/hydro/analysis/hydrapp/registry/",
+        "file_name": "section_nera.csv"
+      }
+    },
+    "destination": {
+      "folder_name": "/hydro/analysis/hydrapp/registry/",
+      "file_name": "section.csv"
+    }
+  }
+}

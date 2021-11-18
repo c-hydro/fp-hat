@@ -14,6 +14,11 @@ APP: **HAT_RunAnalyzer_HMC_MAIN.py**
 APP: **HAT_RunPublisher_HMC_Maps.py**
 	- FIX: bugs related to real-time mode.
 
+APP: **HAT_RunPublisher_HMC_Maps.py**
+	- FIX: bugs related to real-time mode.
+
+TOOL: **hat_tool_postprocessing_registry_file.py**
+
 Version 1.2.0 [2021-02-22]
 ===========
 APP: **HAT_DataOrganizer_HMC_NRT.py**
