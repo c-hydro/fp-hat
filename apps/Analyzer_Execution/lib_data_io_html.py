@@ -162,7 +162,20 @@ def write_file_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', time_m
                         section_alarm_collections[id_step][tag_alarm_index] = {}
                         section_alarm_collections[id_step][tag_alarm_index] = alarm_index_def
 
-                    if (alert_section_def.__len__() == 0) and (alarm_section_def.__len__() == 0):
+                    alert_flag_message = False
+                    for key_collections, fields_collections in section_alert_collections.items():
+                        field_values = fields_collections[tag_alert_section]
+                        if field_values.__len__() > 0:
+                            alert_flag_message = True
+                            break
+                    alarm_flag_message = False
+                    for key_collections, fields_collections in section_alarm_collections.items():
+                        field_values = fields_collections[tag_alarm_section]
+                        if field_values.__len__() > 0:
+                            alarm_flag_message = True
+                            break
+
+                    if (not alert_flag_message) and (not alarm_flag_message):
 
                         html_handle.write('<td class=azzurro style="text-align:center; vertical-align:middle"><b>' + run_description + '</b></td>')
                         html_handle.write('<td class=azzurro style="text-align:center; vertical-align:middle"> COMPLETED  </td>')
@@ -191,8 +204,8 @@ def write_file_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', time_m
                         html_handle.write('<td class=verde style="text-align:center; vertical-align:middle">' + time_str_start + ' ' + time_mode + ' </td>')
                         html_handle.write('<td class=verde style="text-align:center; vertical-align:middle">' + time_str_end + ' ' + time_mode + ' </td>')
                         html_handle.write('<td class=verde style="text-align:center; vertical-align:middle">' + time_str_elapsed + ' </td>')
-                        html_handle.write('<td style="text-align:center; vertical-align:middle">' + run_n + '</td>')
-                        html_handle.write('<td style="text-align:center; vertical-align:middle">' + section_n + '</td>')
+                        html_handle.write('<td class=verde style="text-align:center; vertical-align:middle">' + run_n + '</td>')
+                        html_handle.write('<td class=verde style="text-align:center; vertical-align:middle">' + section_n + '</td>')
                         html_handle.write('<td class=nero></td>')
 
                         for id, data in section_alert_collections.items():
@@ -268,8 +281,8 @@ def write_file_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', time_m
                     html_handle.write('<td class=grigio style="text-align:center; vertical-align:middle">' + time_str_start + ' ' + time_mode + ' </td>')
                     html_handle.write('<td class=grigio style="text-align:center; vertical-align:middle"> NA </td>')
                     html_handle.write('<td class=grigio style="text-align:center; vertical-align:middle"> NA </td>')
-                    html_handle.write('<td style="text-align:center; vertical-align:middle">' + run_n + '</td>')
-                    html_handle.write('<td style="text-align:center; vertical-align:middle">' + section_n + '</td>')
+                    html_handle.write('<td class=grigio style="text-align:center; vertical-align:middle">' + run_n + '</td>')
+                    html_handle.write('<td class=grigio style="text-align:center; vertical-align:middle">' + section_n + '</td>')
                     html_handle.write('<td class=nero></td>')
                     html_handle.write('<td>-</td>')
                     html_handle.write('<td>-</td>')
@@ -289,8 +302,8 @@ def write_file_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', time_m
                 html_handle.write('<td class=rossa style="text-align:center; vertical-align:middle"> NA </td>')
                 html_handle.write('<td class=rossa style="text-align:center; vertical-align:middle"> NA </td>')
                 html_handle.write('<td class=rossa style="text-align:center; vertical-align:middle"> NA </td>')
-                html_handle.write('<td style="text-align:center; vertical-align:middle"> NA </td>')
-                html_handle.write('<td style="text-align:center; vertical-align:middle"> NA </td>')
+                html_handle.write('<td class=rossa style="text-align:center; vertical-align:middle"> NA </td>')
+                html_handle.write('<td class=rossa style="text-align:center; vertical-align:middle"> NA </td>')
                 html_handle.write('<td class=nero></td>')
                 html_handle.write('<td>-</td>')
                 html_handle.write('<td>-</td>')

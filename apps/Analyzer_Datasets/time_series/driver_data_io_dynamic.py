@@ -203,7 +203,7 @@ class DriverDynamic:
         point_registry_list = []
         for run_point_domain_step, run_point_type_step in zip(run_point_domain_list, run_point_type_list):
             if name_type is not None:
-                if run_point_type_step in name_type:
+                if run_point_type_step.lower() in name_type.lower():
                     point_registry_tmp = str_delimiter_registry.join([run_point_domain_step] + run_plot_list)
                     point_registry_list.append(point_registry_tmp)
             else:
@@ -234,7 +234,7 @@ class DriverDynamic:
                 section_name_list, section_domain_list, section_order_list, section_type_list):
 
             if name_type is not None:
-                if section_type_step in name_type:
+                if section_type_step.lower() in name_type.lower():
                     section_point_tmp = str_delimiter_name.join([section_domain_step, section_name_step])
                     section_point_selection.append(section_point_tmp)
                     section_order_selection.append(section_order_step)

@@ -9,13 +9,14 @@ APP: **HAT_RunPublisher_HMC_Maps.py**
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 	- Release for refactoring time-series app.
 
-APP: **HAT_RunAnalyzer_HMC_MAIN.py**
+APP: **HAT_RunAnalyzer_HMC.py**
 	- FIX: bugs related to real-time mode.
+    - FIX: bugs related to undefined datasets.
 APP: **HAT_RunPublisher_HMC_Maps.py**
 	- FIX: bugs related to real-time mode.
-
-APP: **HAT_RunPublisher_HMC_Maps.py**
+APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 	- FIX: bugs related to real-time mode.
+    - FIX: bugs related to undefined datasets.
 
 TOOL: **hat_tool_postprocessing_registry_file.py**
 

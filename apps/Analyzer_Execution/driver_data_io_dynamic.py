@@ -353,71 +353,75 @@ class DriverDynamic:
 
                     attrs_datasets = {**attrs_analysis, **attrs_exec}
 
-                    for time_step, data_step in section_data.items():
+                    if section_data is not None:
+                        for time_step, data_step in section_data.items():
 
-                        logging.info(' ------> Time ' + str(time_step) + ' ... ')
+                            logging.info(' ------> Time ' + str(time_step) + ' ... ')
 
-                        max_alert_value = data_step[self.tag_summary_alert_value]
-                        max_alert_idx = data_step[self.tag_summary_alert_index]
-                        max_alarm_value = data_step[self.tag_summary_alarm_value]
-                        max_alarm_idx = data_step[self.tag_summary_alarm_index]
-                        thr_alert_value = data_step[self.tag_summary_alert_thr]
-                        thr_alarm_value = data_step[self.tag_summary_alarm_thr]
+                            max_alert_value = data_step[self.tag_summary_alert_value]
+                            max_alert_idx = data_step[self.tag_summary_alert_index]
+                            max_alarm_value = data_step[self.tag_summary_alarm_value]
+                            max_alarm_idx = data_step[self.tag_summary_alarm_index]
+                            thr_alert_value = data_step[self.tag_summary_alert_thr]
+                            thr_alarm_value = data_step[self.tag_summary_alarm_thr]
 
-                        if time_step not in list(summary_datasets.keys()):
-                            summary_datasets[time_step] = {}
+                            if time_step not in list(summary_datasets.keys()):
+                                summary_datasets[time_step] = {}
 
-                            summary_datasets[time_step][self.tag_summary_alert_value] = [max_alert_value]
-                            summary_datasets[time_step][self.tag_summary_alert_index] = [max_alert_idx]
-                            summary_datasets[time_step][self.tag_summary_alert_section] = [section_name]
-                            summary_datasets[time_step][self.tag_summary_alert_thr] = [thr_alert_value]
+                                summary_datasets[time_step][self.tag_summary_alert_value] = [max_alert_value]
+                                summary_datasets[time_step][self.tag_summary_alert_index] = [max_alert_idx]
+                                summary_datasets[time_step][self.tag_summary_alert_section] = [section_name]
+                                summary_datasets[time_step][self.tag_summary_alert_thr] = [thr_alert_value]
 
-                            summary_datasets[time_step][self.tag_summary_alarm_value] = [max_alarm_value]
-                            summary_datasets[time_step][self.tag_summary_alarm_index] = [max_alarm_idx]
-                            summary_datasets[time_step][self.tag_summary_alarm_section] = [section_name]
-                            summary_datasets[time_step][self.tag_summary_alarm_thr] = [thr_alarm_value]
+                                summary_datasets[time_step][self.tag_summary_alarm_value] = [max_alarm_value]
+                                summary_datasets[time_step][self.tag_summary_alarm_index] = [max_alarm_idx]
+                                summary_datasets[time_step][self.tag_summary_alarm_section] = [section_name]
+                                summary_datasets[time_step][self.tag_summary_alarm_thr] = [thr_alarm_value]
 
-                            summary_datasets[time_step][self.tag_summary_run_type] = [exec_name_step]
+                                summary_datasets[time_step][self.tag_summary_run_type] = [exec_name_step]
 
-                        else:
+                            else:
 
-                            tmp_datasets = deepcopy(summary_datasets[time_step])
+                                tmp_datasets = deepcopy(summary_datasets[time_step])
 
-                            tmp_alert_value = tmp_datasets[self.tag_summary_alert_value]
-                            tmp_alert_idx = tmp_datasets[self.tag_summary_alert_index]
-                            tmp_alert_section = tmp_datasets[self.tag_summary_alert_section]
-                            tmp_alert_thr = tmp_datasets[self.tag_summary_alert_thr]
-                            tmp_alert_value.append(max_alert_value)
-                            tmp_alert_idx.append(max_alert_idx)
-                            tmp_alert_section.append(section_name)
-                            tmp_alert_thr.append(thr_alert_value)
+                                tmp_alert_value = tmp_datasets[self.tag_summary_alert_value]
+                                tmp_alert_idx = tmp_datasets[self.tag_summary_alert_index]
+                                tmp_alert_section = tmp_datasets[self.tag_summary_alert_section]
+                                tmp_alert_thr = tmp_datasets[self.tag_summary_alert_thr]
+                                tmp_alert_value.append(max_alert_value)
+                                tmp_alert_idx.append(max_alert_idx)
+                                tmp_alert_section.append(section_name)
+                                tmp_alert_thr.append(thr_alert_value)
 
-                            summary_datasets[time_step][self.tag_summary_alert_value] = tmp_alert_value
-                            summary_datasets[time_step][self.tag_summary_alert_index] = tmp_alert_idx
-                            summary_datasets[time_step][self.tag_summary_alert_section] = tmp_alert_section
-                            summary_datasets[time_step][self.tag_summary_alert_thr] = tmp_alert_thr
+                                summary_datasets[time_step][self.tag_summary_alert_value] = tmp_alert_value
+                                summary_datasets[time_step][self.tag_summary_alert_index] = tmp_alert_idx
+                                summary_datasets[time_step][self.tag_summary_alert_section] = tmp_alert_section
+                                summary_datasets[time_step][self.tag_summary_alert_thr] = tmp_alert_thr
 
-                            tmp_alarm_value = tmp_datasets[self.tag_summary_alarm_value]
-                            tmp_alarm_idx = tmp_datasets[self.tag_summary_alarm_index]
-                            tmp_alarm_section = tmp_datasets[self.tag_summary_alarm_section]
-                            tmp_alarm_thr = tmp_datasets[self.tag_summary_alarm_thr]
-                            tmp_alarm_value.append(max_alarm_value)
-                            tmp_alarm_idx.append(max_alarm_idx)
-                            tmp_alarm_section.append(section_name)
-                            tmp_alarm_thr.append(thr_alarm_value)
+                                tmp_alarm_value = tmp_datasets[self.tag_summary_alarm_value]
+                                tmp_alarm_idx = tmp_datasets[self.tag_summary_alarm_index]
+                                tmp_alarm_section = tmp_datasets[self.tag_summary_alarm_section]
+                                tmp_alarm_thr = tmp_datasets[self.tag_summary_alarm_thr]
+                                tmp_alarm_value.append(max_alarm_value)
+                                tmp_alarm_idx.append(max_alarm_idx)
+                                tmp_alarm_section.append(section_name)
+                                tmp_alarm_thr.append(thr_alarm_value)
 
-                            summary_datasets[time_step][self.tag_summary_alarm_value] = tmp_alarm_value
-                            summary_datasets[time_step][self.tag_summary_alarm_index] = tmp_alarm_idx
-                            summary_datasets[time_step][self.tag_summary_alarm_section] = tmp_alarm_section
-                            summary_datasets[time_step][self.tag_summary_alarm_thr] = tmp_alarm_thr
+                                summary_datasets[time_step][self.tag_summary_alarm_value] = tmp_alarm_value
+                                summary_datasets[time_step][self.tag_summary_alarm_index] = tmp_alarm_idx
+                                summary_datasets[time_step][self.tag_summary_alarm_section] = tmp_alarm_section
+                                summary_datasets[time_step][self.tag_summary_alarm_thr] = tmp_alarm_thr
 
-                            tmp_run_type = tmp_datasets[self.tag_summary_run_type]
-                            tmp_run_type.append(exec_name_step)
-                            summary_datasets[time_step][self.tag_summary_run_type] = tmp_run_type
+                                tmp_run_type = tmp_datasets[self.tag_summary_run_type]
+                                tmp_run_type.append(exec_name_step)
+                                summary_datasets[time_step][self.tag_summary_run_type] = tmp_run_type
 
-                        logging.info(' ------> Time ' + str(time_step) + ' ... DONE')
+                            logging.info(' ------> Time ' + str(time_step) + ' ... DONE')
 
-                    logging.info(' -----> Section ' + section_name + ' ... DONE')
+                        logging.info(' -----> Section ' + section_name + ' ... DONE')
+
+                    else:
+                        logging.info(' -----> Section ' + section_name + ' ... SKIPPED. Datasets are undefined')
 
             else:
                 summary_datasets = None
@@ -450,20 +454,21 @@ class DriverDynamic:
         # Save warnings bulletin
         warnings_collections = {}
         for warnings_key, warnings_data in analysis_warnings_collections.items():
-            warnings_collections[warnings_key] = {}
 
-            for summary_key, summary_fields in warnings_structure.items():
+            if warnings_data is not None:
+                warnings_collections[warnings_key] = {}
+                for summary_key, summary_fields in warnings_structure.items():
 
-                key_ref = summary_fields['key_ref']
-                key_list = summary_fields['key_list']
+                    key_ref = summary_fields['key_ref']
+                    key_list = summary_fields['key_list']
 
-                values_ref = warnings_data[key_ref]
-                index_ref = int(values_ref.index(max(values_ref)))
+                    values_ref = warnings_data[key_ref]
+                    index_ref = int(values_ref.index(max(values_ref)))
 
-                warnings_collections[warnings_key][summary_key] = {}
-                for key_step in key_list:
-                    value_step = warnings_data[key_step][index_ref]
-                    warnings_collections[warnings_key][summary_key][key_step] = value_step
+                    warnings_collections[warnings_key][summary_key] = {}
+                    for key_step in key_list:
+                        value_step = warnings_data[key_step][index_ref]
+                        warnings_collections[warnings_key][summary_key][key_step] = value_step
 
         folder_name_dest_warnings, file_name_dest_warnings = os.path.split(file_path_dest_warnings)
         make_folder(folder_name_dest_warnings)
@@ -581,13 +586,16 @@ class DriverDynamic:
                         if warnings_key not in list(analyze_warnings_collections.keys()):
                             analyze_warnings_collections[warnings_key] = {}
 
-                        for var_key, var_value in warnings_data.items():
-                            if var_key not in list(analyze_warnings_collections[warnings_key].keys()):
-                                analyze_warnings_collections[warnings_key][var_key] = var_value
-                            else:
-                                warning_value_tmp = analyze_warnings_collections[warnings_key][var_key]
-                                warning_value_tmp.extend(var_value)
-                                analyze_warnings_collections[warnings_key][var_key] = warning_value_tmp
+                        if warnings_data is not None:
+                            for var_key, var_value in warnings_data.items():
+                                if var_key not in list(analyze_warnings_collections[warnings_key].keys()):
+                                    analyze_warnings_collections[warnings_key][var_key] = var_value
+                                else:
+                                    warning_value_tmp = analyze_warnings_collections[warnings_key][var_key]
+                                    warning_value_tmp.extend(var_value)
+                                    analyze_warnings_collections[warnings_key][var_key] = warning_value_tmp
+                        else:
+                            analyze_warnings_collections[warnings_key] = None
 
             folder_name_anc, file_name_anc = os.path.split(file_path_anc)
             make_folder(folder_name_anc)
