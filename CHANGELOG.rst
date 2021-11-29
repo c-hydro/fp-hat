@@ -16,6 +16,7 @@ APP: **HAT_RunPublisher_HMC_Maps.py**
 	- FIX: bugs related to real-time mode.
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 	- FIX: bugs related to real-time mode.
+	- FIX: bugs related to observed discharge time-series.
     - FIX: bugs related to undefined datasets.
 
 TOOL: **hat_tool_postprocessing_registry_file.py**

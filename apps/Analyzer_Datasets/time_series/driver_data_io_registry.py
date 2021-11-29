@@ -119,7 +119,7 @@ class DriverRegistry:
 
     # -------------------------------------------------------------------------------------
     # Method to define registry tags
-    def define_registry_tag(self, name_lower=True, name_type=None, name_capitalize=True):
+    def define_registry_tag(self, name_lower=False, name_type=None, name_capitalize=True):
 
         if name_lower:
             section_domain = self.static_data_section['section_domain'].str.lower()

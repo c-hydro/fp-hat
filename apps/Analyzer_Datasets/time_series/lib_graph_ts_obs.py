@@ -12,6 +12,9 @@ import logging
 import os
 
 import matplotlib.pylab as plt
+import pandas as pd
+
+from copy import deepcopy
 
 from lib_utils_system import make_folder
 from lib_graph_ts_utils import configure_ts_attrs, configure_ts_axes
@@ -64,6 +67,12 @@ def plot_ts_discharge_obs(
     time_start = attrs_ts['time_start'].strftime(format=time_format_algorithm)
 
     section_drained_area = str(attrs_ts['section_drained_area'])
+
+    if df_discharge_obs is None:
+        df_values = deepcopy(df_discharge_sim.values)
+        df_index = deepcopy(df_discharge_sim.index)
+        df_values[:, 0] = -9996.0
+        df_discharge_obs = pd.DataFrame(data=df_values, index=df_index)
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))

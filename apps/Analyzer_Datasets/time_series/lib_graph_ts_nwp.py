@@ -11,10 +11,13 @@ Version:       '1.0.0'
 import logging
 import os
 import pandas as pd
+
 import matplotlib.pylab as plt
 from matplotlib.patches import Rectangle
 
 from lib_utils_system import make_folder
+
+from copy import deepcopy
 
 from lib_graph_ts_utils import configure_ts_axes, configure_ts_attrs, \
     compute_ts_peaks, compute_ts_quantile, compute_ts_ensemble_avg
@@ -132,6 +135,12 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
         df_soil_moisture_nwp_probabilistic_01, variable_axis=1)
     df_soil_moisture_avg_probabilistic_02 = compute_ts_ensemble_avg(
         df_soil_moisture_nwp_probabilistic_02, variable_axis=1)
+    
+    if df_discharge_observed is None:
+        df_values = deepcopy(df_discharge_simulated_ground_network.values)
+        df_index = deepcopy(df_discharge_simulated_ground_network.index)
+        df_values[:, 0] = -9996.0
+        df_discharge_observed = pd.DataFrame(data=df_values, index=df_index)
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
@@ -394,6 +403,12 @@ def plot_ts_discharge_nwp_probabilistic(
     # Compute nwp probabilistic soil moisture average
     df_soil_moisture_avg_probabilistic = compute_ts_ensemble_avg(df_soil_moisture_nwp_probabilistic, variable_axis=1)
 
+    if df_discharge_observed is None:
+        df_values = deepcopy(df_discharge_simulated_ground_network.values)
+        df_index = deepcopy(df_discharge_simulated_ground_network.index)
+        df_values[:, 0] = -9996.0
+        df_discharge_observed = pd.DataFrame(data=df_values, index=df_index)
+
     # Open figure
     fig = plt.figure(figsize=(17, 11))
     fig.autofmt_xdate()
@@ -576,6 +591,12 @@ def plot_ts_discharge_nwp_deterministic(
     section_drained_area = str(attrs_ts_ground_network['section_drained_area'])
     section_name = attrs_ts_ground_network['section_name']
     section_domain = attrs_ts_ground_network['section_domain']
+
+    if df_discharge_observed is None:
+        df_values = deepcopy(df_discharge_simulated_ground_network.values)
+        df_index = deepcopy(df_discharge_simulated_ground_network.index)
+        df_values[:, 0] = -9996.0
+        df_discharge_observed = pd.DataFrame(data=df_values, index=df_index)
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
