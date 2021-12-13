@@ -140,6 +140,7 @@ class DriverDynamic:
 
         self.info_domain_name = alg_info['domain_name']
         self.info_variable_limits = alg_info['variable_limits']
+        self.info_variable_units = alg_info['variable_units']
         self.info_variable_src = self.extract_variable_from_dict(self.src_dict, obj_tags=[self.src_variable_tag])
         self.info_time_src = self.extract_variable_from_dict(self.src_dict, obj_tags=[self.src_time_tag])
         self.info_variable_anl = self.extract_variable_from_dict(self.anl_dict, obj_tags=[self.anl_variable_tag])
@@ -1245,6 +1246,7 @@ class DriverDynamic:
         anc_file_group = self.anc_file_filter_group
 
         limits_info_variable = self.info_variable_limits
+        units_info_variable = self.info_variable_units
         src_info_variable = self.info_variable_src
         src_info_time = self.info_time_src
         anl_info_variable = self.info_variable_anl
@@ -1351,6 +1353,7 @@ class DriverDynamic:
                             src_file_dset = organize_file_gridded(
                                 src_time_step, src_file_obj, src_var_map, static_terrain_darray,
                                 data_limits_variables=limits_info_variable,
+                                data_units_variables=units_info_variable,
                                 var_name_terrain=var_terrain_data,
                                 var_dim_x=self.dim_name_geo_x , var_dim_y=self.dim_name_geo_y,
                                 var_dim_time=self.dim_name_time,

@@ -315,6 +315,7 @@ def var_cmp_instantaneous(var_time, var_darray_src, var_darray_terrain,
 
         '''
         # Debug
+        import matplotlib.pylab as plt
         plt.figure()
         plt.imshow(var_darray_masked.values)
         plt.colorbar()

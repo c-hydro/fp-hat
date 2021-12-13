@@ -189,7 +189,8 @@ def organize_attrs_gridded(data_file_dset, data_attr_settings, data_map_variable
 # -------------------------------------------------------------------------------------
 # Method to organize netcdf gridded file
 def organize_file_gridded(data_time_step, data_file_dset, data_file_variables,
-                          data_terrain_darray, data_limits_variables=None,
+                          data_terrain_darray,
+                          data_limits_variables=None, data_units_variables=None,
                           var_name_terrain='terrain',
                           var_dim_x='west_east', var_dim_y='south_north', var_dim_time='time',
                           var_coord_x='west_east', var_coord_y='south_north', var_coord_time='time',
@@ -307,7 +308,28 @@ def organize_file_gridded(data_time_step, data_file_dset, data_file_variables,
                     var_limits_str = ','.join(var_limits_str)
                     var_data_attrs['Valid_range'] = var_limits_str
             else:
-                var_data_attrs['Valid_range'] = None
+                if var_limits is None:
+                    var_data_attrs['Valid_range'] = None
+                else:
+                    var_limits_str = [str(item) for item in var_limits]
+                    var_limits_str = ','.join(var_limits_str)
+                    var_data_attrs['Valid_range'] = var_limits_str
+            var_units = None
+            if data_units_variables is not None:
+                if var_key in list(data_units_variables.keys()):
+                    var_units = data_units_variables[var_key]
+            if 'units' in list(var_data_attrs.keys()):
+                if var_units is not None:
+                    if isinstance(var_units, str):
+                        var_data_attrs['units'] = var_units
+                    else:
+                        log_stream.error(' ===> Variable units is defined by wrong type.')
+                        raise IOError('Obj is expected in string format')
+            else:
+                if var_units is None:
+                    var_data_attrs['units'] = None
+                else:
+                    var_data_attrs['units'] = var_units
 
             if var_data_values.ndim == 2:
 
@@ -340,7 +362,7 @@ def organize_file_gridded(data_time_step, data_file_dset, data_file_variables,
             map_terrain_geo_x, map_terrain_geo_y = np.meshgrid(var_terrain_geo_x, var_terrain_geo_y)
             
             plt.figure()
-            plt.imshow(var_data_darray_masked[:,:,5])
+            plt.imshow(var_data_darray_masked[:,:,0])
             plt.colorbar()
 
             plt.figure()

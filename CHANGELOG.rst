@@ -14,6 +14,8 @@ APP: **HAT_RunAnalyzer_HMC.py**
     - FIX: bugs related to undefined datasets.
 APP: **HAT_RunPublisher_HMC_Maps.py**
 	- FIX: bugs related to real-time mode.
+	- FIX: bugs related to variable units and limits.
+	- ADD: snow variables and maps.
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 	- FIX: bugs related to real-time mode.
 	- FIX: bugs related to observed discharge time-series.

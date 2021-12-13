@@ -105,7 +105,7 @@ class DriverGraph:
 
         if isinstance(fx_table, str):
             if os.path.exists(fx_table):
-                fx_collections_methods = read_ts_table(fx_table)
+                fx_collections_methods = read_map_table(fx_table)
             else:
                 log_stream.error(' ===> Fx table "' + fx_table + '" does not exist.')
                 raise IOError('Fx table is not available in the selected location')

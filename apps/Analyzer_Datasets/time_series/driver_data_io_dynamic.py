@@ -648,15 +648,14 @@ class DriverDynamic:
                 run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
 
                 # DEBUG START
-                section_idx = 76 # Arzilla:FoceArzilla
-                run_section_info = static_data_section.iloc[section_idx]
-                run_section_name = run_section_info['section_name']
-                run_section_domain = run_section_info['section_domain']
-                run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
-
-                run_section_file_plot = run_file_name_collections_plot[section_idx]
-                run_section_file_info = run_file_name_collections_info[section_idx]
-                run_section_file_datasets = run_file_name_collections_datasets[section_idx]
+                # section_idx = 76 # Arzilla:FoceArzilla
+                # run_section_info = static_data_section.iloc[section_idx]
+                # run_section_name = run_section_info['section_name']
+                # run_section_domain = run_section_info['section_domain']
+                # run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
+                # run_section_file_plot = run_file_name_collections_plot[section_idx]
+                # run_section_file_info = run_file_name_collections_info[section_idx]
+                # run_section_file_datasets = run_file_name_collections_datasets[section_idx]
                 # DEBUG END
 
                 log_stream.info(' ------> Domain "' + run_section_tag + '" ... ')

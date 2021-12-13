@@ -34,6 +34,8 @@
         "maps_sub_path_type_03": "%Y/%m/%d/",
         "maps_datetime_type_04": "%Y%m%d%H%M",
         "maps_sub_path_type_04": "%Y/%m/%d/",
+        "maps_datetime_type_05": "%Y%m%d%H%M",
+        "maps_sub_path_type_05": "%Y/%m/%d/",
         "maps_datetime_ancillary": "%Y%m%d%H%M",
         "maps_sub_path_ancillary": "%Y/%m/%d/",
         "maps_datetime_analysis": "%Y%m%d%H%M",
@@ -54,14 +56,31 @@
     "info": {
       "domain_name": "marche",
       "variable_limits": {
-        "rain"  : [0, null],
-        "discharge":  [0, null],
-        "air_temperature":  [-30, 50],
-        "relative_humidity":  [0, 100],
-        "incoming_radiation":  [-100, 1200],
-        "land_surface_temperature":  [260, 320],
-        "wind_speed":  [0, 10],
-        "soil_moisture": [0, 1]}
+        "rain_data"  : [0, null],
+        "discharge_data":  [0, null],
+        "air_temperature_data":  [-30, 50],
+        "relative_humidity_data":  [0, 100],
+        "incoming_radiation_data":  [-100, 1200],
+        "land_surface_temperature_data":  [260, 320],
+        "wind_speed_data":  [0, 10],
+        "soil_moisture_data": [0, 1],
+        "snow_water_equivalent_data": [0, null],
+        "snow_melting_data": [0, null],
+        "snow_density_data": [100, 500]
+      },
+      "variable_units": {
+        "rain_data"  : "mm",
+        "discharge_data":  "m^3/s",
+        "air_temperature_data":  "C",
+        "relative_humidity_data":  "%",
+        "incoming_radiation_data":  "W/m^2",
+        "land_surface_temperature_data":  "K",
+        "wind_speed_data":  "m/s",
+        "soil_moisture_data": "-",
+        "snow_water_equivalent_data": "mm",
+        "snow_melting_data": "mm",
+        "snow_density_data": "kg/m^3"
+      }
     }
   },
   "data": {
@@ -84,18 +103,12 @@
       	  "file_name": "table_graph_lut.json"
       	},
         "colormap": {
-          "cmap_rain": {
-            "folder_name": null,
-            "file_name": "rain.cmap"
-          },
-          "cmap_sm": {
-            "folder_name": null,
-            "file_name": "sm.cmap"
-          },
-          "cmap_lst": {
-            "folder_name": null,
-            "file_name": "lst.cmap"
-          }
+          "cmap_rain": {"folder_name": null,  "file_name": "rain.cmap"},
+          "cmap_sm": {"folder_name": null, "file_name": "sm.cmap"},
+          "cmap_lst": {"folder_name": null, "file_name": "lst.cmap"},
+          "cmap_swe": {"folder_name": null, "file_name": "swe.cmap"},
+          "cmap_snow_melting": {"folder_name": null, "file_name": "snow_melting.cmap"},
+          "cmap_snow_density": {"folder_name": null, "file_name": "snow_density.cmap"}
         }
       },
       "destination": {
@@ -107,6 +120,33 @@
     },
     "dynamic": {
       "source": {
+        "maps_05": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/s3m/{maps_sub_path_type_05}/",
+          "file_name": "s3m.mod.{maps_datetime_type_05}.nc.gz",
+          "data_variables": {
+            "snow_water_equivalent": {
+              "var_name_file": "SWE", "var_name_data": "snow_water_equivalent_data",
+              "var_description": "s3m output based on observed datasets",
+              "var_mode": "deterministic",  "var_n": 1
+            },
+            "snow_melting": {
+              "var_name_file": "MeltingS", "var_name_data": "snow_melting_data",
+              "var_description": "s3m output based on observed datasets",
+              "var_mode": "deterministic",  "var_n": 1
+            },
+            "snow_density": {
+              "var_name_file": "RhoS", "var_name_data": "snow_density_data",
+              "var_description": "s3m output based on observed datasets",
+              "var_mode": "deterministic",  "var_n": 1
+            }
+          },
+          "data_time": {
+            "time_search_period": 24,
+            "time_search_frequency": "H",
+            "time_search_file": "all",
+            "time_search_reference": {"maps_sub_path_type_02": "time_run"}
+          }
+        },
         "maps_01": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/data/data_dynamic/outcome/obs/weather_stations/{maps_sub_path_type_01}/",
           "file_name": "ws.db.{maps_datetime_type_01}.nc.gz",
@@ -215,6 +255,10 @@
       },
       "ancillary": {
         "raw" : {
+          "maps_05": {
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_mod_s3m.raw"
+          },
           "maps_01": {
             "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_weather_stations.raw"
@@ -233,6 +277,10 @@
           }
         },
         "group" : {
+          "maps_05": {
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+            "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_mod_s3m.group"
+          },
           "maps_01": {
             "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
             "file_name": "maps.collections.{maps_datetime_ancillary}_ancillary_weather_stations.group"
@@ -252,6 +300,30 @@
         }
       },
       "analysis" : {
+        "maps_05": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
+          "file_name": "maps.collections.{maps_datetime_analysis}_analysis_s3m.workspace",
+          "analysis_variables": {
+            "snow_water_equivalent" : {
+              "var_name_data": "snow_water_equivalent_data", "var_name_analysis": "snow_water_equivalent_analysis",
+              "var_description": "s3m analysis",
+              "var_level": "surface", "var_mode": "instantaneous", "var_type": "modelled",
+              "var_temporal_window": ["last"], "var_direction_window": "left"
+            },
+            "snow_melting" : {
+              "var_name_data": "snow_melting_data",  "var_name_analysis": "snow_melting_analysis",
+              "var_description": "s3m analysis",
+              "var_level": "surface", "var_mode": "instantaneous", "var_type": "modelled",
+              "var_temporal_window": ["last"], "var_direction_window": "left"
+            },
+            "snow_density" : {
+              "var_name_data": "snow_density_data",  "var_name_analysis": "snow_density_analysis",
+              "var_description": "s3m analysis",
+              "var_level": "surface", "var_mode": "instantaneous", "var_type": "modelled",
+              "var_temporal_window": ["last"], "var_direction_window": "left"
+            }
+          }
+        },
         "maps_01": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/ancillary/",
           "file_name": "maps.collections.{maps_datetime_analysis}_analysis_weather_stations.workspace",
@@ -284,8 +356,7 @@
               "var_name_data": "land_surface_temperature_data", "var_name_analysis": "land_surface_temperature_analysis",
               "var_description": "hmc analysis",
               "var_level": "surface", "var_mode": "instantaneous", "var_type": "modelled",
-              "var_temporal_window": ["last"], "var_direction_window": "left",
-              "var_colormap": null
+              "var_temporal_window": ["last"], "var_direction_window": "left"
             },
             "soil_moisture" : {
               "var_name_data": "soil_moisture_data",  "var_name_analysis": "soil_moisture_analysis",
@@ -339,6 +410,10 @@
         },
         "collections" : {
           "info": {
+            "maps_05": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{info_sub_path}",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{info_datetime}.json"
+            },
             "maps_01": {
               "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{info_sub_path}",
               "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{info_datetime}.json"
@@ -357,6 +432,10 @@
             }
           },
           "datasets": {
+            "maps_05": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{datasets_sub_path}",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{datasets_datetime}.workspace"
+            },
             "maps_01": {
               "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{datasets_sub_path}",
               "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{datasets_datetime}.workspace"
@@ -375,6 +454,34 @@
             }
           },
           "plot": {
+            "maps_05": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{plot_sub_path}/",
+              "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{plot_datetime}.png",
+              "graph_variables": {
+                "snow_water_equivalent": {
+                  "var_name_analysis": "snow_water_equivalent_analysis", "var_name_graph": "s3m_swe",
+                  "var_description": "Snow Water Equivalent - S3M",
+                  "var_color_map": "cmap_swe", "var_color_label": "snow water equivalent",
+                  "var_dpi": 160, "var_background": "stamen"
+                },
+                "snow_melting": {
+                  "var_name_analysis": "snow_melting_analysis", "var_name_graph": "s3m_snow_melting",
+                  "var_description": "Snow Melting - S3M",
+                  "var_color_map": "cmap_snow_melting", "var_color_label": "snow melting",
+                  "var_dpi": 160, "var_background": "stamen"
+                },
+                "snow_density": {
+                  "var_name_analysis": "snow_density_analysis", "var_name_graph": "s3m_snow_density",
+                  "var_description": "Snow Density - S3M",
+                  "var_color_map": "cmap_snow_density", "var_color_label": "snow density",
+                  "var_dpi": 160, "var_background": "stamen"
+                }
+              },
+              "graph_fx": {
+                "fx_name": "plot_map_var",
+                "fx_map": "map_generic"
+              }
+            },
             "maps_01": {
               "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/images/{var_name}/{var_level}/{plot_sub_path}/",
               "file_name": "hat.map_{var_name}_{var_level}_{var_mode}_{var_temporal_window}.{plot_datetime}.png",

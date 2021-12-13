@@ -135,7 +135,7 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
         df_soil_moisture_nwp_probabilistic_01, variable_axis=1)
     df_soil_moisture_avg_probabilistic_02 = compute_ts_ensemble_avg(
         df_soil_moisture_nwp_probabilistic_02, variable_axis=1)
-    
+
     if df_discharge_observed is None:
         df_values = deepcopy(df_discharge_simulated_ground_network.values)
         df_index = deepcopy(df_discharge_simulated_ground_network.index)

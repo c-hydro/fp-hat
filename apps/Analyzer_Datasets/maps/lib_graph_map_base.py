@@ -52,10 +52,14 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
         make_folder(file_folder)
         
     # Axis labels
-    if not var_units.startswith('['):
-        var_units = '[' + var_units
-    if not var_units.endswith(']'):
-        var_units = var_units + ']'
+    if var_units is not None:
+        if not var_units.startswith('['):
+            var_units = '[' + var_units
+        if not var_units.endswith(']'):
+            var_units = var_units + ']'
+    else:
+        var_units = 'NA'
+
     if fig_color_map_label is None:
         var_label = tag_sep.join([var_name_data, var_units])
     else:
