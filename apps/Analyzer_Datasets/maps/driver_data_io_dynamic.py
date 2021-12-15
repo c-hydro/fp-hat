@@ -1361,6 +1361,22 @@ class DriverDynamic:
                                 var_coord_time=self.coord_name_time,
                                 var_dim_order_2d=self.dims_order_2d, var_dim_order_3d=self.dims_order_3d)
 
+                            """
+                            # DEBUG
+                            plt.figure()
+                            plt.imshow(src_file_dset['soil_moisture_data'])
+                            plt.colorbar()
+                            plt.clim(0, 1)
+                            plt.show()
+                            
+                            plt.figure()
+                            src_file_values = src_file_dset['rain_data'].values
+                            plt.imshow(src_file_values[:, :, 4])
+                            plt.colorbar()
+                            plt.clim(0, 6)
+                            # plt.show()
+                            """
+
                             src_file_attrs = organize_attrs_gridded(src_file_dset, src_data, src_var_map)
 
                         else:

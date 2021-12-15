@@ -15,6 +15,8 @@ APP: **HAT_RunAnalyzer_HMC.py**
 APP: **HAT_RunPublisher_HMC_Maps.py**
 	- FIX: bugs related to real-time mode.
 	- FIX: bugs related to variable units and limits.
+	- FIX: bugs related to rolling average and accumulated maps.
+	- FIX: bugs related to selection of first or last step for instantaneous maps.
 	- ADD: snow variables and maps.
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 	- FIX: bugs related to real-time mode.

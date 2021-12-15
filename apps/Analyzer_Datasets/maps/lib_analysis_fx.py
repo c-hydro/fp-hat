@@ -14,6 +14,8 @@ import re
 import numpy as np
 import pandas as pd
 
+from copy import deepcopy
+
 from lib_info_args import logger_name, time_format_algorithm
 
 # Logging
@@ -82,7 +84,15 @@ def select_temporal_darray(time_reference, var_darray, var_time_period):
         idx_start = None
 
     if idx_start is not None:
-        var_darray_selected = var_darray[idx_start:]
+        if var_darray.ndim == 3:
+            var_darray_selected = deepcopy(var_darray[:, :, idx_start:])
+        elif var_darray.ndim == 2:
+            log_stream.warning(' ===> Select DataArray is 2D. Normally a 3D data array is expects. '
+                               'Script will be used only one step to perform all computations.')
+            var_darray_selected = deepcopy(var_darray)
+        else:
+            log_stream.error(' ===> Select DataArray must be 3D (in some case 2D case is accepted.')
+            raise RuntimeError('Data array format is not accepted by the script')
     else:
         var_darray_selected = None
         log_stream.warning(' ===> Select DataArray in using the reference time failed. Time is not in the DataArray')
@@ -113,14 +123,18 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
 
             var_darray_sorted = var_darray_src.sortby(var_coord_time, ascending=False)
 
-            var_time_end = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
-            var_time_start = var_time_range[0].strftime(time_format_algorithm)
+            # var_time_end = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
+            # var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
+            # var_time_start = var_time_range[0].strftime(time_format_algorithm)
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
             var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
                                                          var_darray_sorted[var_coord_time].values)
+
+            var_time_end = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+            var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
+            var_time_start = var_time_range[0].strftime(time_format_algorithm)
 
             if var_time_flag and (var_darray_selected is not None):
                 var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_start))
@@ -131,14 +145,18 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
 
             var_darray_sorted = var_darray_src.sortby(var_coord_time, ascending=True)
 
-            var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_end = pd.date_range(
-                start=var_time_start, periods=var_t_period, freq=var_t_frequency)[-1].strftime(time_format_algorithm)
+            # var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
+            # var_time_end = pd.date_range(
+            #    start=var_time_start, periods=var_t_period, freq=var_t_frequency)[-1].strftime(time_format_algorithm)#
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
             var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
                                                          var_darray_sorted[var_coord_time].values)
+
+            var_time_start = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+            var_time_end = pd.date_range(start=var_time_start, periods=var_t_period,
+                                         freq=var_t_frequency)[-1].strftime(time_format_algorithm)
 
             if var_time_flag and (var_darray_selected is not None):
                 var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_end))
@@ -159,6 +177,7 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
 
         '''
         # Debug
+        import matplotlib.pylab as plt
         plt.figure()
         plt.imshow(var_darray_masked.values)
         plt.colorbar()
@@ -166,6 +185,13 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
         plt.figure()
         plt.imshow(var_darray_terrain)
         plt.colorbar()
+        plt.show()
+        
+        import matplotlib.pylab as plt
+        plt.figure()
+        plt.imshow(var_darray_masked.values)
+        plt.colorbar()
+        plt.clim(0, 100)
         plt.show()
         '''
 
@@ -194,14 +220,18 @@ def var_cmp_average(var_time, var_darray_src, var_darray_terrain,
 
             var_darray_sorted = var_darray_src.sortby(var_coord_time, ascending=False)
 
-            var_time_end = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
-            var_time_start = var_time_range[0].strftime(time_format_algorithm)
+            # var_time_end = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
+            # var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
+            # var_time_start = var_time_range[0].strftime(time_format_algorithm)
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
             var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
                                                          var_darray_sorted[var_coord_time].values)
+
+            var_time_end = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+            var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
+            var_time_start = var_time_range[0].strftime(time_format_algorithm)
 
             if var_time_flag and (var_darray_selected is not None):
                 var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_start))
@@ -212,14 +242,18 @@ def var_cmp_average(var_time, var_darray_src, var_darray_terrain,
 
             var_darray_sorted = var_darray_src.sortby(var_coord_time, ascending=True)
 
-            var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_end = pd.date_range(
-                start=var_time_start, periods=var_t_period, freq=var_t_frequency)[-1].strftime(time_format_algorithm)
+            # var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
+            # var_time_end = pd.date_range(start=var_time_start, periods=var_t_period,
+            # freq=var_t_frequency)[-1].strftime(time_format_algorithm)
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
             var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
                                                          var_darray_sorted[var_coord_time].values)
+
+            var_time_start = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+            var_time_end = pd.date_range(start=var_time_start, periods=var_t_period,
+                                         freq=var_t_frequency)[-1].strftime(time_format_algorithm)
 
             if var_time_flag and (var_darray_selected is not None):
                 var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_end))
@@ -274,13 +308,13 @@ def var_cmp_instantaneous(var_time, var_darray_src, var_darray_terrain,
 
             var_time_end = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
             var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[-1]).strftime(time_format_algorithm)
-            var_time_period = var_darray_sorted[var_coord_time].values.shape[0]
-            var_time_range = pd.date_range(end=var_time_end, start=var_time_start, periods=var_time_period)
+            # var_time_period = var_darray_sorted[var_coord_time].values.shape[0]
+            # var_time_range = pd.date_range(end=var_time_end, start=var_time_start, periods=var_time_period)
 
             if var_t_win == 'first':
-                var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_end))
-            elif var_t_win == 'last':
                 var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_start))
+            elif var_t_win == 'last':
+                var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_end))
             else:
                 log_stream.error(' ===> Temporal window"' + var_t_win + '" flag is not allowed')
                 raise IOError('Available flags for temporal window are: first and last')
@@ -291,8 +325,8 @@ def var_cmp_instantaneous(var_time, var_darray_src, var_darray_terrain,
 
             var_time_start = pd.Timestamp(var_darray_sorted[var_coord_time].values[0]).strftime(time_format_algorithm)
             var_time_end = pd.Timestamp(var_darray_sorted[var_coord_time].values[-1]).strftime(time_format_algorithm)
-            var_time_period = var_darray_sorted[var_coord_time].values.shape[0]
-            var_time_range = pd.date_range(end=var_time_end, start=var_time_start, periods=var_time_period)
+            # var_time_period = var_darray_sorted[var_coord_time].values.shape[0]
+            # var_time_range = pd.date_range(end=var_time_end, start=var_time_start, periods=var_time_period)
 
             if var_t_win == 'first':
                 var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_start))
