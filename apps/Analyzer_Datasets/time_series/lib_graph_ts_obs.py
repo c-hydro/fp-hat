@@ -17,7 +17,7 @@ import pandas as pd
 from copy import deepcopy
 
 from lib_utils_system import make_folder
-from lib_graph_ts_utils import configure_ts_attrs, configure_ts_axes
+from lib_graph_ts_utils import configure_ts_attrs, configure_ts_axes, get_ts_attrs, set_ax_limits_discharge
 
 from lib_info_args import logger_name, time_format_algorithm
 
@@ -66,7 +66,13 @@ def plot_ts_discharge_obs(
     time_restart = attrs_ts['time_restart'].strftime(format=time_format_algorithm)
     time_start = attrs_ts['time_start'].strftime(format=time_format_algorithm)
 
-    section_drained_area = str(attrs_ts['section_drained_area'])
+    section_name, section_domain, \
+        section_discharge_thr_alert, section_discharge_thr_alarm, \
+        section_drained_area = get_ts_attrs(attrs_ts)
+
+    axs_min_discharge, axs_max_discharge = set_ax_limits_discharge(
+        max_value_dyn=section_discharge_thr_alarm,
+        min_value_default=value_min_discharge, max_value_default=value_max_discharge)
 
     if df_discharge_obs is None:
         df_values = deepcopy(df_discharge_sim.values)
@@ -112,11 +118,11 @@ def plot_ts_discharge_obs(
 
     ax1.add_artist(legend)
 
-    ax1.set_title('Time Series \n Section: ' + attrs_ts['section_name'] +
-                  ' == Basin: ' + attrs_ts['section_domain'] +
-                  ' == Area [Km^2]: ' + section_drained_area + ' \n  TypeRun: ' + attrs_ts['run_name'] +
-                  ' == Time_Run: ' + time_run + ' == Time_Restart: ' + time_restart +
-                  ' == Time_Start: ' + time_start)
+    ax1.set_title('Time Series \n Section: ' + section_name +
+                  ' == Basin: ' + section_domain +
+                  ' == Area [Km^2]: ' + str(section_drained_area) + ' \n  TypeRun: ' + attrs_ts['run_name'] +
+                  ' == Time_Run: ' + time_run + ' == Time_Restart HMC: ' + time_restart +
+                  ' == Time_Start HMC: ' + time_start)
 
     # Subplot 2 [DISCHARGE]
     ax2 = plt.subplot(3, 1, (2, 3))
@@ -128,14 +134,19 @@ def plot_ts_discharge_obs(
     ax2.set_xlabel(label_time, color='#000000')
     ax2.set_xlim(tick_time_period[0], tick_time_period[-1])
     ax2.set_ylabel(label_discharge_generic, color='#000000')
-    ax2.set_ylim(value_min_discharge, value_max_discharge)
+    ax2.set_ylim(axs_min_discharge, axs_max_discharge)
     ax2.grid(b=True)
 
     p27 = ax2.axvline(attrs_ts['time_run'], color='#000000', linestyle='--', lw=2, label='time run')
-    p28 = ax2.axhline(attrs_ts['section_discharge_thr_alert'], color='#FFA500', linestyle='--',
-                      linewidth=2, label=tag_discharge_thr_alert)
-    p29 = ax2.axhline(attrs_ts['section_discharge_thr_alarm'], color='#FF0000', linestyle='--',
-                      linewidth=2, label=tag_discharge_thr_alarm)
+
+    p28, p29 = None, None
+    if (section_discharge_thr_alert is not None) and (section_discharge_thr_alert >= 0):
+        p28 = ax2.axhline(section_discharge_thr_alert, color='#FFA500', linestyle='--',
+                          linewidth=2, label=tag_discharge_thr_alert)
+    if (section_discharge_thr_alarm is not None) and (section_discharge_thr_alarm >= 0):
+        p29 = ax2.axhline(section_discharge_thr_alarm, color='#FF0000', linestyle='--',
+                          linewidth=2, label=tag_discharge_thr_alarm)
+
 
     ax2.set_xticks(tick_time_idx)
     ax2.set_xticklabels(tick_time_labels, rotation=90, fontsize=8)
@@ -153,9 +164,11 @@ def plot_ts_discharge_obs(
     legend1 = ax2.legend((p21[0], p22[0], p41[0]),
                          (tag_discharge_sim_name, tag_discharge_obs_name, tag_soil_moisture_name),
                          frameon=False, ncol=2, loc=0)
-    legend2 = ax2.legend((p28, p29),
-                         (tag_discharge_thr_alert, tag_discharge_thr_alarm),
-                         frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
+
+    if (p28 is not None) and (p29 is not None):
+        legend2 = ax2.legend((p28, p29),
+                             (tag_discharge_thr_alert, tag_discharge_thr_alarm),
+                             frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
 
     ax2.add_artist(legend1)
     ax2.add_artist(legend2)

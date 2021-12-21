@@ -842,15 +842,21 @@ class DriverDynamic:
                         map_tmp_dst[info_key_dst][var_key_dst] = field_name_dst
 
         map_variable = {}
-        for (map_key_src, map_db_src), (map_key_dst, map_db_dst) in zip(map_tmp_src.items(), map_tmp_dst.items()):
-            if map_key_src == map_key_dst:
-                map_variable[map_key_dst] = {}
+        for map_key_src, map_db_src in map_tmp_src.items():
+            if map_key_src in list(map_tmp_dst.keys()):
+                map_db_dst = map_tmp_dst[map_key_src]
+
+                map_variable[map_key_src] = {}
                 for db_key_src, db_name_src in map_db_src.items():
                     for db_key_dst, db_name_dst in map_db_dst.items():
                         if db_name_src == db_name_dst:
-                            map_variable[map_key_dst][db_key_src] = {}
-                            map_variable[map_key_dst][db_key_src][db_key_dst] = {}
-                            map_variable[map_key_dst][db_key_src][db_key_dst] = db_name_dst
+                            map_variable[map_key_src][db_key_src] = {}
+                            map_variable[map_key_src][db_key_src][db_key_dst] = {}
+                            map_variable[map_key_src][db_key_src][db_key_dst] = db_name_dst
+
+            else:
+                log_stream.warning(' ===> Map key of the source obj "' + map_key_src +
+                                   '" is not found in the destination obj. Check your datasets')
 
         return map_variable
     # -------------------------------------------------------------------------------------

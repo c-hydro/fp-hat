@@ -10,11 +10,12 @@ Version:       '1.0.0'
 # Libraries
 import logging
 import os
+import math
 import json
 import pandas as pd
 import numpy as np
 
-from lib_info_args import logger_name, time_format_algorithm
+from lib_info_args import logger_name
 
 # Logging
 log_stream = logging.getLogger(logger_name)
@@ -112,6 +113,81 @@ def configure_ts_axes(dframe_data, time_format='%m-%d %H'):
     tick_time_labels = [tick_label.strftime(time_format) for tick_label in dframe_data.index]
 
     return tick_time_period, tick_time_idx, tick_time_labels
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to get discharge axis limits
+def set_ax_limits_discharge(min_value_dyn=0, max_value_dyn=100, min_value_default=0, max_value_default=100,
+                            min_add_percentage=0, max_add_percentage=10, max_add_difference=30):
+
+    def cmp_percentage_part(part, whole):
+        return float(whole)/100 * float(part)
+
+    def round_value(perc_value, perc_ceil_round=10):
+        return float(int(math.ceil(perc_value / perc_ceil_round)) * perc_ceil_round)
+
+    if min_value_dyn is not None:
+        if min_value_dyn > min_value_default:
+            min_value_add = cmp_percentage_part(min_add_percentage, min_value_dyn)
+            min_value_ax = min_value_dyn + min_value_add
+        else:
+            min_value_ax = min_value_default
+    else:
+        min_value_ax = min_value_default
+
+    if max_value_dyn is not None:
+        if max_value_dyn > max_value_default:
+
+            max_value_dyn = round_value(max_value_dyn)
+            max_value_add = cmp_percentage_part(max_add_percentage, max_value_dyn)
+            max_value_add = round_value(max_value_add)
+
+            if max_value_add > max_add_difference:
+                max_value_add = max_add_difference
+
+            max_value_ax = max_value_dyn + max_value_add
+        else:
+            max_value_ax = max_value_default
+    else:
+        max_value_ax = max_value_default
+
+    return min_value_ax, max_value_ax
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to get time-series attributes
+def get_ts_attrs(attrs_ts,
+                 tag_section_name='section_name', tag_basin_name='section_domain',
+                 tag_section_thr_alarm_discharge='section_discharge_thr_alarm',
+                 tag_section_thr_alert_discharge='section_discharge_thr_alert',
+                 tag_section_drainage_area='section_drained_area'):
+
+    if tag_section_name in list(attrs_ts.keys()):
+        section_name = attrs_ts[tag_section_name]
+    else:
+        section_name = 'NA'
+    if tag_basin_name in list(attrs_ts.keys()):
+        section_domain = attrs_ts[tag_basin_name]
+    else:
+        section_domain = 'NA'
+
+    if tag_section_thr_alert_discharge in list(attrs_ts.keys()):
+        section_discharge_thr_alert = attrs_ts[tag_section_thr_alert_discharge]
+    else:
+        section_discharge_thr_alert = -9999.0
+    if tag_section_thr_alarm_discharge in list(attrs_ts.keys()):
+        section_discharge_thr_alarm = attrs_ts[tag_section_thr_alarm_discharge]
+    else:
+        section_discharge_thr_alarm = -9999.0
+
+    if tag_section_drainage_area in list(attrs_ts.keys()):
+        section_drained_area = attrs_ts[tag_section_drainage_area]
+    else:
+        section_drained_area = -9999.0
+
+    return section_name, section_domain, section_discharge_thr_alert, section_discharge_thr_alarm, section_drained_area
 # -------------------------------------------------------------------------------------
 
 

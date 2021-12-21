@@ -13,7 +13,7 @@ import os
 import inspect
 import collections
 import ast
-
+import xarray as xr
 from copy import deepcopy
 
 from lib_utils_system import map_dict_by_list
@@ -53,7 +53,13 @@ class DriverGraph:
         self.map_obj = map_obj
         self.map_time_stamp = map_time_stamp
         self.map_time_description = map_time_description
+
+        if isinstance(map_obj, xr.DataArray):
+            tmp_attrs = map_obj.attrs
+            map_attrs[tag_src_attributes] = {**map_attrs[tag_src_attributes], **tmp_attrs}
+
         self.map_attrs = map_attrs
+
         self.map_color_map = map_color_map
         self.map_color_label = map_color_label
         self.fx_name = fx_name

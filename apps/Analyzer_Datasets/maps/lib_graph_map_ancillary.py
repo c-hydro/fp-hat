@@ -46,20 +46,38 @@ def write_file_info_map(file_name, file_info, file_indent=4, field_sep=','):
     file_dict2json = {}
     for file_key, file_fields in file_info.items():
         file_dict2json[file_key] = {}
-        for field_key, field_values in file_fields.items():
 
-            file_dict2json[file_key][field_key] = {}
-            if isinstance(field_values, str):
-                file_dict2json[file_key][field_key] = field_values
-            elif isinstance(field_values, (int, float, np.int64)):
-                file_dict2json[file_key][field_key] = str(field_values)
-            elif isinstance(field_values, pd.DatetimeIndex):
-                field_values_list = [field_value.strftime(time_format_datasets) for field_value in field_values]
-                field_values_string = field_sep.join(field_values_list)
-                file_dict2json[file_key][field_key] = field_values_string
+        if isinstance(file_fields, dict):
+            for field_key, field_values in file_fields.items():
+
+                file_dict2json[file_key][field_key] = {}
+                if isinstance(field_values, str):
+                    file_dict2json[file_key][field_key] = field_values
+                elif isinstance(field_values, (int, float, np.int64)):
+                    file_dict2json[file_key][field_key] = str(field_values)
+                elif isinstance(field_values, pd.DatetimeIndex):
+                    field_values_list = [field_value.strftime(time_format_datasets) for field_value in field_values]
+                    field_values_string = field_sep.join(field_values_list)
+                    file_dict2json[file_key][field_key] = field_values_string
+                elif isinstance(field_values, pd.Timestamp):
+                    field_value_string = field_values.strftime(time_format_datasets)
+                    file_dict2json[file_key][field_key] = field_value_string
+                else:
+                    log_stream.warning(' ===> Dump "' + file_key +
+                                       '" is skipped due to the unsupported format of the key.')
+                    file_dict2json[file_key][field_key] = None
+
+        else:
+
+            if isinstance(file_fields, pd.Timestamp):
+                field_value_string = file_fields.strftime(time_format_datasets)
+                file_dict2json[file_key] = field_value_string
+            elif isinstance(file_fields, str):
+                file_dict2json[file_key] = file_fields
             else:
-                log_stream.warning(' ===> Dump "' + file_key + '" is skipped due to the unsupported format of the key.')
-                file_dict2json[file_key][field_key] = None
+                log_stream.warning(' ===> Dump "' + file_key +
+                                   '" is skipped due to the unsupported format of the key.')
+                file_dict2json[file_key] = None
 
     folder_string, file_string = os.path.split(file_name)
     make_folder(folder_string)

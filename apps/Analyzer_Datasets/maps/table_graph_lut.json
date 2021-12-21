@@ -21,7 +21,11 @@
       "var_units": "data_attributes:units",
       "var_description": "graph_attributes:var_description",
       "fig_dpi": "graph_attributes:var_dpi",
-      "fig_background": "graph_attributes:var_background"
+      "fig_background": "graph_attributes:var_background",
+      "var_time_from": "data_attributes:time_from",
+      "var_time_to": "data_attributes:time_to",
+      "var_time_window": "data_attributes:time_window",
+      "var_time_direction": "data_attributes:time_direction"
     }
   }
 }

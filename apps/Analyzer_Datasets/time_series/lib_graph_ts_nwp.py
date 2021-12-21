@@ -19,7 +19,7 @@ from lib_utils_system import make_folder
 
 from copy import deepcopy
 
-from lib_graph_ts_utils import configure_ts_axes, configure_ts_attrs, \
+from lib_graph_ts_utils import configure_ts_axes, configure_ts_attrs, get_ts_attrs, set_ax_limits_discharge, \
     compute_ts_peaks, compute_ts_quantile, compute_ts_ensemble_avg
 
 from lib_info_args import logger_name, time_format_algorithm
@@ -101,9 +101,15 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
 
     time_restart = attrs_ts_ground_network['time_restart'].strftime(format=time_format_algorithm)
     time_start = attrs_ts_ground_network['time_start'].strftime(format=time_format_algorithm)
-    section_drained_area = str(attrs_ts_ground_network['section_drained_area'])
-    section_name = attrs_ts_ground_network['section_name']
-    section_domain = attrs_ts_ground_network['section_domain']
+
+    # Get generic attributes
+    section_name, section_domain, \
+        section_discharge_thr_alert, section_discharge_thr_alarm, \
+        section_drained_area = get_ts_attrs(attrs_ts_ground_network)
+    # Compute discharge axis limits
+    axs_min_discharge, axs_max_discharge = set_ax_limits_discharge(
+        max_value_dyn=section_discharge_thr_alarm,
+        min_value_default=value_min_discharge, max_value_default=value_max_discharge)
 
     if tag_type_run is None:
         tag_type_run = 'nwp probabilistic comparison'
@@ -196,12 +202,12 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
 
     ax1.set_title('Time Series \n Section: ' + section_name +
                   ' == Basin: ' + section_domain +
-                  ' == Area [Km^2]: ' + section_drained_area + ' \n  TypeRun: ' + tag_type_run + ' \n ' +
+                  ' == Area [Km^2]: ' + str(section_drained_area) + ' \n  TypeRun: ' + tag_type_run + ' \n ' +
                   ' == Time_Run_OBS: ' + time_run_ground_network +
                   ' ' + label_title_time_run_nwp_01 + ': ' + time_run_nwp_prob_01 +
                   ' ' + label_title_time_run_nwp_02 + ': ' + time_run_nwp_prob_02 + '\n' +
-                  ' == Time_Restart: ' + time_restart +
-                  ' == Time_Start: ' + time_start)
+                  ' == Time_Restart HMC: ' + time_restart +
+                  ' == Time_Start HMC: ' + time_start)
 
     # Subplot 2 [DISCHARGE]
     ax2 = plt.subplot(3, 1, (2, 3))
@@ -218,7 +224,7 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
     ax2.set_xlabel(label_time, color='#000000')
     ax2.set_xlim(tick_time_period[0], tick_time_period[-1])
     ax2.set_ylabel(label_discharge_generic, color='#000000')
-    ax2.set_ylim(value_min_discharge, value_max_discharge)
+    ax2.set_ylim(axs_min_discharge, axs_max_discharge)
     ax2.grid(b=True)
 
     # nwp 1
@@ -289,10 +295,13 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
     p216 = ax2.axvline(attrs_ts_nwp_prob_01['time_run'], color='#FF5733', linestyle='--', lw=2, label='time run nwp')
     p217 = ax2.axvline(attrs_ts_nwp_prob_02['time_run'], color='#FF8970', linestyle='--', lw=2, label='time run nwp')
 
-    p218 = ax2.axhline(attrs_ts_ground_network['section_discharge_thr_alert'], color='#FFA500', linestyle='--',
-                       linewidth=2, label=tag_discharge_thr_alert)
-    p219 = ax2.axhline(attrs_ts_ground_network['section_discharge_thr_alarm'], color='#FF0000', linestyle='--',
-                       linewidth=2, label=tag_discharge_thr_alarm)
+    p218, p219 = None, None
+    if (section_discharge_thr_alert is not None) and (section_discharge_thr_alert >= 0):
+        p218 = ax2.axhline(section_discharge_thr_alert, color='#FFA500', linestyle='--',
+                           linewidth=2, label=tag_discharge_thr_alert)
+    if (section_discharge_thr_alarm is not None) and (section_discharge_thr_alarm >= 0):
+        p219 = ax2.axhline(section_discharge_thr_alarm, color='#FF0000', linestyle='--',
+                           linewidth=2, label=tag_discharge_thr_alarm)
 
     ax2.set_xticks(tick_time_idx)
     ax2.set_xticklabels(tick_time_labels, rotation=90, fontsize=8)
@@ -315,10 +324,16 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
                           tag_discharge_sim_name_nwp_01, tag_discharge_sim_name_nwp_02,
                           tag_soil_moisture_name_nwp_01, tag_soil_moisture_name_nwp_02),
                          frameon=False, ncol=2, loc=0)
-    legend2 = ax2.legend((p25, p26, p210, p211, p218, p219),
-                         ('< 25% -- 75% > m1', '< 25% -- 75% > m2', '25% -- 75% m1', '25% -- 75% m2',
-                          tag_discharge_thr_alert, tag_discharge_thr_alarm),
-                         frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
+
+    if (p218 is not None) and (p219 is not None):
+        legend2 = ax2.legend((p25, p26, p210, p211, p218, p219),
+                             ('< 25% -- 75% > m1', '< 25% -- 75% > m2', '25% -- 75% m1', '25% -- 75% m2',
+                              tag_discharge_thr_alert, tag_discharge_thr_alarm),
+                             frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
+    else:
+        legend2 = ax2.legend((p25, p26, p210, p211),
+                             ('< 25% -- 75% > m1', '< 25% -- 75% > m2', '25% -- 75% m1', '25% -- 75% m2'),
+                             frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
 
     ax2.add_artist(legend1)
     ax2.add_artist(legend2)
@@ -386,7 +401,14 @@ def plot_ts_discharge_nwp_probabilistic(
     time_restart = attrs_ts_ground_network['time_restart'].strftime(format=time_format_algorithm)
     time_start = attrs_ts_ground_network['time_start'].strftime(format=time_format_algorithm)
 
-    section_drained_area = str(attrs_ts_nwp_prob['section_drained_area'])
+    # Get generic attributes
+    section_name, section_domain, \
+        section_discharge_thr_alert, section_discharge_thr_alarm, \
+        section_drained_area = get_ts_attrs(attrs_ts_ground_network)
+    # Compute discharge axis limits
+    axs_min_discharge, axs_max_discharge = set_ax_limits_discharge(
+        max_value_dyn=section_discharge_thr_alarm,
+        min_value_default=value_min_discharge, max_value_default=value_max_discharge)
 
     # Compute nwp probabilistic peak(s)
     df_discharge_simulated_peaks_probabilistic = compute_ts_peaks(
@@ -449,12 +471,12 @@ def plot_ts_discharge_nwp_probabilistic(
 
     ax1.add_artist(legend)
 
-    ax1.set_title('Time Series \n Section: ' + attrs_ts_nwp_prob['section_name'] +
-                  ' == Basin: ' + attrs_ts_nwp_prob['section_domain'] +
-                  ' == Area [Km^2]: ' + section_drained_area + ' \n  TypeRun: ' + attrs_ts_nwp_prob['run_name'] +
+    ax1.set_title('Time Series \n Section: ' + section_name +
+                  ' == Basin: ' + section_domain +
+                  ' == Area [Km^2]: ' + str(section_drained_area) + ' \n  TypeRun: ' + attrs_ts_nwp_prob['run_name'] +
                   ' == Time_Run_OBS: ' + time_run_ground_network + ' Time_Run_NWP: ' + time_run_nwp_prob + '\n' +
-                  ' == Time_Restart: ' + time_restart +
-                  ' == Time_Start: ' + time_start)
+                  ' == Time_Restart HMC: ' + time_restart +
+                  ' == Time_Start HMC: ' + time_start)
 
     # Subplot 2 [DISCHARGE]
     ax2 = plt.subplot(3, 1, (2, 3))
@@ -468,7 +490,7 @@ def plot_ts_discharge_nwp_probabilistic(
     ax2.set_xlabel(label_time, color='#000000')
     ax2.set_xlim(tick_time_period[0], tick_time_period[-1])
     ax2.set_ylabel(label_discharge_generic, color='#000000')
-    ax2.set_ylim(value_min_discharge, value_max_discharge)
+    ax2.set_ylim(axs_min_discharge, axs_max_discharge)
     ax2.grid(b=True)
 
     ax2.fill_between(
@@ -503,10 +525,13 @@ def plot_ts_discharge_nwp_probabilistic(
     p29 = ax2.axvline(attrs_ts_ground_network['time_run'], color='#000000', linestyle='--', lw=2, label='time run obs')
     p210 = ax2.axvline(attrs_ts_nwp_prob['time_run'], color='#808080', linestyle='--', lw=2, label='time run nwp')
 
-    p211 = ax2.axhline(attrs_ts_ground_network['section_discharge_thr_alert'], color='#FFA500', linestyle='--',
-                       linewidth=2, label=tag_discharge_thr_alert)
-    p212 = ax2.axhline(attrs_ts_ground_network['section_discharge_thr_alarm'], color='#FF0000', linestyle='--',
-                       linewidth=2, label=tag_discharge_thr_alarm)
+    p211, p212 = None, None
+    if (section_discharge_thr_alert is not None) and (section_discharge_thr_alert >= 0):
+        p211 = ax2.axhline(section_discharge_thr_alert, color='#FFA500', linestyle='--',
+                           linewidth=2, label=tag_discharge_thr_alert)
+    if (section_discharge_thr_alarm is not None) and (section_discharge_thr_alarm >= 0):
+        p212 = ax2.axhline(section_discharge_thr_alarm, color='#FF0000', linestyle='--',
+                           linewidth=2, label=tag_discharge_thr_alarm)
 
     ax2.set_xticks(tick_time_idx)
     ax2.set_xticklabels(tick_time_labels, rotation=90, fontsize=8)
@@ -526,9 +551,15 @@ def plot_ts_discharge_nwp_probabilistic(
                           tag_discharge_sim_name_ground_network, tag_discharge_sim_name_nwp,
                           tag_soil_moisture_name),
                          frameon=False, ncol=2, loc=0)
-    legend2 = ax2.legend((p24, p25, p211, p212),
-                         ('< 25% -- 75% >', '25% -- 75%', tag_discharge_thr_alert, tag_discharge_thr_alarm),
-                         frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
+
+    if (p211 is not None) and (p212 is not None):
+        legend2 = ax2.legend((p24, p25, p211, p212),
+                             ('< 25% -- 75% >', '25% -- 75%', tag_discharge_thr_alert, tag_discharge_thr_alarm),
+                             frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
+    else:
+        legend2 = ax2.legend((p24, p25),
+                             ('< 25% -- 75% >', '25% -- 75%'),
+                             frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
 
     ax2.add_artist(legend1)
     ax2.add_artist(legend2)

@@ -13,6 +13,7 @@ import logging
 import re
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from copy import deepcopy
 
@@ -173,6 +174,21 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
         else:
             var_darray_masked = None
 
+        if var_darray_masked is not None:
+            if isinstance(var_darray_masked, xr.DataArray):
+
+                var_attrs_masked = var_darray_masked.attrs
+
+                var_attrs_time = {'time_from': pd.Timestamp(var_time_start), 'time_to': pd.Timestamp(var_time_end),
+                                  'time_window': var_t_win, 'time_direction': var_temporal_direction}
+                var_attrs_tmp = {**var_attrs_masked, **var_attrs_time}
+
+                var_darray_masked.attrs = var_attrs_tmp
+
+            else:
+                log_stream.error(' ===> Analysis object must be in DataArray format.')
+                raise RuntimeError('Check the procedure to analyze the datasets.')
+
         var_collection_cmp[var_t_win] = var_darray_masked
 
         '''
@@ -269,6 +285,21 @@ def var_cmp_average(var_time, var_darray_src, var_darray_terrain,
         else:
             var_darray_masked = None
 
+        if var_darray_masked is not None:
+            if isinstance(var_darray_masked, xr.DataArray):
+
+                var_attrs_masked = var_darray_masked.attrs
+
+                var_attrs_time = {'time_from': pd.Timestamp(var_time_start), 'time_to': pd.Timestamp(var_time_end),
+                                  'time_window': var_t_win, 'time_direction': var_temporal_direction}
+                var_attrs_tmp = {**var_attrs_masked, **var_attrs_time}
+
+                var_darray_masked.attrs = var_attrs_tmp
+
+            else:
+                log_stream.error(' ===> Analysis object must be in DataArray format.')
+                raise RuntimeError('Check the procedure to analyze the datasets.')
+
         var_collection_cmp[var_t_win] = var_darray_masked
 
         '''
@@ -344,6 +375,21 @@ def var_cmp_instantaneous(var_time, var_darray_src, var_darray_terrain,
             var_darray_masked = var_darray_instantaneous.where(np.isfinite(var_darray_terrain.values), np.nan)
         else:
             var_darray_masked = None
+
+        if var_darray_masked is not None:
+            if isinstance(var_darray_masked, xr.DataArray):
+
+                var_attrs_masked = var_darray_masked.attrs
+
+                var_attrs_time = {'time_from': pd.Timestamp(var_time_start), 'time_to': pd.Timestamp(var_time_end),
+                                  'time_window': var_t_win, 'time_direction': var_temporal_direction}
+                var_attrs_tmp = {**var_attrs_masked, **var_attrs_time}
+
+                var_darray_masked.attrs = var_attrs_tmp
+
+            else:
+                log_stream.error(' ===> Analysis object must be in DataArray format.')
+                raise RuntimeError('Check the procedure to analyze the datasets.')
 
         var_collection_cmp[var_t_win] = var_darray_masked
 

@@ -13,11 +13,12 @@ import logging
 import os
 import cartopy
 import numpy as np
+import pandas as pd
 
 from copy import deepcopy
 
 from lib_utils_system import make_folder
-from lib_info_args import logger_name
+from lib_info_args import logger_name, time_format_algorithm
 
 from lib_graph_map_colormap import load
 
@@ -41,7 +42,7 @@ log_stream = logging.getLogger(logger_name)
 # Method to plot map variable in png format
 def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_max=None,
                  var_name_data='air_temperature', var_units='C', var_description=None,
-                 var_temporal_window='NA',
+                 var_time_from='NA', var_time_to='NA', var_time_direction='NA', var_time_window='NA',
                  var_name_geo_x='longitude', var_name_geo_y='latitude',
                  tag_sep=' ', fig_background='stamen',
                  fig_color_map_type=None, fig_color_map_label=None,
@@ -50,7 +51,20 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
     file_folder, file_name = os.path.split(file_path)
     if not os.path.exists(file_folder):
         make_folder(file_folder)
-        
+
+    if isinstance(var_time, pd.Timestamp):
+        var_time_str = var_time.strftime(time_format_algorithm)
+    else:
+        var_time_str = str(var_time)
+    if isinstance(var_time_from, pd.Timestamp):
+        var_time_from_str = var_time_from.strftime(time_format_algorithm)
+    else:
+        var_time_from_str = str(var_time_from)
+    if isinstance(var_time_to, pd.Timestamp):
+        var_time_to_str = var_time_to.strftime(time_format_algorithm)
+    else:
+        var_time_to_str = str(var_time_to)
+
     # Axis labels
     if var_units is not None:
         if not var_units.startswith('['):
@@ -120,8 +134,9 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
 
     # Define graph title
     figure_title = 'Map Data \n Description: ' + var_description + \
-                   ' \n Variable: ' + var_name_data + ' == Period: ' + var_temporal_window + \
-                   ' == Units: ' + var_units + ' \n Time: ' + str(var_time)
+                   ' \n == Time: ' + var_time_str + ' Variable: ' + var_name_data + ' Units: ' + var_units +  \
+                   ' \n == TimeFrom: ' + var_time_from_str + ' TimeTo: ' + var_time_to_str + \
+                   ' TimeWindow: ' + var_time_window + ' TimeDirection: ' + var_time_direction
 
     # Create a background map
     if fig_background == 'stamen':

@@ -1,0 +1,19 @@
+{
+"_comment": "snow mask colormap with 2 colors defined by (r,g,b, transparency) between [0,1]",
+"colors": [
+    [0.58431372549, 0.266666666667, 0.0, 1.0], 
+    [0.109803921569, 0.219607843137, 0.549019607843, 1.0]
+    ], 
+"type": 
+    "linear", 
+"name": 
+    "snow_mask.cmap",
+"vmin":
+    0,
+"vmax":
+    1,
+"tick_label":
+    ["0", "1"],
+"tick_loc":
+    [0, 1]
+}
