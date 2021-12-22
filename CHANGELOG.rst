@@ -17,13 +17,14 @@ APP: **HAT_RunPublisher_HMC_Maps.py**
 	- FIX: bugs related to variable units and limits.
 	- FIX: bugs related to rolling average and accumulated maps.
 	- FIX: bugs related to selection of first or last step for instantaneous maps.
-	- ADD: snow variables and maps;
+	- ADD: snow variables, colormaps and maps (SWE, SnowDensity, SnowMelting, SnowMask);
 	- ADD: information to the map renderer.
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
 	- FIX: bugs related to real-time mode.
 	- FIX: bugs related to observed discharge time-series.
     - FIX: bugs related to undefined datasets;
     - ADD: dynamic discharge graph limits;
+    - ADD: information to the map renderer.
 
 TOOL: **hat_tool_postprocessing_registry_file.py**
 

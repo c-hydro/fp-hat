@@ -80,6 +80,12 @@ def plot_ts_discharge_obs(
         df_values[:, 0] = -9996.0
         df_discharge_obs = pd.DataFrame(data=df_values, index=df_index)
 
+    figure_title = 'Time Series \n Section: "' + section_name + '"' +  \
+                   ' == Basin: "' + section_domain + '"' +  \
+                   ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts['run_name'] + '"' + \
+                   ' == Time_Run: "' + time_run + '" == Time_Restart_HMC: "' + time_restart + '"' + \
+                   ' == Time_Start_HMC: "' + time_start + '"'
+
     # Open figure
     fig = plt.figure(figsize=(17, 11))
     fig.autofmt_xdate()
@@ -117,12 +123,7 @@ def plot_ts_discharge_obs(
                         frameon=False, loc=2)
 
     ax1.add_artist(legend)
-
-    ax1.set_title('Time Series \n Section: ' + section_name +
-                  ' == Basin: ' + section_domain +
-                  ' == Area [Km^2]: ' + str(section_drained_area) + ' \n  TypeRun: ' + attrs_ts['run_name'] +
-                  ' == Time_Run: ' + time_run + ' == Time_Restart HMC: ' + time_restart +
-                  ' == Time_Start HMC: ' + time_start)
+    ax1.set_title(figure_title, size=12, color='black', weight='bold')
 
     # Subplot 2 [DISCHARGE]
     ax2 = plt.subplot(3, 1, (2, 3))

@@ -148,6 +148,15 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
         df_values[:, 0] = -9996.0
         df_discharge_observed = pd.DataFrame(data=df_values, index=df_index)
 
+    figure_title = 'Time Series \n Section: "' + section_name + '"' + \
+                   ' == Basin: "' + section_domain + '"' + \
+                   ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + tag_type_run + '" \n ' + \
+                   ' == Time_Run_OBS: "' + time_run_ground_network + '"' + \
+                   ' ' + label_title_time_run_nwp_01 + ': "' + time_run_nwp_prob_01 + '"' + \
+                   ' ' + label_title_time_run_nwp_02 + ': "' + time_run_nwp_prob_02 + '" \n' + \
+                   ' == Time_Restart_HMC: "' + time_restart + '"' + \
+                   ' == Time_Start_HMC: "' + time_start + '"'
+
     # Open figure
     fig = plt.figure(figsize=(17, 11))
     fig.autofmt_xdate()
@@ -199,15 +208,7 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
                         frameon=False, loc=2)
 
     ax1.add_artist(legend)
-
-    ax1.set_title('Time Series \n Section: ' + section_name +
-                  ' == Basin: ' + section_domain +
-                  ' == Area [Km^2]: ' + str(section_drained_area) + ' \n  TypeRun: ' + tag_type_run + ' \n ' +
-                  ' == Time_Run_OBS: ' + time_run_ground_network +
-                  ' ' + label_title_time_run_nwp_01 + ': ' + time_run_nwp_prob_01 +
-                  ' ' + label_title_time_run_nwp_02 + ': ' + time_run_nwp_prob_02 + '\n' +
-                  ' == Time_Restart HMC: ' + time_restart +
-                  ' == Time_Start HMC: ' + time_start)
+    ax1.set_title(figure_title, size=12, color='black', weight='bold')
 
     # Subplot 2 [DISCHARGE]
     ax2 = plt.subplot(3, 1, (2, 3))
@@ -431,6 +432,13 @@ def plot_ts_discharge_nwp_probabilistic(
         df_values[:, 0] = -9996.0
         df_discharge_observed = pd.DataFrame(data=df_values, index=df_index)
 
+    figure_title = 'Time Series \n Section: "' + section_name + '"' +  \
+                   ' == Basin: "' + section_domain + '"' +  \
+                   ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp_prob['run_name'] + '"' + \
+                   ' == Time_Run_OBS: "' + time_run_ground_network + '" Time_Run_NWP: "' + time_run_nwp_prob + '" \n' + \
+                   ' == Time_Restart_HMC: ' + time_restart + '"' + \
+                   ' == Time_Start_HMC: ' + time_start + '"'
+
     # Open figure
     fig = plt.figure(figsize=(17, 11))
     fig.autofmt_xdate()
@@ -470,13 +478,7 @@ def plot_ts_discharge_nwp_probabilistic(
                         frameon=False, loc=2)
 
     ax1.add_artist(legend)
-
-    ax1.set_title('Time Series \n Section: ' + section_name +
-                  ' == Basin: ' + section_domain +
-                  ' == Area [Km^2]: ' + str(section_drained_area) + ' \n  TypeRun: ' + attrs_ts_nwp_prob['run_name'] +
-                  ' == Time_Run_OBS: ' + time_run_ground_network + ' Time_Run_NWP: ' + time_run_nwp_prob + '\n' +
-                  ' == Time_Restart HMC: ' + time_restart +
-                  ' == Time_Start HMC: ' + time_start)
+    ax1.set_title(figure_title, size=12, color='black', weight='bold')
 
     # Subplot 2 [DISCHARGE]
     ax2 = plt.subplot(3, 1, (2, 3))
@@ -629,6 +631,13 @@ def plot_ts_discharge_nwp_deterministic(
         df_values[:, 0] = -9996.0
         df_discharge_observed = pd.DataFrame(data=df_values, index=df_index)
 
+    figure_title = 'Time Series \n Section: "' + section_name + '"' +  \
+                   ' == Basin: "' + section_domain + '"' +  \
+                   ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp['run_name'] + '"' + \
+                   ' == Time_Run_OBS: "' + time_run_ground_network + '" Time_Run_NWP: "' + time_run_nwp + '" \n' + \
+                   ' == Time_Restart_HMC: ' + time_restart + '"' + \
+                   ' == Time_Start_HMC: ' + time_start + '"'
+
     # Open figure
     fig = plt.figure(figsize=(17, 11))
     fig.autofmt_xdate()
@@ -665,13 +674,7 @@ def plot_ts_discharge_nwp_deterministic(
                         frameon=False, loc=2)
 
     ax1.add_artist(legend)
-
-    ax1.set_title('Time Series \n Section: ' + section_name +
-                  ' == Basin: ' + section_domain +
-                  ' == Area [Km^2]: ' + section_drained_area + ' \n  TypeRun: ' + attrs_ts_nwp['run_name'] +
-                  ' == Time_Run_OBS: ' + time_run_ground_network + ' Time_Run_NWP: ' + time_run_nwp + '\n' +
-                  ' == Time_Restart: ' + time_restart +
-                  ' == Time_Start: ' + time_start)
+    ax1.set_title(figure_title, size=12, color='black', weight='bold')
 
     # Subplot 2 [DISCHARGE]
     ax2 = plt.subplot(3, 1, (2, 3))

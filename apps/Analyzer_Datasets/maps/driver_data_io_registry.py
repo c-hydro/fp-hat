@@ -109,6 +109,14 @@ class DriverRegistry:
             if not isinstance(other_fields, list):
                 other_fields = [other_fields]
 
+        ref_keys, other_keys = list(ref_dict.keys()), list(other_dict.keys())
+        if ref_keys != other_keys:
+            tmp_dict = {}
+            for ref_key in ref_keys:
+                if ref_key in other_keys:
+                    tmp_dict[ref_key] = other_dict[ref_key]
+            other_dict = deepcopy(tmp_dict)
+
         ref_values = []
         for id_field, name_field in enumerate(ref_fields):
             values_field = extract_dict_values(ref_dict, name_field)

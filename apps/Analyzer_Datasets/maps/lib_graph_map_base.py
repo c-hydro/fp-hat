@@ -84,6 +84,8 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
 
     if isinstance(fig_color_map_type, colors.LinearSegmentedColormap):
         fig_color_map_obj = deepcopy(fig_color_map_type)
+    elif isinstance(fig_color_map_type, colors.ListedColormap):
+        fig_color_map_obj = deepcopy(fig_color_map_type)
     elif isinstance(fig_color_map_type, str):
         fig_color_map_obj = load(fig_color_map_type)
     else:
@@ -134,9 +136,10 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
 
     # Define graph title
     figure_title = 'Map Data \n Description: ' + var_description + \
-                   ' \n == Time: ' + var_time_str + ' Variable: ' + var_name_data + ' Units: ' + var_units +  \
-                   ' \n == TimeFrom: ' + var_time_from_str + ' TimeTo: ' + var_time_to_str + \
-                   ' TimeWindow: ' + var_time_window + ' TimeDirection: ' + var_time_direction
+                   ' \n Time: "' + var_time_str + '" == Variable: "' + var_name_data + \
+                   '" == Units: "' + var_units + '"' + \
+                   ' \n TimeFrom: "' + var_time_from_str + '" == TimeTo: "' + var_time_to_str + '"' +  \
+                   ' == TimeWindow: "' + var_time_window + '" == TimeDirection: "' + var_time_direction + '"'
 
     # Create a background map
     if fig_background == 'stamen':
@@ -150,7 +153,7 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
 
     fig = plt.figure(figsize=(12, 10))
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=plot_crs)
-    ax.set_title(figure_title, size=14, color='black', weight='bold')
+    ax.set_title(figure_title, size=12, color='black', weight='bold')
     # ax.coastlines(resolution='10m', color='black')
     ax.stock_img()
     ax.set_extent([map_lon_west, map_lon_east, map_lat_south, map_lat_north])
@@ -190,7 +193,8 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
 
     if fig_color_tick_loc and fig_color_tick_label:
         cb1.set_ticks(fig_color_tick_loc)
-        cb1.ax.set_xticklabels(fig_color_tick_label)
+        #cb1.ax.set_xticklabels(fig_color_tick_label)
+        cb1.set_ticklabels(fig_color_tick_label)
 
     #plt.show()
     fig.savefig(file_path, dpi=fig_dpi)
