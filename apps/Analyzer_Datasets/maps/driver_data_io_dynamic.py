@@ -360,13 +360,16 @@ class DriverDynamic:
 
             file_ws = []
             anc_ws = []
+            skip_ws = []
             for (data_time, data_file), (anc_time, anc_file) in zip(data_fields.items(), anc_fields.items()):
-                file_list = []
-                id_list = []
+
+                id_list, file_list, skip_list = [], [], []
                 for file_id, file_name in enumerate(data_file):
                     if os.path.exists(file_name):
                         file_list.append(file_name)
                         id_list.append(file_id)
+                    else:
+                        skip_ws.append(os.path.split(file_name)[1])
 
                 if id_list.__len__() >= 1:
                     anc_list = [anc_file[0]]
@@ -388,6 +391,16 @@ class DriverDynamic:
 
                 file_ws.append(file_string)
                 anc_ws.append(anc_string)
+
+            if skip_ws:
+
+                if skip_ws.__len__() > 4:
+                    skip_str = ','.join([str(element) for element in skip_ws[0:3]])
+                    skip_str = skip_str + ' ... '
+                else:
+                    skip_str = ','.join([str(element) for element in skip_ws])
+                log_stream.warning(' ===> Some files were not found [' + skip_str + ']')
+                log_stream.warning(' ===> If datasets are expected for each step, errors could be found in the results')
 
             file_array = np.asarray(file_ws)
             anc_array = np.asarray(anc_ws)
@@ -1349,7 +1362,7 @@ class DriverDynamic:
                         if src_var_mode == 'deterministic':
                             src_file_obj = read_file_gridded(src_file_step, folder_name_tmp=folder_name_tmp)
                         elif src_var_mode == 'probabilistic':
-                            log_stream.error(' ===> Dataset mode "' + src_var_mode + ' is not included in the mode choice')
+                            log_stream.error(' ===> Dataset mode "' + src_var_mode + ' is not included in the mode flag')
                             raise NotImplementedError('Case not implemented yet')
                         else:
                             log_stream.error(' ===> Dataset mode "' + src_var_mode + ' is not allowed')
@@ -1401,9 +1414,8 @@ class DriverDynamic:
                             anc_file_collections_raw.append(anc_file_step_raw)
                             log_stream.info(' -------> Get datasets ... DONE')
                         else:
-
-                            anc_file_collections_raw.append(None)
-                            log_stream.warning(' ===> Datasets is None')
+                            log_stream.warning(' ===> File "' + os.path.split(src_file_step)[1] + '" not found.')
+                            log_stream.warning(' ===> File was found in the file filter; it seems to be moved.')
                             log_stream.info(' -------> Get datasets ... SKIPPED. Datasets is undefined')
 
                     else:
