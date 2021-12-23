@@ -64,6 +64,19 @@
     }
   },
 
+  "time_series_nwp_probabilistic_only": {
+    "common": {
+        "file_name": "filename"
+    },
+    "nwp_probabilistic": {
+        "file_attributes_nwp_probabilistic": "attributes_ts",
+        "df_rain_nwp_probabilistic": "forcing_data:rain",
+        "df_discharge_simulated_nwp_probabilistic": "outcome_data:discharge",
+        "df_soil_moisture_nwp_probabilistic": "outcome_data:soil_moisture",
+        "df_discharge_observed": "observed_data:discharge"
+    }
+  },
+
   "time_series_nwp_probabilistic_comparison": {
     "common": {
       "file_name": "filename",

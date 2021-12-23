@@ -104,7 +104,7 @@ class DriverGraph:
         if self.fx_map in list(fx_collections_methods.keys()):
             fx_lut = fx_collections_methods[self.fx_map]
         else:
-            log_stream.error(' ===> Fx lut is not available in the fx collection lut')
+            log_stream.error(' ===> Fx lut "' + self.fx_map + '" is not available in the fx collection lut')
             raise RuntimeError('Lut not defined in the selected fx collection lut')
 
         return fx_lut
