@@ -408,6 +408,7 @@ class DriverDynamic:
                     for alg_template_key, alg_template_value in alg_template_time.items():
                         alg_template_filled[alg_template_key] = run_time_step
                     alg_template_filled['ensemble_name'] = run_tag_step
+                    alg_template_filled['domain_name'] = self.info_domain_name
 
                     if ancillary_list_point is not None:
                         ancillary_dict_point = []

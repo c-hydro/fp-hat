@@ -27,6 +27,10 @@
       "time": {
         "time_series_datetime": "%Y%m%d%H%M",
         "time_series_sub_path": "%Y/%m/%d/%H/",
+        "ancillary_datetime": "%Y%m%d%H%M",
+        "ancillary_sub_path": "%Y/%m/%d/%H/",
+        "analysis_datetime": "%Y%m%d%H%M",
+        "analysis_sub_path": "%Y/%m/%d/%H/",
         "registry_datetime": "%Y%m%d%H%M",
         "registry_sub_path": "%Y/%m/%d/%H/",
         "info_datetime": "%Y%m%d%H%M",
@@ -53,16 +57,16 @@
     "static": {
       "source": {
         "terrain": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/MagraDomain/gridded/",
-          "file_name": "MagraDomain.dem.txt"
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/{domain_name}/gridded/",
+          "file_name": "{domain_name}.dem.txt"
         },
         "flow_directions": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/MagraDomain/gridded/",
-          "file_name": "MagraDomain.pnt.txt"
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/{domain_name}/gridded/",
+          "file_name": "{domain_name}.pnt.txt"
         },
         "river_network": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/MagraDomain/gridded/",
-          "file_name": "MagraDomain.choice.txt"
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/{domain_name}/gridded/",
+          "file_name": "{domain_name}.choice.txt"
         },
         "sections": {
           "__file_type__" : "River, Dam",
@@ -78,7 +82,7 @@
       "destination": {
         "info": {
           "folder_name": "\"/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/LiguriaDomain/info/",
-          "file_name": "MagraDomain.info_ts.workspace"
+          "file_name": "{domain_name}.info_ts.workspace"
         }
       }
     },
@@ -109,18 +113,18 @@
       },
       "ancillary": {
         "time_series_01": {
-          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/ancillary/",
+          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/ancillary/{domain_name}/",
           "file_name": "hmc.collections.{time_series_datetime}_weather_stations.workspace"
         }
       },
       "analysis" : {
-        "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/ancillary/",
+        "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/ancillary/{domain_name}/",
         "file_name": "hmc.collections.{time_series_datetime}_analysis.workspace"
       },
       "destination": {
         "registry": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/registry/{registry_sub_path}",
-          "file_name": "marche_{registry_datetime}.csv"
+          "file_name": "{domain_name}_{registry_datetime}.csv"
         },
         "collections" : {
           "info": {
@@ -156,7 +160,7 @@
   },
   "log": {
     "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/log/",
-    "file_name": "hat_runpublisher_hmc_timeseries_liguria_MagraDomain.txt",
+    "file_name": "hat_runpublisher_hmc_timeseries_liguria_{domain_name}.txt",
     "file_history": true
   },
   "time": {

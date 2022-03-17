@@ -96,7 +96,8 @@ def main():
     driver_data_static = DriverStatic(
         src_dict=data_settings['data']['static']['source'],
         dst_dict=data_settings['data']['static']['destination'],
-        alg_template_tags=data_settings['algorithm']['template'],
+        alg_info=data_settings['algorithm']['info'],
+        alg_template=data_settings['algorithm']['template'],
         flag_cleaning_static=data_settings['algorithm']['flags']['cleaning_static']
     )
     static_data_collection = driver_data_static.organize_static()
