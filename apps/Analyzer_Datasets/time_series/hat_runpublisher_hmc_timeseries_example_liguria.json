@@ -160,7 +160,7 @@
   },
   "log": {
     "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/log/",
-    "file_name": "hat_runpublisher_hmc_timeseries_liguria_{domain_name}.txt",
+    "file_name": "hat_runpublisher_hmc_timeseries_liguria.txt",
     "file_history": true
   },
   "time": {

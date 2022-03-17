@@ -34,7 +34,7 @@ class DriverRegistry:
     def __init__(self, time_reference,
                  src_dict, dst_dict=None,
                  static_data_collection=None,
-                 alg_ancillary=None, alg_template=None,
+                 alg_ancillary=None, alg_info=None, alg_template=None,
                  tag_section_data='sections',
                  tag_static_source='source', tag_static_destination='destination',
                  flag_cleaning_registry=True):
@@ -46,9 +46,12 @@ class DriverRegistry:
         self.tag_static_destination = tag_static_destination
 
         self.alg_ancillary = alg_ancillary
+        self.alg_info = alg_info
         self.alg_template_run = alg_template['run']
         self.alg_template_time = alg_template['time']
         self.alg_template_registry = alg_template['registry']
+
+        self.info_domain_name = alg_info['domain_name']
 
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
@@ -87,12 +90,16 @@ class DriverRegistry:
     def define_file_name(self, folder_name_raw, file_name_raw):
 
         time_reference = self.time_reference
+        domain_name = self.info_domain_name
 
         alg_template_registry = {
-            'registry_sub_path': time_reference, 'registry_datetime': time_reference}
+            'registry_sub_path': time_reference, 'registry_datetime': time_reference,
+            'domain_name': domain_name}
 
-        folder_name_def = fill_tags2string(folder_name_raw, self.alg_template_time, alg_template_registry)
-        file_name_def = fill_tags2string(file_name_raw, self.alg_template_time, alg_template_registry)
+        alg_template_joined = {**self.alg_template_time, **self.alg_template_run}
+
+        folder_name_def = fill_tags2string(folder_name_raw, alg_template_joined, alg_template_registry)
+        file_name_def = fill_tags2string(file_name_raw, alg_template_joined, alg_template_registry)
 
         file_path_def = os.path.join(folder_name_def, file_name_def)
 

@@ -114,6 +114,7 @@ def main():
             static_data_collection=static_data_collection,
             src_dict=data_settings['data']['dynamic']['source'],
             dst_dict=data_settings['data']['dynamic']['destination'],
+            alg_info=data_settings['algorithm']['info'],
             alg_template=data_settings['algorithm']['template'],
             flag_cleaning_registry=data_settings['algorithm']['flags']['cleaning_dynamic_registry']
         )
