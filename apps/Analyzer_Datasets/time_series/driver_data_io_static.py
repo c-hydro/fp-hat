@@ -126,7 +126,9 @@ class DriverStatic:
             dict_table_graph = read_ts_table(self.file_path_table_graph_src)
 
             # Compute section mask
-            # obj_section_mask = compute_section_mask(da_flow_directions, terrain_da=da_terrain, section_dframe=df_section)
+            # obj_section_mask = compute_section_mask(da_flow_directions,
+            # terrain_da=da_terrain, section_dframe=df_section)
+
             # Compute section area
             df_section_selected = compute_section_area(
                 da_flow_directions, terrain_da=da_terrain, section_dframe=df_section_selected)

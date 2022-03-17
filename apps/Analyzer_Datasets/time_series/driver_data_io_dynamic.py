@@ -610,123 +610,128 @@ class DriverDynamic:
 
         log_stream.info(' ----> Dump dynamic datasets [' + time_str + '] ... ')
 
-        for (run_type_key, run_type_plot), run_type_info, run_type_datasets in zip(
-                run_file_collections_dst_plot.items(), run_file_collections_dst_info.values(),
-                run_file_collections_dst_datasets.values()):
+        if run_analysis_collections is not None:
 
-            # Debug
-            # run_type_key = 'time_series_nwp_deterministic_ecmwf0100'
-            # run_type_key = 'time_series_nwp_probabilistic_lami2i'
-            # run_type_key = 'time_series_nwp_probabilistic_comparison'
-            # run_type_plot = run_file_collections_dst_plot[run_type_key]
-            # run_type_info = run_file_collections_dst_info[run_type_key]
-            # run_type_datasets = run_file_collections_dst_datasets[run_type_key]
+            for (run_type_key, run_type_plot), run_type_info, run_type_datasets in zip(
+                    run_file_collections_dst_plot.items(), run_file_collections_dst_info.values(),
+                    run_file_collections_dst_datasets.values()):
 
-            log_stream.info(' -----> Run name "' + run_type_key + '" ... ')
+                # Debug
+                # run_type_key = 'time_series_nwp_deterministic_ecmwf0100'
+                # run_type_key = 'time_series_nwp_probabilistic_lami2i'
+                # run_type_key = 'time_series_nwp_probabilistic_comparison'
+                # run_type_plot = run_file_collections_dst_plot[run_type_key]
+                # run_type_info = run_file_collections_dst_info[run_type_key]
+                # run_type_datasets = run_file_collections_dst_datasets[run_type_key]
 
-            run_time_stamp_plot = list(run_type_plot.keys())[0]
-            run_file_name_collections_plot = list(run_type_plot.values())[0]
-            run_file_name_collections_info = list(run_type_info.values())[0]
-            run_file_name_collections_datasets = list(run_type_datasets.values())[0]
+                log_stream.info(' -----> Run name "' + run_type_key + '" ... ')
 
-            if run_type_key in list(dst_dict_plot.keys()):
-                graph_deps = dst_dict_plot[run_type_key][self.graph_dependencies_tag]
-                graph_fx = dst_dict_plot[run_type_key][self.graph_fx_tag]
-                graph_tag_name = dst_dict_plot[run_type_key][self.graph_name_tag]
-            else:
-                log_stream.error(' ===> Graph type "' + run_type_key + '" is not defined in settings file')
-                raise IOError('Check your settings file to add or remove the graph type selected')
+                run_time_stamp_plot = list(run_type_plot.keys())[0]
+                run_file_name_collections_plot = list(run_type_plot.values())[0]
+                run_file_name_collections_info = list(run_type_info.values())[0]
+                run_file_name_collections_datasets = list(run_type_datasets.values())[0]
 
-            for run_section_info, run_section_file_plot, run_section_file_info, run_section_file_datasets in zip(
-                    static_data_section.iterrows(),
-                    run_file_name_collections_plot, run_file_name_collections_info, run_file_name_collections_datasets):
-
-                run_section_info = run_section_info[1]
-
-                run_section_name = run_section_info['section_name']
-                run_section_domain = run_section_info['section_domain']
-                run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
-
-                # DEBUG START
-                # section_idx = 76 # Arzilla:FoceArzilla
-                # run_section_info = static_data_section.iloc[section_idx]
-                # run_section_name = run_section_info['section_name']
-                # run_section_domain = run_section_info['section_domain']
-                # run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
-                # run_section_file_plot = run_file_name_collections_plot[section_idx]
-                # run_section_file_info = run_file_name_collections_info[section_idx]
-                # run_section_file_datasets = run_file_name_collections_datasets[section_idx]
-                # DEBUG END
-
-                log_stream.info(' ------> Domain "' + run_section_tag + '" ... ')
-
-                if run_section_tag in list(run_section_file_plot.keys()):
-                    graph_section_file_plot = deepcopy(run_section_file_plot[run_section_tag])
-                    graph_section_file_plot = fill_tags2string(graph_section_file_plot,
-                                                               self.alg_template_registry, {'tag_name': graph_tag_name})
+                if run_type_key in list(dst_dict_plot.keys()):
+                    graph_deps = dst_dict_plot[run_type_key][self.graph_dependencies_tag]
+                    graph_fx = dst_dict_plot[run_type_key][self.graph_fx_tag]
+                    graph_tag_name = dst_dict_plot[run_type_key][self.graph_name_tag]
                 else:
-                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
-                    raise RuntimeError('Keys of "plot" destination datasets are not defined as expected')
-                if run_section_tag in list(run_section_file_info.keys()):
-                    graph_section_file_info = deepcopy(run_section_file_info[run_section_tag])
-                    graph_section_file_info = fill_tags2string(graph_section_file_info,
-                                                               self.alg_template_registry, {'tag_name': graph_tag_name})
+                    log_stream.error(' ===> Graph type "' + run_type_key + '" is not defined in settings file')
+                    raise IOError('Check your settings file to add or remove the graph type selected')
 
-                else:
-                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
-                    raise RuntimeError('Keys of "info" destination datasets are not defined as expected')
+                for run_section_info, run_section_file_plot, run_section_file_info, run_section_file_datasets in zip(
+                        static_data_section.iterrows(),
+                        run_file_name_collections_plot, run_file_name_collections_info, run_file_name_collections_datasets):
 
-                if run_section_tag in list(run_section_file_datasets.keys()):
-                    graph_section_file_datasets = deepcopy(run_section_file_datasets[run_section_tag])
-                    graph_section_file_datasets = fill_tags2string(graph_section_file_datasets,
-                                                               self.alg_template_registry, {'tag_name': graph_tag_name})
+                    run_section_info = run_section_info[1]
 
-                else:
-                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
-                    raise RuntimeError('Keys of "datasets" destination datasets are not defined as expected')
+                    run_section_name = run_section_info['section_name']
+                    run_section_domain = run_section_info['section_domain']
+                    run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
 
-                if run_section_tag in list(run_analysis_collections.keys()):
-                    graph_analysis_collections = run_analysis_collections[run_section_tag]
-                else:
-                    log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
-                    raise RuntimeError('Keys of "analysis" destination datasets are not defined as expected')
+                    # DEBUG START
+                    # section_idx = 76 # Arzilla:FoceArzilla
+                    # run_section_info = static_data_section.iloc[section_idx]
+                    # run_section_name = run_section_info['section_name']
+                    # run_section_domain = run_section_info['section_domain']
+                    # run_section_tag = self.str_delimiter.join([run_section_domain, run_section_name])
+                    # run_section_file_plot = run_file_name_collections_plot[section_idx]
+                    # run_section_file_info = run_file_name_collections_info[section_idx]
+                    # run_section_file_datasets = run_file_name_collections_datasets[section_idx]
+                    # DEBUG END
 
-                if flag_dynamic_dst:
-                    if os.path.exists(graph_section_file_plot):
-                        os.remove(graph_section_file_plot)
-                    if os.path.exists(graph_section_file_info):
-                        os.remove(graph_section_file_info)
-                    if os.path.exists(graph_section_file_datasets):
-                        os.remove(graph_section_file_datasets)
+                    log_stream.info(' ------> Domain "' + run_section_tag + '" ... ')
 
-                if (not os.path.exists(graph_section_file_plot)) or (not os.path.exists(graph_section_file_info)) \
-                        or (not os.path.exists(graph_section_file_datasets)):
-
-                    flag_graph_deps = self.check_graph_deps(graph_analysis_collections, graph_deps)
-                    if flag_graph_deps:
-
-                        driver_graph = DriverGraph(
-                            file_name_graph=graph_section_file_plot,
-                            file_name_info=graph_section_file_info,
-                            file_name_datasets=graph_section_file_datasets,
-                            ts_obj=graph_analysis_collections, ts_deps=graph_deps,
-                            fx_name=graph_fx['name'], fx_attrs=graph_fx['attrs'], fx_map=graph_fx['map'],
-                            fx_table=static_data_table_graph
-                        )
-
-                        driver_graph.compute_data()
-
-                        log_stream.info(' ------> Domain "' + run_section_tag + '" ... DONE')
+                    if run_section_tag in list(run_section_file_plot.keys()):
+                        graph_section_file_plot = deepcopy(run_section_file_plot[run_section_tag])
+                        graph_section_file_plot = fill_tags2string(graph_section_file_plot,
+                                                                   self.alg_template_registry, {'tag_name': graph_tag_name})
                     else:
-                        log_stream.info(' ------> Domain "' + run_section_tag + '" ... FAILED')
+                        log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
+                        raise RuntimeError('Keys of "plot" destination datasets are not defined as expected')
+                    if run_section_tag in list(run_section_file_info.keys()):
+                        graph_section_file_info = deepcopy(run_section_file_info[run_section_tag])
+                        graph_section_file_info = fill_tags2string(graph_section_file_info,
+                                                                   self.alg_template_registry, {'tag_name': graph_tag_name})
 
-                else:
-                    log_stream.info(' ------> Domain "' + run_section_tag +
-                                    '" ... SKIPPED. Datasets previously plotted and dumped')
+                    else:
+                        log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
+                        raise RuntimeError('Keys of "info" destination datasets are not defined as expected')
 
-            log_stream.info(' -----> Run name "' + run_type_key + '" ... DONE')
+                    if run_section_tag in list(run_section_file_datasets.keys()):
+                        graph_section_file_datasets = deepcopy(run_section_file_datasets[run_section_tag])
+                        graph_section_file_datasets = fill_tags2string(graph_section_file_datasets,
+                                                                   self.alg_template_registry, {'tag_name': graph_tag_name})
 
-        log_stream.info(' ----> Dump dynamic datasets [' + time_str + '] ... DONE')
+                    else:
+                        log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
+                        raise RuntimeError('Keys of "datasets" destination datasets are not defined as expected')
+
+                    if run_section_tag in list(run_analysis_collections.keys()):
+                        graph_analysis_collections = run_analysis_collections[run_section_tag]
+                    else:
+                        log_stream.error(' ===> Domain tag "' + run_section_tag + '" is not defined in expected file keys')
+                        raise RuntimeError('Keys of "analysis" destination datasets are not defined as expected')
+
+                    if flag_dynamic_dst:
+                        if os.path.exists(graph_section_file_plot):
+                            os.remove(graph_section_file_plot)
+                        if os.path.exists(graph_section_file_info):
+                            os.remove(graph_section_file_info)
+                        if os.path.exists(graph_section_file_datasets):
+                            os.remove(graph_section_file_datasets)
+
+                    if (not os.path.exists(graph_section_file_plot)) or (not os.path.exists(graph_section_file_info)) \
+                            or (not os.path.exists(graph_section_file_datasets)):
+
+                        flag_graph_deps = self.check_graph_deps(graph_analysis_collections, graph_deps)
+                        if flag_graph_deps:
+
+                            driver_graph = DriverGraph(
+                                file_name_graph=graph_section_file_plot,
+                                file_name_info=graph_section_file_info,
+                                file_name_datasets=graph_section_file_datasets,
+                                ts_obj=graph_analysis_collections, ts_deps=graph_deps,
+                                fx_name=graph_fx['name'], fx_attrs=graph_fx['attrs'], fx_map=graph_fx['map'],
+                                fx_table=static_data_table_graph
+                            )
+
+                            driver_graph.compute_data()
+
+                            log_stream.info(' ------> Domain "' + run_section_tag + '" ... DONE')
+                        else:
+                            log_stream.info(' ------> Domain "' + run_section_tag + '" ... FAILED')
+
+                    else:
+                        log_stream.info(' ------> Domain "' + run_section_tag +
+                                        '" ... SKIPPED. Datasets previously plotted and dumped')
+
+                log_stream.info(' -----> Run name "' + run_type_key + '" ... DONE')
+
+            log_stream.info(' ----> Dump dynamic datasets [' + time_str + '] ... DONE')
+
+        else:
+            log_stream.info(' ----> Dump dynamic datasets [' + time_str + '] ... SKIPPED. All datasets are undefined')
 
     # -------------------------------------------------------------------------------------
 
@@ -753,124 +758,133 @@ class DriverDynamic:
                 flag_dynamic_anl = True
 
         run_time_reference = set_time_collections(run_data_collections)
-        run_time_dict = {self.coord_name_time: run_time_reference}
-        run_dframe_reference = pd.DataFrame(index=run_time_reference)
 
-        run_file_path = list(run_file_collections_anl.values())[0]
-        run_file_time = list(run_file_collections_anl.keys())[0]
+        if run_time_reference is not None:
 
-        if isinstance(run_file_path, list):
-            run_file_path = run_file_path[0]
+            run_time_dict = {self.coord_name_time: run_time_reference}
+            run_dframe_reference = pd.DataFrame(index=run_time_reference)
 
-        if flag_dynamic_anl:
-            if os.path.exists(run_file_path):
-                os.remove(run_file_path)
+            run_file_path = list(run_file_collections_anl.values())[0]
+            run_file_time = list(run_file_collections_anl.keys())[0]
 
-        run_analysis_collections = {}
-        if not os.path.exists(run_file_path):
-            for run_type_key, run_type_fields in run_data_collections.items():
+            if isinstance(run_file_path, list):
+                run_file_path = run_file_path[0]
 
-                log_stream.info(' -----> Run "' + run_type_key + '"  ... ')
+            if flag_dynamic_anl:
+                if os.path.exists(run_file_path):
+                    os.remove(run_file_path)
 
-                if run_type_fields is not None:
-                    run_type_time = run_type_fields[self.data_header_ancillary][self.coord_name_time]
-                    run_type_workspace = run_type_fields[self.data_values_ancillary]
-                    run_type_attrs = run_type_fields[self.data_attrs_ancillary]
+            run_analysis_collections = {}
+            if not os.path.exists(run_file_path):
 
-                    run_description = run_type_attrs[self.run_description_tag]
+                for run_type_key, run_type_fields in run_data_collections.items():
 
-                    run_type_attrs_upd = deepcopy(run_type_attrs)
-                    for attr_key in self.run_attributes_removed:
-                        if attr_key in list(run_type_attrs.keys()):
-                            run_type_attrs_upd.pop(attr_key, None)
-                    run_type_attrs_upd['time_length'] = run_time_reference.__len__()
-                    run_type_attrs_upd['time_period'] = run_time_reference
+                    log_stream.info(' -----> Run "' + run_type_key + '"  ... ')
 
-                    log_stream.info(' -----> Description: "' + run_description + '" ')
+                    if run_type_fields is not None:
+                        run_type_time = run_type_fields[self.data_header_ancillary][self.coord_name_time]
+                        run_type_workspace = run_type_fields[self.data_values_ancillary]
+                        run_type_attrs = run_type_fields[self.data_attrs_ancillary]
 
-                    for run_domain_key, run_domain_fields in run_type_workspace.items():
+                        run_description = run_type_attrs[self.run_description_tag]
 
-                        log_stream.info(' ------> Domain: "' + run_domain_key + '" ... ')
+                        run_type_attrs_upd = deepcopy(run_type_attrs)
+                        for attr_key in self.run_attributes_removed:
+                            if attr_key in list(run_type_attrs.keys()):
+                                run_type_attrs_upd.pop(attr_key, None)
+                        run_type_attrs_upd['time_length'] = run_time_reference.__len__()
+                        run_type_attrs_upd['time_period'] = run_time_reference
 
-                        if (run_domain_key == 'DomainAverage') or (run_domain_key in self.run_point_name):
+                        log_stream.info(' -----> Description: "' + run_description + '" ')
 
-                            if run_domain_key in self.run_point_name:
-                                section_domain, section_name = run_domain_key.split(self.str_delimiter)
-                                section_data = static_data_section.loc[
-                                    (static_data_section['section_domain'] == section_domain) &
-                                    (static_data_section['section_name'] == section_name)]
-                                section_dict = section_data.reset_index().to_dict('r')[0]
-                            else:
-                                section_dict = {}
+                        for run_domain_key, run_domain_fields in run_type_workspace.items():
 
-                            run_attrs = {**section_dict, **run_type_attrs_upd}
+                            log_stream.info(' ------> Domain: "' + run_domain_key + '" ... ')
 
-                            for run_var_key, run_var_array in run_domain_fields.items():
+                            if (run_domain_key == 'DomainAverage') or (run_domain_key in self.run_point_name):
 
-                                run_var_type, run_var_name = run_var_key.split(self.str_delimiter)
-                                if run_var_name in list(info_var_limits.keys()):
-                                    run_var_limits = info_var_limits[run_var_name]
+                                if run_domain_key in self.run_point_name:
+                                    section_domain, section_name = run_domain_key.split(self.str_delimiter)
+                                    section_data = static_data_section.loc[
+                                        (static_data_section['section_domain'] == section_domain) &
+                                        (static_data_section['section_name'] == section_name)]
+                                    section_dict = section_data.reset_index().to_dict('r')[0]
                                 else:
-                                    run_var_limits = [None, None]
+                                    section_dict = {}
 
-                                if run_var_limits[0] is not None:
-                                    run_var_array[run_var_array < run_var_limits[0]] = np.nan
-                                if run_var_limits[1] is not None:
-                                    run_var_array[run_var_array > run_var_limits[1]] = np.nan
+                                run_attrs = {**section_dict, **run_type_attrs_upd}
 
-                                if run_var_array.shape[0] == 1:
-                                    run_var_list = run_var_array.tolist()[0]
-                                elif run_var_array.shape[0] > 1:
-                                    run_var_list = run_var_array.T.tolist()
-                                run_var_timeidx = pd.DatetimeIndex(run_type_time)
-                                run_dframe_var = pd.DataFrame(data=run_var_list, index=run_var_timeidx)
+                                for run_var_key, run_var_array in run_domain_fields.items():
 
-                                run_dframe_filled = pd.merge(run_dframe_reference, run_dframe_var,
-                                                             how='outer', left_index=True, right_index=True)
-                                run_dframe_filled.index.name = self.coord_name_time
+                                    run_var_type, run_var_name = run_var_key.split(self.str_delimiter)
+                                    if run_var_name in list(info_var_limits.keys()):
+                                        run_var_limits = info_var_limits[run_var_name]
+                                    else:
+                                        run_var_limits = [None, None]
 
-                                run_datetimeidx_filled = run_dframe_filled.index
-                                run_values_filled = run_dframe_filled.values
+                                    if run_var_limits[0] is not None:
+                                        run_var_array[run_var_array < run_var_limits[0]] = np.nan
+                                    if run_var_limits[1] is not None:
+                                        run_var_array[run_var_array > run_var_limits[1]] = np.nan
 
-                                if run_domain_key not in list(run_analysis_collections.keys()):
-                                    run_analysis_collections[run_domain_key] = {}
-                                if run_type_key not in list(run_analysis_collections[run_domain_key].keys()):
-                                    run_analysis_collections[run_domain_key][run_type_key] = {}
+                                    if run_var_array.shape[0] == 1:
+                                        run_var_list = run_var_array.tolist()[0]
+                                    elif run_var_array.shape[0] > 1:
+                                        run_var_list = run_var_array.T.tolist()
+                                    run_var_timeidx = pd.DatetimeIndex(run_type_time)
+                                    run_dframe_var = pd.DataFrame(data=run_var_list, index=run_var_timeidx)
 
-                                if self.data_attrs_ancillary not in \
-                                        list(run_analysis_collections[run_domain_key][run_type_key].keys()):
-                                    run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary] = {}
-                                    run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary]['attributes_ts'] = run_attrs
-                                    run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary]['attributes_section'] = section_dict
-                                    run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary]['attributes_run'] = run_type_attrs_upd
+                                    run_dframe_filled = pd.merge(run_dframe_reference, run_dframe_var,
+                                                                 how='outer', left_index=True, right_index=True)
+                                    run_dframe_filled.index.name = self.coord_name_time
 
-                                if self.data_values_ancillary not in \
-                                        list(run_analysis_collections[run_domain_key][run_type_key].keys()):
-                                    run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary] = {}
+                                    run_datetimeidx_filled = run_dframe_filled.index
+                                    run_values_filled = run_dframe_filled.values
 
-                                run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary][run_var_key] = {}
-                                run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary][run_var_key] = run_values_filled
+                                    if run_domain_key not in list(run_analysis_collections.keys()):
+                                        run_analysis_collections[run_domain_key] = {}
+                                    if run_type_key not in list(run_analysis_collections[run_domain_key].keys()):
+                                        run_analysis_collections[run_domain_key][run_type_key] = {}
 
-                            log_stream.info(' ------> Domain: "' + run_domain_key + '" ... DONE')
+                                    if self.data_attrs_ancillary not in \
+                                            list(run_analysis_collections[run_domain_key][run_type_key].keys()):
+                                        run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary] = {}
+                                        run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary]['attributes_ts'] = run_attrs
+                                        run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary]['attributes_section'] = section_dict
+                                        run_analysis_collections[run_domain_key][run_type_key][self.data_attrs_ancillary]['attributes_run'] = run_type_attrs_upd
 
-                        else:
-                            log_stream.info(' ------> Domain: "' + run_domain_key +
-                                            '" ... SKIPPED. Domain is not available in the datasets collection.')
+                                    if self.data_values_ancillary not in \
+                                            list(run_analysis_collections[run_domain_key][run_type_key].keys()):
+                                        run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary] = {}
 
-                    log_stream.info(' -----> Run "' + run_type_key + '"  ... DONE')
+                                    run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary][run_var_key] = {}
+                                    run_analysis_collections[run_domain_key][run_type_key][self.data_values_ancillary][run_var_key] = run_values_filled
 
-                else:
-                    log_stream.warning(' ===> Datasets are undefined and equal to None')
-                    log_stream.info(' -----> Run "' + run_type_key + '"  ... FAILED')
+                                log_stream.info(' ------> Domain: "' + run_domain_key + '" ... DONE')
 
-            run_folder_name, run_file_name = os.path.split(run_file_path)
-            make_folder(run_folder_name)
-            write_obj(run_file_path, run_analysis_collections)
+                            else:
+                                log_stream.info(' ------> Domain: "' + run_domain_key +
+                                                '" ... SKIPPED. Domain is not available in the datasets collection.')
+
+                        log_stream.info(' -----> Run "' + run_type_key + '"  ... DONE')
+
+                    else:
+                        log_stream.warning(' ===> Datasets are undefined and equal to None')
+                        log_stream.info(' -----> Run "' + run_type_key + '"  ... FAILED')
+
+                run_folder_name, run_file_name = os.path.split(run_file_path)
+                make_folder(run_folder_name)
+                write_obj(run_file_path, run_analysis_collections)
+
+            else:
+                run_analysis_collections = read_obj(run_file_path)
+
+            log_stream.info(' ----> Analyze dynamic datasets [' + time_str + '] ... DONE')
 
         else:
-            run_analysis_collections = read_obj(run_file_path)
-
-        log_stream.info(' ----> Analyze dynamic datasets [' + time_str + '] ... DONE')
+            log_stream.info(' ----> Analyze dynamic datasets [' + time_str +
+                            '] ... SKIPPED. All datasets are undefined')
+            run_analysis_collections = None
 
         return run_analysis_collections
 

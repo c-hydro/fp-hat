@@ -1,8 +1,8 @@
 """
 HAT - Analyzer HMC time-series
 
-__date__ = '20210728'
-__version__ = '1.5.1'
+__date__ = '20220317'
+__version__ = '1.5.2'
 __author__ = 'Fabio Delogu (fabio.delogu@cimafoundation.org'
 __library__ = 'hat'
 
@@ -10,7 +10,8 @@ General command line:
 python HAT_RunPublisher_HMC_TimeSeries.py -settings_file configuration.json -time "YYYY-MM-DD HH:MM"
 
 Version(s):
-20210728 (1.5.1) --> Operational release
+20220317 (1.5.2) --> Operational release [Liguria domain]
+20210728 (1.5.1) --> Operational release [Marche domain]
 20210429 (1.5.0) --> Beta release
 20210113 (1.0.0) --> Last stable version of library in the old development
 """
@@ -42,8 +43,8 @@ log_stream = logging.getLogger(logger_name)
 project_name = 'HAT'
 alg_name = 'Analyzer Datasets'
 alg_type = 'HMC TimeSeries'
-alg_version = '1.5.1'
-alg_release = '2021-07-28'
+alg_version = '1.5.2'
+alg_release = '2022-03-17'
 # -------------------------------------------------------------------------------------
 
 

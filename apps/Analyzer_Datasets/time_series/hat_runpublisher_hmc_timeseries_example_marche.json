@@ -4,7 +4,7 @@
       "title": "HMC Time-Series Publisher",
       "web-site": "",
       "source": "Python library developed by CIMA Research Foundation",
-      "history": "1.5.1 [20210728]",
+      "history": "1.5.2 [20220317]",
       "project-info": "HAT - Hydrological Analysis Tools",
       "algorithm": "Time-series publisher postprocessing tool"
     },

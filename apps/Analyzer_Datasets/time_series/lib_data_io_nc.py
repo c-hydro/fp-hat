@@ -16,6 +16,11 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 import pandas as pd
+
+from lib_info_args import logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
 #######################################################################################
 
 
@@ -26,10 +31,8 @@ def set_time_collections(var_data_collections,
                          tag_time_series='times',
                          tag_time_delta_obs='time_observed_delta', tag_time_delta_for='time_forecast_delta'):
 
-    time_stamp_start_collections = []
-    time_stamp_end_collections = []
-    time_delta_obs_collections = []
-    time_delta_for_collections = []
+    time_stamp_start_collections, time_stamp_end_collections = [], []
+    time_delta_obs_collections, time_delta_for_collections = None, None
     for var_key, var_obj in var_data_collections.items():
         if var_obj is not None:
             time_array = var_obj[var_header][tag_time_series]
@@ -40,21 +43,31 @@ def set_time_collections(var_data_collections,
             time_stamp_start_step = time_idx[0]
             time_stamp_end_step = time_idx[-1]
 
+            if time_delta_obs_collections is None:
+                time_delta_obs_collections = []
+            if time_delta_for_collections is None:
+                time_delta_for_collections = []
+
             time_stamp_start_collections.append(time_stamp_start_step)
             time_stamp_end_collections.append(time_stamp_end_step)
 
             time_delta_obs_collections.append(time_delta_obs)
             time_delta_for_collections.append(time_delta_for)
         else:
-            logging.warning(' ===> Time obj is not defined for time-series ' + var_key)
+            log_stream.warning(' ===> Time delta(s) are not defined for time-series "' + var_key + '"')
 
-    time_delta_int = list(set(time_delta_obs_collections + time_delta_for_collections))[0]
-    time_delta_obj = pd.Timedelta(time_delta_int, unit='seconds')
+    if (time_delta_obs_collections is not None) and (time_delta_for_collections is not None):
+        time_delta_int = list(set(time_delta_obs_collections + time_delta_for_collections))[0]
+        time_delta_obj = pd.Timedelta(time_delta_int, unit='seconds')
 
-    time_stamp_start = pd.DatetimeIndex(time_stamp_start_collections).min()
-    time_stamp_end = pd.DatetimeIndex(time_stamp_end_collections).max()
+        time_stamp_start = pd.DatetimeIndex(time_stamp_start_collections).min()
+        time_stamp_end = pd.DatetimeIndex(time_stamp_end_collections).max()
 
-    time_range = pd.date_range(start=time_stamp_start, end=time_stamp_end, freq=time_delta_obj.resolution_string)
+        time_range = pd.date_range(start=time_stamp_start, end=time_stamp_end, freq=time_delta_obj.resolution_string)
+
+    else:
+        log_stream.warning(' ===> Time range is not defined due to undefined time delta(s) object for all datasets')
+        time_range = None
 
     return time_range
 # -------------------------------------------------------------------------------------
@@ -87,7 +100,7 @@ def filter_file_collections(var_data_collections, var_structure, var_points, var
                         elif var_data.ndim == 1:
                             var_data_filtered = var_data.reshape([1, var_data.shape[0]])
                         else:
-                            logging.error(' ===> Variable datasets format is not allowed')
+                            log_stream.error(' ===> Variable datasets format is not allowed')
                             raise IOError('Array format must be 1D or 2D')
                     else:
                         if var_data.ndim == 1:
@@ -126,7 +139,7 @@ def read_file_collections(file_name_list, variable_name_common=None, attr_name_c
             file_dset = xr.open_dataset(file_name_step)
             attrs_dset = file_dset.attrs
         else:
-            logging.warning(' ===> File ' + file_name_step + ' not found!')
+            log_stream.warning(' ===> File ' + file_name_step + ' not found!')
 
         # Iterate over file attributes
         for attr_key, attr_value in attrs_dset.items():

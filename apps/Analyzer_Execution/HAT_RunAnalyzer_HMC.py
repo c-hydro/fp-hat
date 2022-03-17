@@ -2,8 +2,8 @@
 """
 Hydrological Analysis Tool - Analyzer_Execution
 
-__date__ = '20210225'
-__version__ = '1.5.0'
+__date__ = '20220317'
+__version__ = '1.5.2'
 __author__ =
         'Fabio Delogu (fabio.delogu@cimafoundation.org',
         'Flavio Pignone (flavio.pignone@cimafoundation.org',
@@ -14,6 +14,8 @@ General command line:
 python3 HAT_RunAnalyzer_HMC_Main.py -settings_file configuration.json -time "YYYY-MM-DD HH:MM"
 
 Version(s):
+20220317 (1.5.2) --> Bug fixing
+20210728 (1.5.1) --> Operational release for HMC 3.x.x
 20210225 (1.5.0) --> Beta release for HMC 3.x.x
 20200605 (1.0.0) --> Beta release for HMC 2.x.x
 """
@@ -36,8 +38,8 @@ from driver_data_io_dynamic import DriverDynamic
 
 # -------------------------------------------------------------------------------------
 # Algorithm information
-alg_version = '1.5.0'
-alg_release = '2021-02-25'
+alg_version = '1.5.2'
+alg_release = '2022-03-17'
 alg_name = 'RUN ANALYZER'
 # Algorithm parameter(s)
 time_format = '%Y-%m-%d %H:%M'

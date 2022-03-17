@@ -1,0 +1,170 @@
+{
+  "algorithm": {
+    "general": {
+      "title": "HMC Time-Series Publisher",
+      "web-site": "",
+      "source": "Python library developed by CIMA Research Foundation",
+      "history": "1.5.2 [20220317]",
+      "project-info": "HAT - Hydrological Analysis Tools",
+      "algorithm": "Time-series publisher postprocessing tool"
+    },
+    "flags": {
+      "cleaning_static": false,
+      "cleaning_dynamic_registry": false,
+      "cleaning_dynamic_source": false,
+      "cleaning_dynamic_analysis": false,
+      "cleaning_dynamic_destination": false,
+      "cleaning_dynamic_tmp": true
+    },
+    "template": {
+      "run": {
+        "domain_name": "string_domain_name",
+        "section_order": "string_section_order",
+        "section_name": "string_section_name",
+        "basin_name": "string_basin_name",
+        "ensemble_name": "string_ensemble_name"
+      },
+      "time": {
+        "time_series_datetime": "%Y%m%d%H%M",
+        "time_series_sub_path": "%Y/%m/%d/%H/",
+        "registry_datetime": "%Y%m%d%H%M",
+        "registry_sub_path": "%Y/%m/%d/%H/",
+        "info_datetime": "%Y%m%d%H%M",
+        "info_sub_path": "%Y/%m/%d/%H/",
+        "datasets_datetime": "%Y%m%d%H%M",
+        "datasets_sub_path": "%Y/%m/%d/%H/",
+        "plot_datetime": "%Y%m%d%H%M",
+        "plot_sub_path": "%Y/%m/%d/%H/"
+      },
+      "registry":{
+        "tag_name" : "string_tag_name"
+      }
+    },
+    "info": {
+      "domain_name": "MagraDomain",
+      "variable_limits": {
+        "rain"  : [0, null],
+        "discharge":  [0, null],
+        "air_temperature":  [-30, 50],
+        "soil_moisture": [0, 1]}
+    }
+  },
+  "data": {
+    "static": {
+      "source": {
+        "terrain": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/MagraDomain/gridded/",
+          "file_name": "MagraDomain.dem.txt"
+        },
+        "flow_directions": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/MagraDomain/gridded/",
+          "file_name": "MagraDomain.pnt.txt"
+        },
+        "river_network": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/MagraDomain/gridded/",
+          "file_name": "MagraDomain.choice.txt"
+        },
+        "sections": {
+          "__file_type__" : "River, Dam",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/LiguriaDomain/shapefile/",
+          "file_name": "fp_sections_liguria.shp",
+          "file_data_filter": {"domain": "MagraDomain", "type": "river"}
+        },
+        "table_graph_lut" : {
+  		  "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/LiguriaDomain/table/",
+      	  "file_name": "table_graph_lut_ts.json"
+      	}
+      },
+      "destination": {
+        "info": {
+          "folder_name": "\"/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/LiguriaDomain/info/",
+          "file_name": "MagraDomain.info_ts.workspace"
+        }
+      }
+    },
+    "dynamic": {
+      "source": {
+        "time_series_01": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/archive/weather_station_realtime_magra/{time_series_sub_path}/collections/",
+          "file_name": "hmc.collections.{time_series_datetime}.nc",
+          "run_mode": "deterministic",
+          "run_description": "observed",
+          "run_n": 1,
+          "run_variables": {
+            "forcing_data": {
+              "rain": "Rain:hmc_forcing_datasets:{basin_name}:{section_name}",
+              "air_temperature": "AirTemperature:hmc_forcing_datasets:{basin_name}:{section_name}"
+            },
+            "observed_data": {
+              "discharge": "Discharge:section_discharge_obs:{basin_name}:{section_name}"
+            },
+            "outcome_data": {
+              "soil_moisture": "SM:hmc_outcome_datasets:{basin_name}:{section_name}",
+              "discharge": "Discharge:section_discharge_sim:{basin_name}:{section_name}"
+            }
+          },
+          "time_search_period": 10,
+          "time_search_frequency": "H"
+        }
+      },
+      "ancillary": {
+        "time_series_01": {
+          "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/ancillary/",
+          "file_name": "hmc.collections.{time_series_datetime}_weather_stations.workspace"
+        }
+      },
+      "analysis" : {
+        "folder_name" : "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/ancillary/",
+        "file_name": "hmc.collections.{time_series_datetime}_analysis.workspace"
+      },
+      "destination": {
+        "registry": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/registry/{registry_sub_path}",
+          "file_name": "marche_{registry_datetime}.csv"
+        },
+        "collections" : {
+          "info": {
+            "time_series_observed": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/analysis/{basin_name}/{tag_name}/{info_sub_path}",
+              "file_name": "hat.weather_stations.ts_discharge_{basin_name}_{section_order}_{section_name}.{info_datetime}.json"
+            }
+          },
+          "datasets": {
+            "time_series_observed": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/analysis/{basin_name}/{tag_name}/{datasets_sub_path}",
+              "file_name": "hat.weather_stations.ts_discharge_{basin_name}_{section_order}_{section_name}.{datasets_datetime}.workspace"
+            }
+          },
+          "plot": {
+            "time_series_observed": {
+              "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/analysis/{basin_name}/{tag_name}/{plot_sub_path}/",
+              "file_name": "hat.weather_stations.ts_discharge_{basin_name}_{section_order}_{section_name}.{plot_datetime}.png",
+              "graph_tag_name": "observed",
+              "graph_dependencies": {
+                "time_series_01":  {"type":  "observed", "mode": "reference"}
+              },
+              "graph_fx": {
+                "name": "plot_ts_discharge_obs",
+                "attrs": {"graph_description": ""},
+                "map": "time_series_observed"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "log": {
+    "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/log/",
+    "file_name": "hat_runpublisher_hmc_timeseries_liguria_MagraDomain.txt",
+    "file_history": true
+  },
+  "time": {
+    "time_run": null,
+    "time_start": null,
+    "time_end": null,
+    "time_period": 3,
+    "time_frequency": "H",
+    "time_rounding": "H"
+  }
+}

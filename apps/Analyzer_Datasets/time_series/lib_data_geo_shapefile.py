@@ -124,5 +124,10 @@ def read_data_section(file_name, file_filter=None,
     if file_filter is not None:
         section_df.attrs = file_filter
 
+    if section_df.empty:
+        list_filter = list(file_filter.keys())
+        log_stream.error(' ===> Section Dataframe is empty. Check the filtering settings in "' + str(list_filter) + '"')
+        raise IOError('Section dataframe must be not empty')
+
     return section_df
 # -------------------------------------------------------------------------------------

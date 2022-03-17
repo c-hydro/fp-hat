@@ -2,6 +2,24 @@
 Changelog
 =========
 
+Version 1.5.2 [2022-03-17]
+===========
+APP: **HAT_RunAnalyzer_HMC.py**
+    - FIX: bugs related to the operational mode.
+APP: **HAT_RunPublisher_HMC_Maps.py**
+    - FIX: bugs related to the operational mode.
+APP: **HAT_RunPublisher_HMC_TimeSeries.py**
+    - FIX: bugs related to the operational mode.
+
+Version 1.5.1 [2021-07-28]
+===========
+APP: **HAT_RunAnalyzer_HMC.py**
+    - Operational Release.
+APP: **HAT_RunPublisher_HMC_Maps.py**
+    - Operational Release.
+APP: **HAT_RunPublisher_HMC_TimeSeries.py**
+    - Operational Release.
+
 Version 1.5.0 [2021-09-03]
 ===========
 APP: **HAT_RunPublisher_HMC_Maps.py**
