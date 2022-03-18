@@ -166,13 +166,12 @@ def plot_ts_discharge_obs(
                          (tag_discharge_sim_name, tag_discharge_obs_name, tag_soil_moisture_name),
                          frameon=False, ncol=2, loc=0)
 
+    ax2.add_artist(legend1)
     if (p28 is not None) and (p29 is not None):
         legend2 = ax2.legend((p28, p29),
                              (tag_discharge_thr_alert, tag_discharge_thr_alarm),
                              frameon=False, ncol=4, loc=9, bbox_to_anchor=(0.5, -0.2))
-
-    ax2.add_artist(legend1)
-    ax2.add_artist(legend2)
+        ax2.add_artist(legend2)
 
     file_path, file_folder = os.path.split(file_name)
 
