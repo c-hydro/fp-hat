@@ -163,7 +163,7 @@ def plot_ts_discharge_obs(
     ax4.set_xticklabels(tick_time_labels, rotation=90, fontsize=8)
 
     legend1 = ax2.legend((p21[0], p22[0], p41[0]),
-                         (tag_discharge_sim_name, tag_discharge_obs_name, tag_soil_moisture_name),
+                         (tag_discharge_obs_name, tag_discharge_sim_name, tag_soil_moisture_name),
                          frameon=False, ncol=2, loc=0)
 
     ax2.add_artist(legend1)
