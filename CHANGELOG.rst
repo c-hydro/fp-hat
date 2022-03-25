@@ -8,6 +8,7 @@ APP: **HAT_RunAnalyzer_HMC.py**
     - FIX: bugs related to the operational mode.
 APP: **HAT_RunPublisher_HMC_Maps.py**
     - FIX: bugs related to the operational mode.
+    - FIX: bugs related to the mandatory/ancillary static data (terrain, flow_directions and river_network).
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
     - FIX: bugs related to the operational mode.
 

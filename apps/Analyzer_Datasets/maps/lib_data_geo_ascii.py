@@ -31,6 +31,26 @@ import matplotlib.pylab as plt
 
 
 # -------------------------------------------------------------------------------------
+# Method to init data grid with default structure
+def init_data_grid(data_obj_ref, value_obj_default=-9999.0):
+
+    values_obj_default = np.zeros(shape=(data_obj_ref.shape[0], data_obj_ref.shape[1]))
+    values_obj_default[:, :] = value_obj_default
+
+    lons_obj_array = data_obj_ref['west_east'].values
+    lats_obj_array = data_obj_ref['south_north'].values
+    lons_obj_grid, lats_obj_grid = np.meshgrid(lons_obj_array, lats_obj_array)
+
+    data_obj_default = create_darray(
+        values_obj_default, lons_obj_grid[0, :], lats_obj_grid[:, 0],
+        coord_name_x='west_east', coord_name_y='south_north',
+        dim_name_x='west_east', dim_name_y='south_north')
+
+    return data_obj_default
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
 # Method to read an ascii grid file
 def read_data_grid(file_name, output_format='data_array', output_dtype='float32',
                    var_limit_min=None, var_limit_max=None, var_proj='EPSG:4326'):
@@ -66,6 +86,13 @@ def read_data_grid(file_name, output_format='data_array', output_dtype='float32'
         center_left = bounds.left + (res[0] / 2)
         center_top = bounds.top - (res[1] / 2)
         center_bottom = bounds.bottom + (res[1] / 2)
+
+        if center_bottom > center_top:
+            log_stream.warning(' ===> Coords "center_bottom": ' + str(center_bottom) + ' is greater than "center_top": '
+                               + str(center_top) + '. Try to inverse the bottom and top coords. ')
+            center_tmp = center_top
+            center_top = center_bottom
+            center_bottom = center_tmp
 
         lon = np.arange(center_left, center_right + np.abs(res[0] / 2), np.abs(res[0]), float)
         lat = np.flip(np.arange(center_bottom, center_top + np.abs(res[1] / 2), np.abs(res[1]), float), axis=0)

@@ -12,7 +12,7 @@ Version:       '1.0.0'
 import logging
 import os
 
-from lib_data_geo_ascii import read_data_grid
+from lib_data_geo_ascii import read_data_grid, init_data_grid
 from lib_graph_map_colormap import read_data_colormap
 from lib_utils_io import read_obj, write_obj
 from lib_utils_system import make_folder, join_path
@@ -114,17 +114,42 @@ class DriverStatic:
 
         # Read gridded static data source
         if not os.path.exists(file_path_info):
-            da_terrain = read_data_grid(self.file_path_terrain_src,
-                                        var_limit_min=0, var_limit_max=None, output_format='data_array')
-            da_flow_directions = read_data_grid(self.file_path_flow_directions_src,
-                                                var_limit_min=0, var_limit_max=9, output_format='data_array')
-            da_river_network = read_data_grid(self.file_path_river_network_src,
-                                              var_limit_min=0, var_limit_max=1, output_format='data_array')
-            # Read colormap dictionary
-            dict_colormap_graph = read_data_colormap(self.file_collections_colormap_src)
+
+            # Read terrain data
+            if os.path.exists(self.file_path_terrain_src):
+                da_terrain = read_data_grid(self.file_path_terrain_src,
+                                            var_limit_min=0, var_limit_max=None, output_format='data_array')
+            else:
+                log_stream.error(' ===> File "terrain ' + self.file_path_terrain_src + '" not found')
+                raise IOError('File not found. Check your settings.')
+
+            # Read flow directions data
+            if os.path.exists(self.file_path_flow_directions_src):
+                da_flow_directions = read_data_grid(self.file_path_flow_directions_src,
+                                                    var_limit_min=0, var_limit_max=9, output_format='data_array')
+            else:
+                log_stream.warning(' ===> File "flow_directions ' + self.file_path_terrain_src +
+                                   '" not found. Initialize with default data structure')
+                da_flow_directions = init_data_grid(da_terrain, value_obj_default=0)
+
+            # Read river network data
+            if os.path.exists(self.file_path_river_network_src):
+                da_river_network = read_data_grid(self.file_path_river_network_src,
+                                                  var_limit_min=0, var_limit_max=1, output_format='data_array')
+            else:
+                log_stream.warning(' ===> File "river network ' + self.file_path_river_network_src +
+                                   '" not found. Initialize with default data structure')
+                da_river_network = init_data_grid(da_terrain, value_obj_default=0)
 
             # Read table_graph_lut
-            dict_table_graph = read_map_table(self.file_path_table_graph_src)
+            if os.path.exists(self.file_path_table_graph_src):
+                dict_table_graph = read_map_table(self.file_path_table_graph_src)
+            else:
+                log_stream.error(' ===> File "table ' + self.file_path_table_graph_src + '" not found')
+                raise IOError('File not found. Check your settings.')
+
+            # Read colormap dictionary
+            dict_colormap_graph = read_data_colormap(self.file_collections_colormap_src)
 
             # Data collection object
             static_data_collections = {self.flag_terrain_data: da_terrain,
