@@ -113,7 +113,7 @@
       },
       "destination": {
         "info": {
-          "folder_name": "\"/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_liguria/data/data_static/LiguriaDomain/info/",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_liguria/data/data_static/LiguriaDomain/info/",
           "file_name": "LiguriaDomain.info_maps.workspace"
         }
       }
