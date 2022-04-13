@@ -12,7 +12,9 @@ Version:       '1.0.0'
 import logging
 import os
 
-from lib_data_geo_ascii import read_data_grid, init_data_grid
+from copy import deepcopy
+
+from lib_data_geo_ascii import read_data_grid, init_data_grid, create_data_grid
 from lib_graph_map_colormap import read_data_colormap
 from lib_utils_io import read_obj, write_obj
 from lib_utils_system import make_folder, join_path
@@ -59,25 +61,27 @@ class DriverStatic:
         self.alg_template_tags = alg_template_tags
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
+        self.xll_corner_tag = 'xll_corner'
+        self.yll_corner_tag = 'yll_corner'
+        self.rows_tag = 'rows'
+        self.cols_tag = 'cols'
+        self.cell_size_tag = 'cell_size'
 
-        self.folder_name_terrain_src = src_dict[self.flag_terrain_data][self.folder_name_tag]
-        self.file_name_terrain_src = src_dict[self.flag_terrain_data][self.file_name_tag]
-        self.file_path_terrain_src = join_path(self.folder_name_terrain_src, self.file_name_terrain_src)
+        self.file_expected_fields = [self.folder_name_tag, self.file_name_tag]
+        self.grid_expected_fields = [self.xll_corner_tag, self.yll_corner_tag,
+                                     self.rows_tag, self.cols_tag, self.cell_size_tag]
 
-        self.folder_name_flow_directions_src = src_dict[self.flag_flow_directions_data][self.folder_name_tag]
-        self.file_name_flow_directions_src = src_dict[self.flag_flow_directions_data][self.file_name_tag]
-        self.file_path_flow_directions_src = join_path(
-            self.folder_name_flow_directions_src, self.file_name_flow_directions_src)
+        self.obj_terrain_data_src, self.type_terrain_data_src = self.search_type_obj(
+            src_dict[self.flag_terrain_data])
 
-        self.folder_name_river_network_src = src_dict[self.flag_river_network_data][self.folder_name_tag]
-        self.file_name_river_network_src = src_dict[self.flag_river_network_data][self.file_name_tag]
-        self.file_path_river_network_src = join_path(
-            self.folder_name_river_network_src, self.file_name_river_network_src)
+        self.obj_flow_directions_data_src, self.type_flow_directions_data_src = self.search_type_obj(
+            src_dict[self.flag_flow_directions_data])
 
-        self.folder_name_table_graph_src = src_dict[self.flag_table_graph_data][self.folder_name_tag]
-        self.file_name_table_graph_src = src_dict[self.flag_table_graph_data][self.file_name_tag]
-        self.file_path_table_graph_src = join_path(
-            self.folder_name_table_graph_src, self.file_name_table_graph_src)
+        self.obj_river_network_data_src, self.type_river_network_data_src = self.search_type_obj(
+            src_dict[self.flag_river_network_data])
+
+        self.obj_table_graph_data_src, self.type_table_graph_data_src = self.search_type_obj(
+            src_dict[self.flag_table_graph_data])
 
         self.src_dict_colormap = src_dict[self.flag_colormap_data]
         file_collections_colormap_src = {}
@@ -88,14 +92,29 @@ class DriverStatic:
             file_collections_colormap_src[dict_key] = file_path_tmp
         self.file_collections_colormap_src = file_collections_colormap_src
 
-        self.folder_name_info_dst = dst_dict[self.flag_info_data][self.folder_name_tag]
-        self.file_name_info_dst = dst_dict[self.flag_info_data][self.file_name_tag]
-        self.file_path_info_dst = join_path(
-            self.folder_name_info_dst, self.file_name_info_dst)
+        self.file_path_info_dst, self.type_info_data_dst = self.search_type_obj(
+            dst_dict[self.flag_info_data])
 
         self.flag_cleaning_static = flag_cleaning_static
 
         self.str_delimited = ':'
+
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # Method to search expected obj
+    def search_type_obj(self, obj_fields):
+        data_obj, type_obj = None, None
+        if all(key in list(obj_fields.keys()) for key in self.file_expected_fields):
+            type_obj = 'file'
+            folder_name_obj = obj_fields[self.folder_name_tag]
+            file_name_obj = obj_fields[self.file_name_tag]
+            if (folder_name_obj is not None) and (file_name_obj is not None):
+                data_obj = join_path(folder_name_obj, file_name_obj)
+        elif all(key in list(obj_fields.keys()) for key in self.grid_expected_fields):
+            type_obj = 'grid'
+            data_obj = deepcopy(obj_fields)
+        return data_obj, type_obj
 
     # -------------------------------------------------------------------------------------
 
@@ -116,37 +135,66 @@ class DriverStatic:
         if not os.path.exists(file_path_info):
 
             # Read terrain data
-            if os.path.exists(self.file_path_terrain_src):
-                da_terrain = read_data_grid(self.file_path_terrain_src,
-                                            var_limit_min=0, var_limit_max=None, output_format='data_array')
+            if self.type_terrain_data_src == 'file':
+                file_path_terrain_src = self.obj_terrain_data_src
+                if os.path.exists(file_path_terrain_src):
+                    da_terrain = read_data_grid(
+                        file_path_terrain_src, var_limit_min=0, var_limit_max=None, output_format='data_array')
+                else:
+                    log_stream.error(' ===> File "terrain ' + str(file_path_terrain_src) + '" not found')
+                    raise IOError('File not found. Check your settings.')
+
+            elif self.type_terrain_data_src == 'grid':
+                geo_attrs_terrain_src = self.obj_terrain_data_src
+                da_terrain = create_data_grid(geo_attrs_terrain_src)
             else:
-                log_stream.error(' ===> File "terrain ' + self.file_path_terrain_src + '" not found')
-                raise IOError('File not found. Check your settings.')
+                log_stream.error(' ===> Obj "terrain" is defined using not accepted "' +
+                                 self.type_terrain_data_src + '" flag')
+                raise NotImplementedError('Only "file" and "grid" flags are allowed.')
 
             # Read flow directions data
-            if os.path.exists(self.file_path_flow_directions_src):
-                da_flow_directions = read_data_grid(self.file_path_flow_directions_src,
-                                                    var_limit_min=0, var_limit_max=9, output_format='data_array')
+            if self.type_flow_directions_data_src == 'file':
+                file_path_flow_directions_src = self.obj_flow_directions_data_src
+                if (file_path_flow_directions_src is not None) and (os.path.exists(file_path_flow_directions_src)):
+                    da_flow_directions = read_data_grid(
+                        file_path_flow_directions_src, var_limit_min=0, var_limit_max=9, output_format='data_array')
+                else:
+                    log_stream.warning(' ===> File "flow_directions ' + str(file_path_flow_directions_src) +
+                                       '" not found. Initialize with default data structure')
+                    da_flow_directions = init_data_grid(da_terrain, value_obj_default=0)
+
             else:
-                log_stream.warning(' ===> File "flow_directions ' + self.file_path_terrain_src +
-                                   '" not found. Initialize with default data structure')
-                da_flow_directions = init_data_grid(da_terrain, value_obj_default=0)
+                log_stream.error(' ===> Obj "flow_directions" is defined by not accepted "' +
+                                 self.type_flow_directions_data_src + '" flag')
+                raise NotImplementedError('Only "file" flag is allowed.')
 
             # Read river network data
-            if os.path.exists(self.file_path_river_network_src):
-                da_river_network = read_data_grid(self.file_path_river_network_src,
-                                                  var_limit_min=0, var_limit_max=1, output_format='data_array')
+            if self.type_river_network_data_src == 'file':
+                file_path_river_network_src = self.obj_river_network_data_src
+                if (file_path_river_network_src is not None) and (os.path.exists(file_path_river_network_src)):
+                    da_river_network = read_data_grid(
+                        file_path_river_network_src, var_limit_min=0, var_limit_max=1, output_format='data_array')
+                else:
+                    log_stream.warning(' ===> File "river network ' + str(file_path_river_network_src) +
+                                       '" not found. Initialize with default data structure')
+                    da_river_network = init_data_grid(da_terrain, value_obj_default=0)
             else:
-                log_stream.warning(' ===> File "river network ' + self.file_path_river_network_src +
-                                   '" not found. Initialize with default data structure')
-                da_river_network = init_data_grid(da_terrain, value_obj_default=0)
+                log_stream.error(' ===> Obj "river_networks" is defined by not accepted "' +
+                                 self.type_river_network_data_src + '" flag')
+                raise NotImplementedError('Only "file" flag is allowed.')
 
             # Read table_graph_lut
-            if os.path.exists(self.file_path_table_graph_src):
-                dict_table_graph = read_map_table(self.file_path_table_graph_src)
+            if self.type_table_graph_data_src == 'file':
+                file_path_table_graph_src = self.obj_table_graph_data_src
+                if (file_path_table_graph_src is not None) and (os.path.exists(file_path_table_graph_src)):
+                    dict_table_graph = read_map_table(file_path_table_graph_src)
+                else:
+                    log_stream.error(' ===> File "table ' + str(file_path_table_graph_src) + '" not found')
+                    raise IOError('File not found. Check your settings.')
             else:
-                log_stream.error(' ===> File "table ' + self.file_path_table_graph_src + '" not found')
-                raise IOError('File not found. Check your settings.')
+                log_stream.error(' ===> Obj "table_graph" is defined by not accepted "' +
+                                 self.type_table_graph_data_src + '" flag')
+                raise NotImplementedError('Only "file" flag is allowed.')
 
             # Read colormap dictionary
             dict_colormap_graph = read_data_colormap(self.file_collections_colormap_src)

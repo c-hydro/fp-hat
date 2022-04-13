@@ -29,6 +29,103 @@ logging.getLogger("fiona").setLevel(logging.WARNING)
 import matplotlib.pylab as plt
 #######################################################################################
 
+# -------------------------------------------------------------------------------------
+# Default method variable(s)
+info_default_fields = ['rows', 'cols', 'xll_corner', 'yll_corner', 'cell_size']
+map_default_fields = ['nrows', 'ncols', 'xllcorner', 'yllcorner', 'cellsize']
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to create data grid information
+def create_data_grid(info_grid, info_expected_fields=None, map_expected_fields=None,
+                     tag_geo_values='data', grid_format='data_array',
+                     tag_geo_x='geo_x', tag_geo_y='geo_y',
+                     tag_nodata='nodata_value', value_no_data=-9999.0, value_default_data=1):
+
+    if info_expected_fields is None:
+        info_expected_fields = info_default_fields
+    if map_expected_fields is None:
+        map_expected_fields = map_default_fields
+
+    data_grid = {}
+    if info_grid is not None:
+        if isinstance(info_grid, dict):
+            if set(info_expected_fields).issubset(info_grid):
+                if any(field is not None for field in info_grid.values()):
+                    for info_field, map_field in zip(info_expected_fields, map_expected_fields):
+                        data_grid[map_field] = info_grid[info_field]
+
+                    xll = data_grid['xllcorner']
+                    yll = data_grid['yllcorner']
+                    nrows = data_grid['nrows']
+                    ncols = data_grid['ncols']
+                    res = data_grid['cellsize']
+
+                    geo_x_start = xll + res / 2
+                    geo_x_end = xll + res / 2 + res * (ncols - 1)
+                    geo_x_values = np.linspace(geo_x_start, geo_x_end, ncols)
+
+                    geo_y_start = yll + res / 2
+                    geo_y_end = yll + res / 2 + res * (nrows - 1)
+                    geo_y_values = np.linspace(geo_y_start, geo_y_end, nrows)
+
+                    # geo_x_values = np.arange(xll + res / 2, xll + res / 2 + res * ncols, res)
+                    # geo_y_values = np.arange(yll + res / 2, yll + res / 2 + res * nrows, res)
+
+                    geo_x_values_2d, geo_y_values_2d = np.meshgrid(geo_x_values, geo_y_values)
+
+                    geo_y_right = geo_x_values_2d[0, 0]
+                    geo_y_left = geo_x_values_2d[0, -1]
+                    geo_y_upper = geo_y_values_2d[0, 0]
+                    geo_y_lower = geo_y_values_2d[-1, 0]
+                    if geo_y_lower > geo_y_upper:
+                        geo_y_values_2d = np.flipud(geo_y_values_2d)
+
+                    geo_data_values = np.zeros([geo_y_values.shape[0], geo_x_values.shape[0]])
+                    geo_data_values[:, :] = value_default_data
+
+                    if grid_format == 'dictionary':
+
+                        data_grid[tag_geo_values] = geo_data_values
+                        data_grid[tag_geo_x] = geo_x_values_2d[0, :]
+                        data_grid[tag_geo_y] = geo_y_values_2d[:, 0]
+
+                        if tag_nodata not in list(data_grid.keys()):
+                            data_grid[tag_nodata] = value_no_data
+
+                    elif grid_format == 'data_array':
+
+                        data_attrs = {
+                            'xllcorner': data_grid['xllcorner'], 'yllcorner': data_grid['yllcorner'],
+                            'nrows': data_grid['nrows'], 'ncols': data_grid['ncols'],
+                            'cellsize': data_grid['cellsize'], tag_nodata: value_no_data}
+
+                        data_grid = create_darray(
+                            geo_data_values, geo_x_values_2d[0, :], geo_y_values_2d[:, 0],
+                            coord_name_x='west_east', coord_name_y='south_north',
+                            dim_name_x='west_east', dim_name_y='south_north')
+
+                        data_grid.attrs = data_attrs
+                    else:
+                        log_stream.error(' ===> Grid format "' + grid_format + '" is not expected')
+                        raise NotImplementedError('Only "dictionary" and "data_array" formats are available.')
+                else:
+                    log_stream.error(' ===> Some grid values are set to NoneType.')
+                    raise RuntimeError('Create grid object is not possible.')
+            else:
+                log_stream.error(' ===> Some grid fields are not available.')
+                raise RuntimeError('Create grid object is not possible.')
+        else:
+            log_stream.error(' ===> Grid information must be in dictionary format.')
+            raise RuntimeError('Create grid object is not possible.')
+    else:
+        log_stream.error(' ===> Grid information are not defined.')
+        raise RuntimeError('Create grid object is not possible.')
+
+    return data_grid
+# -------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------
 # Method to init data grid with default structure
