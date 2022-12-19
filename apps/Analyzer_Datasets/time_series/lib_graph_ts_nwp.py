@@ -52,7 +52,7 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
         value_min_rain_accumulated=0, value_max_rain_accumulated=100,
         value_min_soil_moisture=0, value_max_soil_moisture=1,
         tag_type_run=None,
-        tag_time_name='time', tag_time_units='[hour]',
+        tag_time_name='time', tag_time_units='[hour]', tag_time_type='UTC',
         tag_discharge_generic_name='Discharge',
         tag_discharge_sim_name_ground_network='Discharge Simulated Ground Network',
         tag_discharge_sim_name_nwp_01='Discharge Simulated NWP Probabilistic M1',
@@ -155,7 +155,7 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
                    ' ' + label_title_time_run_nwp_01 + ': "' + time_run_nwp_prob_01 + '"' + \
                    ' ' + label_title_time_run_nwp_02 + ': "' + time_run_nwp_prob_02 + '" \n' + \
                    ' == Time_Restart_HMC: "' + time_restart + '"' + \
-                   ' == Time_Start_HMC: "' + time_start + '"'
+                   ' == Time_Start_HMC: "' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
@@ -364,7 +364,7 @@ def plot_ts_discharge_nwp_probabilistic_only(
         value_min_rain_avg=0, value_max_rain_avg=20,
         value_min_rain_accumulated=0, value_max_rain_accumulated=100,
         value_min_soil_moisture=0, value_max_soil_moisture=1,
-        tag_time_name='time', tag_time_units='[hour]',
+        tag_time_name='time', tag_time_units='[hour]', tag_time_type='UTC',
         tag_discharge_generic_name='Discharge',
         tag_discharge_sim_name_nwp='Discharge Simulated NWP',
         tag_discharge_obs_name='Discharge Observed', tag_discharge_units='[m^3/s]',
@@ -432,7 +432,7 @@ def plot_ts_discharge_nwp_probabilistic_only(
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp_prob['run_name'] + '"' + \
                    ' == Time_Run_NWP: "' + time_run_nwp_prob + '" \n' + \
                    ' == Time_Restart_HMC: ' + time_restart + '"' + \
-                   ' == Time_Start_HMC: ' + time_start + '"'
+                   ' == Time_Start_HMC: ' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
@@ -582,7 +582,7 @@ def plot_ts_discharge_nwp_probabilistic(
         value_min_rain_avg=0, value_max_rain_avg=20,
         value_min_rain_accumulated=0, value_max_rain_accumulated=100,
         value_min_soil_moisture=0, value_max_soil_moisture=1,
-        tag_time_name='time', tag_time_units='[hour]',
+        tag_time_name='time', tag_time_units='[hour]', tag_time_type='UTC',
         tag_discharge_generic_name='Discharge',
         tag_discharge_sim_name_ground_network='Discharge Simulated Ground Network',
         tag_discharge_sim_name_nwp='Discharge Simulated NWP',
@@ -651,7 +651,7 @@ def plot_ts_discharge_nwp_probabilistic(
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp_prob['run_name'] + '"' + \
                    ' == Time_Run_OBS: "' + time_run_ground_network + '" Time_Run_NWP: "' + time_run_nwp_prob + '" \n' + \
                    ' == Time_Restart_HMC: ' + time_restart + '"' + \
-                   ' == Time_Start_HMC: ' + time_start + '"'
+                   ' == Time_Start_HMC: ' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
@@ -805,7 +805,7 @@ def plot_ts_discharge_nwp_deterministic(
         value_min_rain_avg=0, value_max_rain_avg=20,
         value_min_rain_accumulated=0, value_max_rain_accumulated=100,
         value_min_soil_moisture=0, value_max_soil_moisture=1,
-        tag_time_name='time', tag_time_units='[hour]',
+        tag_time_name='time', tag_time_units='[hour]', tag_time_type='UTC',
         tag_discharge_generic_name='Discharge',
         tag_discharge_sim_name='Discharge Simulated',
         tag_discharge_obs_name='Discharge Observed', tag_discharge_units='[m^3/s]',
@@ -850,7 +850,7 @@ def plot_ts_discharge_nwp_deterministic(
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp['run_name'] + '"' + \
                    ' == Time_Run_OBS: "' + time_run_ground_network + '" Time_Run_NWP: "' + time_run_nwp + '" \n' + \
                    ' == Time_Restart_HMC: ' + time_restart + '"' + \
-                   ' == Time_Start_HMC: ' + time_start + '"'
+                   ' == Time_Start_HMC: ' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))

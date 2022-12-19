@@ -2,7 +2,7 @@
 Changelog
 =========
 
-Version 1.5.2 [2022-03-17]
+Version 1.5.2 [2022-12-19]
 ===========
 APP: **HAT_RunAnalyzer_HMC.py**
     - FIX: bugs related to the operational mode.
@@ -11,6 +11,7 @@ APP: **HAT_RunPublisher_HMC_Maps.py**
     - FIX: bugs related to the operational mode.
     - FIX: bugs related to the mandatory/ancillary static data (terrain, flow_directions and river_network).
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
+	- ADD: label of time reference system in the plots.
     - FIX: bugs related to the operational mode.
 
 Version 1.5.1 [2021-07-28]

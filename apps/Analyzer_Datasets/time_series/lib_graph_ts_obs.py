@@ -39,7 +39,7 @@ def plot_ts_discharge_obs(
         value_min_rain_avg=0, value_max_rain_avg=20,
         value_min_rain_accumulated=0, value_max_rain_accumulated=100,
         value_min_soil_moisture=0, value_max_soil_moisture=1,
-        tag_time_name='time', tag_time_units='[hour]',
+        tag_time_name='time', tag_time_units='[hour]', tag_time_type='UTC',
         tag_discharge_generic_name='Discharge',
         tag_discharge_sim_name='Discharge Simulated',
         tag_discharge_obs_name='Discharge Observed', tag_discharge_units='[m^3/s]',
@@ -84,7 +84,7 @@ def plot_ts_discharge_obs(
                    ' == Basin: "' + section_domain + '"' +  \
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts['run_name'] + '"' + \
                    ' == Time_Run: "' + time_run + '" == Time_Restart_HMC: "' + time_restart + '"' + \
-                   ' == Time_Start_HMC: "' + time_start + '"'
+                   ' == Time_Start_HMC: "' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))

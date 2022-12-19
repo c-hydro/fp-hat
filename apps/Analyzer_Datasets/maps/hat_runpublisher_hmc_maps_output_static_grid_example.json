@@ -91,9 +91,7 @@
           "yll_corner": 43.7587,
           "rows": 600,
           "cols": 1625,
-          "cell_size": 0.001801,
-          "folder_name2": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_liguria/data/data_static/LiguriaDomain/gridded/",
-          "file_name21": "geo_liguria.tiff"
+          "cell_size": 0.001801
         },
         "flow_directions": {
           "folder_name": null,
