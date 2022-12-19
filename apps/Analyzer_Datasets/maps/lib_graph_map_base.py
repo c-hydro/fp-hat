@@ -42,7 +42,8 @@ log_stream = logging.getLogger(logger_name)
 # Method to plot map variable in png format
 def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_max=None,
                  var_name_data='air_temperature', var_units='C', var_description=None,
-                 var_time_from='NA', var_time_to='NA', var_time_direction='NA', var_time_window='NA',
+                 var_time_from='NA', var_time_to='NA', var_time_direction='NA',
+                 var_time_window='NA', var_time_type='UTC',
                  var_name_geo_x='longitude', var_name_geo_y='latitude',
                  tag_sep=' ', fig_background='stamen',
                  fig_color_map_type=None, fig_color_map_label=None,
@@ -136,10 +137,12 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
 
     # Define graph title
     figure_title = 'Map Data \n Description: ' + var_description + \
-                   ' \n Time: "' + var_time_str + '" == Variable: "' + var_name_data + \
-                   '" == Units: "' + var_units + '"' + \
-                   ' \n TimeFrom: "' + var_time_from_str + '" == TimeTo: "' + var_time_to_str + '"' +  \
-                   ' == TimeWindow: "' + var_time_window + '" == TimeDirection: "' + var_time_direction + '"'
+                   ' \n Time: "' + var_time_str + '" == Variable: "' + var_name_data + '"' + \
+                   ' == Units: "' + var_units + '"' + \
+                   ' \n TimeFrom: "' + var_time_from_str + '" == TimeTo: "' + var_time_to_str + '" \n' + \
+                   ' == TimeRefSystem: "' + var_time_type + '"' + \
+                   ' == TimeWindow: "' + var_time_window + '"' + \
+                   ' == TimeDirection: "' + var_time_direction + '"'
 
     # Create a background map
     if fig_background == 'stamen':

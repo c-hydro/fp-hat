@@ -83,8 +83,8 @@ def plot_ts_discharge_obs(
     figure_title = 'Time Series \n Section: "' + section_name + '"' +  \
                    ' == Basin: "' + section_domain + '"' +  \
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts['run_name'] + '"' + \
-                   ' == Time_Run: "' + time_run + '" == Time_Restart_HMC: "' + time_restart + '"' + \
-                   ' == Time_Start_HMC: "' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
+                   ' == Time_Run: "' + time_run + '" == Time Reference System: "' + tag_time_type + '" \n' + \
+                   ' == Time_Restart_HMC: "' + time_restart + '" == Time_Start_HMC: "' + time_start + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))

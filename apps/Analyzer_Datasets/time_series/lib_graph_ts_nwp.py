@@ -154,6 +154,7 @@ def plot_ts_discharge_nwp_probabilistic_comparison(
                    ' == Time_Run_OBS: "' + time_run_ground_network + '"' + \
                    ' ' + label_title_time_run_nwp_01 + ': "' + time_run_nwp_prob_01 + '"' + \
                    ' ' + label_title_time_run_nwp_02 + ': "' + time_run_nwp_prob_02 + '" \n' + \
+                   ' == Time Reference System: "' + tag_time_type + '"' + \
                    ' == Time_Restart_HMC: "' + time_restart + '"' + \
                    ' == Time_Start_HMC: "' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
 
@@ -431,8 +432,9 @@ def plot_ts_discharge_nwp_probabilistic_only(
                    ' == Basin: "' + section_domain + '"' +  \
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp_prob['run_name'] + '"' + \
                    ' == Time_Run_NWP: "' + time_run_nwp_prob + '" \n' + \
+                   ' == Time Reference System: "' + tag_time_type + '"' + \
                    ' == Time_Restart_HMC: ' + time_restart + '"' + \
-                   ' == Time_Start_HMC: ' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
+                   ' == Time_Start_HMC: ' + time_start + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
@@ -650,8 +652,9 @@ def plot_ts_discharge_nwp_probabilistic(
                    ' == Basin: "' + section_domain + '"' +  \
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp_prob['run_name'] + '"' + \
                    ' == Time_Run_OBS: "' + time_run_ground_network + '" Time_Run_NWP: "' + time_run_nwp_prob + '" \n' + \
+                   ' == Time Reference System: "' + tag_time_type + '"' + \
                    ' == Time_Restart_HMC: ' + time_restart + '"' + \
-                   ' == Time_Start_HMC: ' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
+                   ' == Time_Start_HMC: ' + time_start + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
@@ -849,8 +852,9 @@ def plot_ts_discharge_nwp_deterministic(
                    ' == Basin: "' + section_domain + '"' +  \
                    ' == Area [Km^2]: "' + str(section_drained_area) + '" \n  TypeRun: "' + attrs_ts_nwp['run_name'] + '"' + \
                    ' == Time_Run_OBS: "' + time_run_ground_network + '" Time_Run_NWP: "' + time_run_nwp + '" \n' + \
+                   ' == Time Reference System: "' + tag_time_type + '"' + \
                    ' == Time_Restart_HMC: ' + time_restart + '"' + \
-                   ' == Time_Start_HMC: ' + time_start + '" == Time Reference System: "' + tag_time_type + '"'
+                   ' == Time_Start_HMC: ' + time_start + '"'
 
     # Open figure
     fig = plt.figure(figsize=(17, 11))
