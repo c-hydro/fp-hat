@@ -2,8 +2,8 @@
 """
 Hydrological Analysis Tool - Analyzer_Execution
 
-__date__ = '20220317'
-__version__ = '1.5.2'
+__date__ = '20230127'
+__version__ = '1.6.0'
 __author__ =
         'Fabio Delogu (fabio.delogu@cimafoundation.org',
         'Flavio Pignone (flavio.pignone@cimafoundation.org',
@@ -14,6 +14,7 @@ General command line:
 python3 HAT_RunAnalyzer_HMC_Main.py -settings_file configuration.json -time "YYYY-MM-DD HH:MM"
 
 Version(s):
+20230127 (1.6.0) --> Operational release for Liguria and Marche operational chain
 20220317 (1.5.2) --> Bug fixing
 20210728 (1.5.1) --> Operational release for HMC 3.x.x
 20210225 (1.5.0) --> Beta release for HMC 3.x.x
@@ -34,12 +35,17 @@ from lib_utils_system import make_folder
 
 from driver_data_io_static import DriverStatic
 from driver_data_io_dynamic import DriverDynamic
+
+from lib_info_args import logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
 # -------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------
 # Algorithm information
-alg_version = '1.5.2'
-alg_release = '2022-03-17'
+alg_version = '1.6.0'
+alg_release = '2023-01-27'
 alg_name = 'RUN ANALYZER'
 # Algorithm parameter(s)
 time_format = '%Y-%m-%d %H:%M'
@@ -64,10 +70,10 @@ def main():
 
     # -------------------------------------------------------------------------------------
     # Info algorithm
-    logging.info(' ============================================================================ ')
-    logging.info(' ==> ' + alg_name + ' (Version: ' + alg_version + ' Release_Date: ' + alg_release + ')')
-    logging.info(' ==> START ... ')
-    logging.info(' ')
+    log_stream.info(' ============================================================================ ')
+    log_stream.info(' ==> ' + alg_name + ' (Version: ' + alg_version + ' Release_Date: ' + alg_release + ')')
+    log_stream.info(' ==> START ... ')
+    log_stream.info(' ')
 
     # Time algorithm information
     start_time = time.time()
@@ -115,9 +121,8 @@ def main():
             flag_cleaning_dynamic_tmp=data_settings['algorithm']['flags']['cleaning_dynamic_tmp'])
 
         dynamic_data_collection = driver_data_dynamic.organize_dynamic_data()
-        analyze_data_collection, analyze_warnings_collection = driver_data_dynamic.analyze_dynamic_data(
-            dynamic_data_collection)
-        driver_data_dynamic.dump_dynamic_data(analyze_data_collection, analyze_warnings_collection)
+        analyze_data_collection = driver_data_dynamic.analyze_dynamic_data(dynamic_data_collection)
+        driver_data_dynamic.dump_dynamic_data(analyze_data_collection)
         driver_data_dynamic.clean_dynamic_tmp()
         # -------------------------------------------------------------------------------------
 
@@ -125,12 +130,12 @@ def main():
     # Info algorithm
     alg_time_elapsed = round(time.time() - start_time, 1)
 
-    logging.info(' ')
-    logging.info(' ==> ' + alg_name + ' (Version: ' + alg_version + ' Release_Date: ' + alg_release + ')')
-    logging.info(' ==> TIME ELAPSED: ' + str(alg_time_elapsed) + ' seconds')
-    logging.info(' ==> ... END')
-    logging.info(' ==> Bye, Bye')
-    logging.info(' ============================================================================ ')
+    log_stream.info(' ')
+    log_stream.info(' ==> ' + alg_name + ' (Version: ' + alg_version + ' Release_Date: ' + alg_release + ')')
+    log_stream.info(' ==> TIME ELAPSED: ' + str(alg_time_elapsed) + ' seconds')
+    log_stream.info(' ==> ... END')
+    log_stream.info(' ==> Bye, Bye')
+    log_stream.info(' ============================================================================ ')
     # -------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------

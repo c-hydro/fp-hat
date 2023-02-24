@@ -21,10 +21,21 @@ from lib_utils_system import fill_tags2string, make_folder
 
 from lib_utils_exec import read_file_execution_info
 from lib_data_io_json import read_file_hydrograph_ts, read_file_hydrograph_info
-from lib_data_io_html import write_file_summary
-from lib_data_io_ascii import write_file_warnings
 
-from lib_data_analysis import analyze_hydrograph_datasets, analyze_time_info
+from lib_bulletin_data_analysis import organize_bulletin_info
+from lib_bulletin_data_analysis import organize_bulletin_warnings_generic, organize_bulletin_warnings_section
+from lib_bulletin_data_analysis import select_bulletin_time
+from lib_bulletin_io_html import write_bulletin_summary
+from lib_bulletin_io_xml import write_bulletin_warnings as write_bulletin_warn_xml
+from lib_bulletin_io_ascii import write_bulletin_warnings as write_bulletin_warn_csv
+from lib_bulletin_data_utils import merge_bulletin_datasets, init_bulletin_attrs, merge_bulletin_attrs
+
+from lib_data_analysis import analyze_discharge_ts, analyze_time_info
+
+from lib_info_args import logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
 
 # Debug
 # import matplotlib.pylab as plt
@@ -42,10 +53,12 @@ class DriverDynamic:
                  tag_section_data='section_data', tag_execution_data='execution_data',
                  tag_src_reference_start='run_reference_start', tag_src_reference_end='run_reference_end',
                  tag_anc_source='run_source', tag_anc_analysis='run_analysis', tag_anc_destination='run_destination',
-                 tag_dest_summary='run_summary', tag_dest_warnings='run_warnings',
-                 tag_section_name='section_name', tag_basin_name='basin_name',
+                 tag_dest_summary='run_summary',
+                 tag_dest_warnings_maximum='run_warnings_maximum', tag_dest_warnings_daily='run_warnings_daily',
+                 tag_section_name='section_name', tag_section_catchment='section_catchment',
                  flag_cleaning_dynamic_source=True, flag_cleaning_dynamic_analysis=True,
-                 flag_cleaning_dynamic_destination=True, flag_cleaning_dynamic_tmp=True, string_sep=':'):
+                 flag_cleaning_dynamic_destination=True, flag_cleaning_dynamic_tmp=True,
+                 string_sep=':'):
 
         self.time_now = time_now
         self.time_exec = time_exec
@@ -60,36 +73,59 @@ class DriverDynamic:
         self.tag_anc_analysis = tag_anc_analysis
         self.tag_anc_destination = tag_anc_destination
         self.tag_dest_summary = tag_dest_summary
-        self.tag_dest_warnings = tag_dest_warnings
+        self.tag_dest_warnings_maximum = tag_dest_warnings_maximum
+        self.tag_dest_warnings_daily = tag_dest_warnings_daily
 
         self.tag_section_name = tag_section_name
-        self.tag_basin_name = tag_basin_name
+        self.tag_section_catchment = tag_section_catchment
         self.alg_ancillary = alg_ancillary
         self.alg_template_tags = alg_template_tags
 
         self.string_sep = string_sep
 
-        self.section_data_collection = static_data_collection[self.tag_section_data]
-        self.execution_data_collection = static_data_collection[self.tag_execution_data]
+        self.sections_dframe = static_data_collection[self.tag_section_data]
+        self.exec_dframe = static_data_collection[self.tag_execution_data]
 
-        self.domain_name = self.alg_ancillary['domain_name']
+        # get domain name information
+        self.domain_name_list = self.alg_ancillary['domain_name']
+        if not isinstance(self.domain_name_list, list):
+            self.domain_name_list = [self.domain_name_list]
+        # get title name information
+        if 'title_name' in list(self.alg_ancillary.keys()):
+            self.title_name = self.alg_ancillary['title_name']
+        else:
+            self.title_name = 'Bulletin of Operational Chain'
+        # get time mode information
+        if 'time_mode' in list(self.alg_ancillary.keys()):
+            self.time_mode = self.alg_ancillary['time_mode']
+        else:
+            self.time_mode = 'LOCAL'
+
+        self.domain_name_list = self.alg_ancillary['domain_name']
+        if not isinstance(self.domain_name_list, list):
+            self.domain_name_list = [self.domain_name_list]
 
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
+        self.status_active_tag = 'active'
 
-        self.section_name_list = self.collect_section_list(
-            columns_tag_in=['section_name'], columns_tag_out=[self.tag_section_name])[self.tag_section_name]
-        self.basin_name_list = self.collect_section_list(
-            columns_tag_in=['section_domain'], columns_tag_out=[self.tag_basin_name])[self.tag_basin_name]
+        self.section_data_obj = self.filter_data_by_key(
+            self.sections_dframe, key_value=self.domain_name_list)
+        self.section_name_obj = self.extract_data_by_key(
+            self.section_data_obj, key_column=self.tag_section_name)
+        self.section_catchment_obj = self.extract_data_by_key(
+            self.section_data_obj, key_column=self.tag_section_catchment)
 
-        self.outlet_name_list = [self.string_sep.join(
-            [b.lower(), s.lower()]) for b, s in zip(self.basin_name_list, self.section_name_list)]
+        self.outlet_name_obj = self.merge_data_by_key(
+            self.section_catchment_obj, self.section_name_obj, obj_data_separator=self.string_sep)
 
+        # source folder(s) and file(s)
         self.folder_name_src_ref_start = src_dict[self.tag_src_reference_start][self.folder_name_tag]
         self.file_name_src_ref_start = src_dict[self.tag_src_reference_start][self.file_name_tag]
         self.folder_name_src_ref_end = src_dict[self.tag_src_reference_end][self.folder_name_tag]
         self.file_name_src_ref_end = src_dict[self.tag_src_reference_end][self.file_name_tag]
 
+        # ancillary folder(s) and file(s)
         self.folder_name_anc_source = anc_dict[self.tag_anc_source][self.folder_name_tag]
         self.file_name_anc_source = anc_dict[self.tag_anc_source][self.file_name_tag]
         self.folder_name_anc_analysis = anc_dict[self.tag_anc_analysis][self.folder_name_tag]
@@ -97,38 +133,66 @@ class DriverDynamic:
         self.folder_name_anc_destination = anc_dict[self.tag_anc_destination][self.folder_name_tag]
         self.file_name_anc_destination = anc_dict[self.tag_anc_destination][self.file_name_tag]
 
+        # destination folder(s), file(s) and status
         self.folder_name_dest_summary = dest_dict[self.tag_dest_summary][self.folder_name_tag]
         self.file_name_dest_summary = dest_dict[self.tag_dest_summary][self.file_name_tag]
-        self.folder_name_dest_warnings = dest_dict[self.tag_dest_warnings][self.folder_name_tag]
-        self.file_name_dest_warnings = dest_dict[self.tag_dest_warnings][self.file_name_tag]
+        if self.status_active_tag in list(dest_dict[self.tag_dest_summary].keys()):
+            self.status_dest_summary = dest_dict[self.tag_dest_summary][self.status_active_tag]
+        else:
+            self.status_dest_summary = True
+        self.folder_name_dest_warn_max = dest_dict[self.tag_dest_warnings_maximum][self.folder_name_tag]
+        self.file_name_dest_warn_max = dest_dict[self.tag_dest_warnings_maximum][self.file_name_tag]
+        if self.status_active_tag in list(dest_dict[self.tag_dest_warnings_maximum].keys()):
+            self.status_dest_warn_max = dest_dict[self.tag_dest_warnings_maximum][self.status_active_tag]
+        else:
+            self.status_dest_warn_max = True
+        self.folder_name_dest_warn_daily = dest_dict[self.tag_dest_warnings_daily][self.folder_name_tag]
+        self.file_name_dest_warn_daily = dest_dict[self.tag_dest_warnings_daily][self.file_name_tag]
+        if self.status_active_tag in list(dest_dict[self.tag_dest_warnings_daily].keys()):
+            self.status_dest_warn_daily = dest_dict[self.tag_dest_warnings_daily][self.status_active_tag]
+        else:
+            self.status_dest_warn_daily = True
 
-        self.exec_name_list = list(self.execution_data_collection.index)
-        self.exec_values_list = list(self.execution_data_collection.values)
-        self.exec_type_list = list(self.execution_data_collection.columns)
+        self.exec_name_list = list(self.exec_dframe.index)
+        self.exec_values_list = list(self.exec_dframe.values)
+        self.exec_type_list = list(self.exec_dframe.columns)
 
-        file_collections_src_ref_start = {}
-        file_collections_src_ref_end = {}
+        # define file source reference
+        file_obj_src_ref_start, file_obj_src_ref_end = {}, {}
         for exec_name, exec_fields in zip(self.exec_name_list, self.exec_values_list):
 
-            file_extra_variables = {'domain_name': self.domain_name}
-            for exec_type_step, exec_field_step in zip(self.exec_type_list, exec_fields):
-                file_extra_variables[exec_type_step] = exec_field_step
-            file_extra_collections = {self.tag_basin_name: self.basin_name_list, self.tag_section_name: self.section_name_list}
+            for domain_name_step in self.domain_name_list:
 
-            file_list_src_ref_start = self.define_file_string(
-                    None, os.path.join(self.folder_name_src_ref_start, self.file_name_src_ref_start),
-                    file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                if domain_name_step not in list(file_obj_src_ref_start.keys()):
+                    file_obj_src_ref_start[domain_name_step] = {}
+                if domain_name_step not in list(file_obj_src_ref_end.keys()):
+                    file_obj_src_ref_end[domain_name_step] = {}
 
-            file_list_src_ref_end = self.define_file_string(
-                    None, os.path.join(self.folder_name_src_ref_end, self.file_name_src_ref_end),
-                    file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                section_name_list = self.section_name_obj[domain_name_step]
+                section_catchment_list = self.section_catchment_obj[domain_name_step]
 
-            file_collections_src_ref_start[exec_name] = pd.Series(file_list_src_ref_start).drop_duplicates().tolist()
-            file_collections_src_ref_end[exec_name] = pd.Series(file_list_src_ref_end).drop_duplicates().tolist()
+                file_extra_variables = dict(zip(self.exec_type_list, exec_fields))
+                file_extra_variables['domain_name'] = domain_name_step
+                file_extra_collections = {self.tag_section_catchment: section_catchment_list,
+                                          self.tag_section_name: section_name_list}
 
-        self.file_collections_src_ref_start = file_collections_src_ref_start
-        self.file_collections_src_ref_end = file_collections_src_ref_end
+                file_list_src_ref_start = self.define_file_string(
+                        None, os.path.join(self.folder_name_src_ref_start, self.file_name_src_ref_start),
+                        file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                file_list_src_ref_start = self.filter_file_string(file_list_src_ref_start)
 
+                file_list_src_ref_end = self.define_file_string(
+                        None, os.path.join(self.folder_name_src_ref_end, self.file_name_src_ref_end),
+                        file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                file_list_src_ref_end = self.filter_file_string(file_list_src_ref_end)
+
+                file_obj_src_ref_start[domain_name_step][exec_name] = file_list_src_ref_start
+                file_obj_src_ref_end[domain_name_step][exec_name] = file_list_src_ref_end
+
+        self.file_obj_src_ref_start = file_obj_src_ref_start
+        self.file_obj_src_ref_end = file_obj_src_ref_end
+
+        # define file ancillary reference
         self.file_path_anc_source = self.define_file_string(
             self.time_run, os.path.join(self.folder_name_anc_source, self.file_name_anc_source),
             file_extra_variables=None, file_extra_collections=None)
@@ -139,18 +203,24 @@ class DriverDynamic:
             self.time_run, os.path.join(self.folder_name_anc_destination, self.file_name_anc_destination),
             file_extra_variables=None, file_extra_collections=None)
 
+        # define file destination reference
         self.file_path_dest_summary = self.define_file_string(
             self.time_run, os.path.join(self.folder_name_dest_summary, self.file_name_dest_summary),
             file_extra_variables=None, file_extra_collections=None)
-        self.file_path_dest_warnings = self.define_file_string(
-            self.time_run, os.path.join(self.folder_name_dest_warnings, self.file_name_dest_warnings),
+        self.file_path_dest_warn_max = self.define_file_string(
+            self.time_run, os.path.join(self.folder_name_dest_warn_max, self.file_name_dest_warn_max),
+            file_extra_variables=None, file_extra_collections=None)
+        self.file_path_dest_warn_daily = self.define_file_string(
+            self.time_run, os.path.join(self.folder_name_dest_warn_daily, self.file_name_dest_warn_daily),
             file_extra_variables=None, file_extra_collections=None)
 
+        # flags
         self.flag_cleaning_dynamic_source = flag_cleaning_dynamic_source
         self.flag_cleaning_dynamic_analysis = flag_cleaning_dynamic_analysis
         self.flag_cleaning_dynamic_destination = flag_cleaning_dynamic_destination
         self.flag_cleaning_dynamic_tmp = flag_cleaning_dynamic_tmp
 
+        # tags
         self.tag_time_period = 'time_period'
         self.tag_time_frequency = 'time_frequency'
         self.tag_time_rounding = 'time_rounding'
@@ -175,31 +245,102 @@ class DriverDynamic:
         self.tag_summary_alarm_index = 'alarm_index'
         self.tag_summary_alarm_section = 'alarm_section'
         self.tag_summary_alarm_thr = 'alarm_thr'
-        self.tag_summary_run_type = 'run_type'
-
-        self.warnings_structure = {
-            'alert_datasets': {
-                'key_ref': self.tag_summary_alert_value,
-                'key_list': [self.tag_summary_alert_value, self.tag_summary_alert_index,
-                             self.tag_summary_alert_thr, self.tag_summary_run_type]
-            },
-            'alarm_datasets': {
-                'key_ref': self.tag_summary_alert_value,
-                'key_list': [self.tag_summary_alarm_value, self.tag_summary_alarm_index,
-                             self.tag_summary_alarm_thr, self.tag_summary_run_type]}
-        }
+        self.tag_summary_run_name = 'run_name'
+        self.tag_summary_run_description = 'run_description'
 
         self.tag_info = 'info'
         self.tag_data = 'data'
-        self.tag_warnings = 'warnings'
         self.tag_time_ref_start = 'time_start'
         self.tag_time_ref_end = 'time_end'
 
-        self.tag_file_time_create = 'time_create'
+        self.tag_file_time_reference = 'time_modified'
+
+        self.tag_bulletin_info = 'bulletin_info'
+        self.tag_bulletin_thr = 'bulletin_thr'
+        self.tag_bulletin_sections_generic = 'bulletin_sections_generic'
+        self.tag_bulletin_sections_max = 'bulletin_sections_max'
+        self.tag_bulletin_sections_today = 'bulletin_sections_today'
+        self.tag_bulletin_sections_tomorrow = 'bulletin_sections_tomorrow'
         # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
-    # Method to define  filename
+    # Method to filter file string
+    @staticmethod
+    def filter_file_string(file_list_src):
+        file_list_filter = []
+        for file_list_step in file_list_src:
+            if file_list_step not in file_list_filter:
+                file_list_filter.append(file_list_step)
+        return file_list_filter
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # Method to merge data by key
+    @staticmethod
+    def merge_data_by_key(obj_data_in_1, obj_data_in_2, obj_data_separator=':', obj_data_case='lower'):
+        obj_data_out = {}
+        for (obj_key_1, obj_list_1), (obj_key_2, obj_list_2) in zip(obj_data_in_1.items(), obj_data_in_2.items()):
+            assert obj_key_1 == obj_key_2, 'obj key is not the same, impossible to merge the lists'
+
+            if obj_data_case == 'lower':
+                obj_list_out = [obj_data_separator.join([b.lower(), s.lower()]) for b, s in zip(obj_list_1, obj_list_2)]
+            elif obj_data_case == 'upper':
+                obj_list_out = [obj_data_separator.join([b.upper(), s.upper()]) for b, s in zip(obj_list_1, obj_list_2)]
+            else:
+                obj_list_out = [obj_data_separator.join([b, s]) for b, s in zip(obj_list_1, obj_list_2)]
+
+            obj_data_out[obj_key_1] = obj_list_out
+        return obj_data_out
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # Method to filter data by key
+    @staticmethod
+    def filter_data_by_key(dframe_data, key_value, key_column='domain_name'):
+
+        obj_data = {}
+        if not isinstance(key_value, list):
+            key_value = [key_value]
+
+        for key_step in key_value:
+
+            key_selection = key_step.lower()
+            dframe_data['tag_selection'] = dframe_data[key_column].str.lower()
+            dframe_step = dframe_data[dframe_data['tag_selection'] == key_selection]
+            # dframe_step.pop('domain_selection')
+
+            if not dframe_step.empty:
+                key_dataframe = dframe_step[key_column].values[0]
+                if dframe_step[key_column].values[0] != key_step:
+                    log_stream.warning(' ===> Select DataFrame rows is returned by defining lower case keys.'
+                                       ' Key value in the dataframe "' + key_dataframe +
+                                       '" and key selection "' + key_step +
+                                       '" are different.')
+            else:
+                log_stream.warning(' ===> Select DataFrame rows by value returned empty DataFrame')
+
+            obj_data[key_step] = dframe_step
+
+        return obj_data
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # Method to extract data by key
+    @staticmethod
+    def extract_data_by_key(obj_data_in, key_column=None):
+
+        if key_column is None:
+            key_column = 'section_catchment'
+
+        obj_data_out = {}
+        for obj_key_tmp, obj_dframe_tmp in obj_data_in.items():
+            obj_data_tmp = obj_dframe_tmp[key_column].values.tolist()
+            obj_data_out[obj_key_tmp] = obj_data_tmp
+        return obj_data_out
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # Method to define filename
     def define_file_string(self, time, file_path_raw,
                            file_extra_variables=None, file_extra_collections=None):
 
@@ -209,6 +350,11 @@ class DriverDynamic:
             file_extra_collections = None
 
         alg_template_tags = self.alg_template_tags
+
+        if file_extra_collections is not None:
+            if 'basin_name' not in list(file_extra_collections.keys()):
+                if 'section_catchment' in list(file_extra_collections.keys()):
+                    file_extra_collections['basin_name'] = deepcopy(file_extra_collections['section_catchment'])
 
         alg_template_values_raw = {
             'source_datetime': time,
@@ -268,25 +414,6 @@ class DriverDynamic:
     # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
-    # Method to collect section information
-    def collect_section_list(self, columns_tag_in=None, columns_tag_out=None):
-
-        if columns_tag_in is None:
-            columns_tag_in = ['section_domain', 'section_name']
-        if columns_tag_out is None:
-            columns_tag_out = ['section_domain', 'section_name']
-
-        section_data_collection = self.section_data_collection
-
-        section_dict = {}
-        for columns_in_step, columns_out_step in zip(columns_tag_in, columns_tag_out):
-            section_data_step = section_data_collection[columns_in_step].values.tolist()
-            section_dict[columns_out_step] = section_data_step
-        return section_dict
-
-    # -------------------------------------------------------------------------------------
-
-    # -------------------------------------------------------------------------------------
     # Method to clean dynamic tmp
     def clean_dynamic_tmp(self):
 
@@ -306,180 +433,316 @@ class DriverDynamic:
 
     # -------------------------------------------------------------------------------------
     # Method to dump dynamic data
-    def dump_dynamic_data(self, analysis_datasets_collections, analysis_warnings_collections):
+    def dump_dynamic_data(self, analysis_datasets_collections):
 
         time_exec = self.time_exec
         time_run = self.time_run
+        time_mode = self.time_mode
 
+        title_name = self.title_name
+
+        domain_name_list = self.domain_name_list
         exec_name_list = self.exec_name_list
-        outlet_name_list = self.outlet_name_list
-        exec_collections = self.execution_data_collection
 
-        warnings_structure = self.warnings_structure
+        exec_dframe = self.exec_dframe
+        sections_dframe = self.sections_dframe
 
         file_path_anc = self.file_path_anc_destination
         file_path_dest_summary = self.file_path_dest_summary
-        file_path_dest_warnings = self.file_path_dest_warnings
+        file_path_dest_warn_max = self.file_path_dest_warn_max
+        file_path_dest_warn_daily = self.file_path_dest_warn_daily
+
+        status_dest_summary = self.status_dest_summary
+        status_dest_warn_max = self.status_dest_warn_max
+        status_dest_warn_daily = self.status_dest_warn_daily
 
         flag_clean_anc = self.flag_cleaning_dynamic_destination
 
-        logging.info(' ---> Dump dynamic datasets [' + str(time_run) + '] ... ')
+        # info time start
+        log_stream.info(' ---> Dump dynamic datasets [' + str(time_run) + '] ... ')
 
         if flag_clean_anc:
             if os.path.exists(file_path_anc):
                 os.remove(file_path_anc)
 
-        summary_collections = {}
-        for exec_name_step in exec_name_list:
+        # organize bulletin datasets
+        log_stream.info(' ----> Organize summary bulletin  ... ')
 
-            logging.info(' ----> Execution ' + exec_name_step + ' ... ')
-            summary_collections[exec_name_step] = {}
+        # check availability of ancillary file
+        if not os.path.exists(file_path_anc):
 
-            attrs_exec = exec_collections[exec_collections.index == exec_name_step].to_dict('r')[0]
+            # iterate over domains list
+            summary_collections = {}
+            for domain_name_step in domain_name_list:
+                log_stream.info(' -----> Domain reference "' + domain_name_step + '" ... ')
 
-            data_analysis = analysis_datasets_collections[exec_name_step][self.tag_run_datasets_section]
+                analysis_datasets_domain = analysis_datasets_collections[domain_name_step]
 
-            if data_analysis is not None:
+                # iterate over executions list
+                for exec_name_step in exec_name_list:
 
-                attrs_analysis = analysis_datasets_collections[exec_name_step][self.tag_run_datasets_attrs]
-                attrs_analysis[self.tag_run_ref_start] = analysis_datasets_collections[exec_name_step][self.tag_run_ref_start]
-                attrs_analysis[self.tag_run_ref_end] = analysis_datasets_collections[exec_name_step][self.tag_run_ref_end]
-                attrs_analysis[self.tag_run_ref_elapsed] = analysis_datasets_collections[exec_name_step][self.tag_run_ref_elapsed]
+                    log_stream.info(' ------> Execution reference "' + exec_name_step + '" ... ')
 
-                summary_datasets = {}
-                for section_name, section_data in data_analysis.items():
+                    # get run data and attributes (1)
+                    attrs_exec = exec_dframe[exec_dframe.index == exec_name_step].to_dict('r')[0]
+                    run_name = attrs_exec[self.tag_summary_run_name]
+                    run_description = attrs_exec[self.tag_summary_run_description]
 
-                    logging.info(' -----> Section ' + section_name + ' ... ')
+                    # get analysis data and attributes (2)
+                    data_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_section]
+                    attrs_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_attrs]
 
-                    attrs_datasets = {**attrs_analysis, **attrs_exec}
+                    # get extend attributes of run (some basic information) (3)
+                    attrs_extend = {
+                        'domain_name': domain_name_step,
+                        self.tag_summary_run_name: run_name, self.tag_summary_run_description: run_description}
 
-                    if section_data is not None:
-                        for time_step, data_step in section_data.items():
+                    # add time attributes to analysis attributes
+                    if attrs_analysis is None:
+                        attrs_analysis = {}
 
-                            logging.info(' ------> Time ' + str(time_step) + ' ... ')
+                    attrs_analysis[self.tag_run_ref_start] = analysis_datasets_domain[exec_name_step][
+                        self.tag_run_ref_start]
+                    attrs_analysis[self.tag_run_ref_end] = analysis_datasets_domain[exec_name_step][
+                        self.tag_run_ref_end]
+                    attrs_analysis[self.tag_run_ref_elapsed] = analysis_datasets_domain[exec_name_step][
+                        self.tag_run_ref_elapsed]
 
-                            max_alert_value = data_step[self.tag_summary_alert_value]
-                            max_alert_idx = data_step[self.tag_summary_alert_index]
-                            max_alarm_value = data_step[self.tag_summary_alarm_value]
-                            max_alarm_idx = data_step[self.tag_summary_alarm_index]
-                            thr_alert_value = data_step[self.tag_summary_alert_thr]
-                            thr_alarm_value = data_step[self.tag_summary_alarm_thr]
+                    # define datasets attributes
+                    attrs_datasets = {**attrs_analysis, **attrs_exec, **attrs_extend}
 
-                            if time_step not in list(summary_datasets.keys()):
-                                summary_datasets[time_step] = {}
+                    if data_analysis is not None:
 
-                                summary_datasets[time_step][self.tag_summary_alert_value] = [max_alert_value]
-                                summary_datasets[time_step][self.tag_summary_alert_index] = [max_alert_idx]
-                                summary_datasets[time_step][self.tag_summary_alert_section] = [section_name]
-                                summary_datasets[time_step][self.tag_summary_alert_thr] = [thr_alert_value]
+                        summary_datasets = {}
+                        for section_name, section_data in data_analysis.items():
 
-                                summary_datasets[time_step][self.tag_summary_alarm_value] = [max_alarm_value]
-                                summary_datasets[time_step][self.tag_summary_alarm_index] = [max_alarm_idx]
-                                summary_datasets[time_step][self.tag_summary_alarm_section] = [section_name]
-                                summary_datasets[time_step][self.tag_summary_alarm_thr] = [thr_alarm_value]
+                            log_stream.info(' -------> Section "' + section_name + '" ... ')
 
-                                summary_datasets[time_step][self.tag_summary_run_type] = [exec_name_step]
+                            if section_data is not None:
+                                for time_step, data_step in section_data.items():
+
+                                    log_stream.info(' --------> Time "' + str(time_step) + '" ... ')
+
+                                    max_alert_value = data_step[self.tag_summary_alert_value]
+                                    max_alert_idx = data_step[self.tag_summary_alert_index]
+                                    max_alarm_value = data_step[self.tag_summary_alarm_value]
+                                    max_alarm_idx = data_step[self.tag_summary_alarm_index]
+                                    thr_alert_value = data_step[self.tag_summary_alert_thr]
+                                    thr_alarm_value = data_step[self.tag_summary_alarm_thr]
+
+                                    if time_step not in list(summary_datasets.keys()):
+                                        summary_datasets[time_step] = {}
+
+                                        summary_datasets[time_step][self.tag_summary_alert_value] = [max_alert_value]
+                                        summary_datasets[time_step][self.tag_summary_alert_index] = [max_alert_idx]
+                                        summary_datasets[time_step][self.tag_summary_alert_section] = [section_name]
+                                        summary_datasets[time_step][self.tag_summary_alert_thr] = [thr_alert_value]
+
+                                        summary_datasets[time_step][self.tag_summary_alarm_value] = [max_alarm_value]
+                                        summary_datasets[time_step][self.tag_summary_alarm_index] = [max_alarm_idx]
+                                        summary_datasets[time_step][self.tag_summary_alarm_section] = [section_name]
+                                        summary_datasets[time_step][self.tag_summary_alarm_thr] = [thr_alarm_value]
+
+                                        summary_datasets[time_step][self.tag_summary_run_name] = [run_name]
+                                        summary_datasets[time_step][self.tag_summary_run_description] = [run_description]
+
+                                    else:
+
+                                        tmp_datasets = deepcopy(summary_datasets[time_step])
+
+                                        tmp_alert_value = tmp_datasets[self.tag_summary_alert_value]
+                                        tmp_alert_idx = tmp_datasets[self.tag_summary_alert_index]
+                                        tmp_alert_section = tmp_datasets[self.tag_summary_alert_section]
+                                        tmp_alert_thr = tmp_datasets[self.tag_summary_alert_thr]
+                                        tmp_alert_value.append(max_alert_value)
+                                        tmp_alert_idx.append(max_alert_idx)
+                                        tmp_alert_section.append(section_name)
+                                        tmp_alert_thr.append(thr_alert_value)
+
+                                        summary_datasets[time_step][self.tag_summary_alert_value] = tmp_alert_value
+                                        summary_datasets[time_step][self.tag_summary_alert_index] = tmp_alert_idx
+                                        summary_datasets[time_step][self.tag_summary_alert_section] = tmp_alert_section
+                                        summary_datasets[time_step][self.tag_summary_alert_thr] = tmp_alert_thr
+
+                                        tmp_alarm_value = tmp_datasets[self.tag_summary_alarm_value]
+                                        tmp_alarm_idx = tmp_datasets[self.tag_summary_alarm_index]
+                                        tmp_alarm_section = tmp_datasets[self.tag_summary_alarm_section]
+                                        tmp_alarm_thr = tmp_datasets[self.tag_summary_alarm_thr]
+                                        tmp_alarm_value.append(max_alarm_value)
+                                        tmp_alarm_idx.append(max_alarm_idx)
+                                        tmp_alarm_section.append(section_name)
+                                        tmp_alarm_thr.append(thr_alarm_value)
+
+                                        summary_datasets[time_step][self.tag_summary_alarm_value] = tmp_alarm_value
+                                        summary_datasets[time_step][self.tag_summary_alarm_index] = tmp_alarm_idx
+                                        summary_datasets[time_step][self.tag_summary_alarm_section] = tmp_alarm_section
+                                        summary_datasets[time_step][self.tag_summary_alarm_thr] = tmp_alarm_thr
+
+                                        tmp_run_name = tmp_datasets[self.tag_summary_run_name]
+                                        tmp_run_name.append(run_name)
+                                        summary_datasets[time_step][self.tag_summary_run_name] = tmp_run_name
+
+                                        tmp_run_description = tmp_datasets[self.tag_summary_run_description]
+                                        tmp_run_description.append(run_description)
+                                        summary_datasets[time_step][self.tag_summary_run_description] = tmp_run_description
+
+                                    log_stream.info(' --------> Time "' + str(time_step) + '" ... DONE')
+
+                                log_stream.info(' -------> Section "' + section_name + '" ... DONE')
 
                             else:
-
-                                tmp_datasets = deepcopy(summary_datasets[time_step])
-
-                                tmp_alert_value = tmp_datasets[self.tag_summary_alert_value]
-                                tmp_alert_idx = tmp_datasets[self.tag_summary_alert_index]
-                                tmp_alert_section = tmp_datasets[self.tag_summary_alert_section]
-                                tmp_alert_thr = tmp_datasets[self.tag_summary_alert_thr]
-                                tmp_alert_value.append(max_alert_value)
-                                tmp_alert_idx.append(max_alert_idx)
-                                tmp_alert_section.append(section_name)
-                                tmp_alert_thr.append(thr_alert_value)
-
-                                summary_datasets[time_step][self.tag_summary_alert_value] = tmp_alert_value
-                                summary_datasets[time_step][self.tag_summary_alert_index] = tmp_alert_idx
-                                summary_datasets[time_step][self.tag_summary_alert_section] = tmp_alert_section
-                                summary_datasets[time_step][self.tag_summary_alert_thr] = tmp_alert_thr
-
-                                tmp_alarm_value = tmp_datasets[self.tag_summary_alarm_value]
-                                tmp_alarm_idx = tmp_datasets[self.tag_summary_alarm_index]
-                                tmp_alarm_section = tmp_datasets[self.tag_summary_alarm_section]
-                                tmp_alarm_thr = tmp_datasets[self.tag_summary_alarm_thr]
-                                tmp_alarm_value.append(max_alarm_value)
-                                tmp_alarm_idx.append(max_alarm_idx)
-                                tmp_alarm_section.append(section_name)
-                                tmp_alarm_thr.append(thr_alarm_value)
-
-                                summary_datasets[time_step][self.tag_summary_alarm_value] = tmp_alarm_value
-                                summary_datasets[time_step][self.tag_summary_alarm_index] = tmp_alarm_idx
-                                summary_datasets[time_step][self.tag_summary_alarm_section] = tmp_alarm_section
-                                summary_datasets[time_step][self.tag_summary_alarm_thr] = tmp_alarm_thr
-
-                                tmp_run_type = tmp_datasets[self.tag_summary_run_type]
-                                tmp_run_type.append(exec_name_step)
-                                summary_datasets[time_step][self.tag_summary_run_type] = tmp_run_type
-
-                            logging.info(' ------> Time ' + str(time_step) + ' ... DONE')
-
-                        logging.info(' -----> Section ' + section_name + ' ... DONE')
+                                log_stream.info(' -------> Section "' + section_name +
+                                                '" ... SKIPPED. Datasets are undefined')
 
                     else:
-                        logging.info(' -----> Section ' + section_name + ' ... SKIPPED. Datasets are undefined')
+                        summary_datasets = None
 
-            else:
-                summary_datasets = None
-                attrs_datasets = deepcopy(attrs_exec)
+                    # add information to summary collections
+                    if exec_name_step not in list(summary_collections.keys()):
 
-            summary_collections[exec_name_step][self.tag_data] = {}
-            summary_collections[exec_name_step][self.tag_data] = summary_datasets
-            summary_collections[exec_name_step][self.tag_info] = {}
-            summary_collections[exec_name_step][self.tag_info] = attrs_datasets
+                        # set datasets to the summary collections
+                        summary_collections[exec_name_step] = {}
 
-            logging.info(' ----> Execution ' + exec_name_step + ' ... DONE')
+                        summary_collections[exec_name_step][self.tag_data] = {}
+                        summary_collections[exec_name_step][self.tag_data] = summary_datasets
+                        summary_collections[exec_name_step][self.tag_info] = {}
+                        summary_collections[exec_name_step][self.tag_info] = init_bulletin_attrs(attrs_datasets)
 
-        # Save summary bulletin
-        folder_name_dest_summary, file_name_dest_summary = os.path.split(file_path_dest_summary)
-        make_folder(folder_name_dest_summary)
-        logging.info(' ----> Save summary bulletin ' + file_name_dest_summary + ' ... ')
+                    else:
+                        # merge datasets with the previously saved in the summary collections
+                        tmp_datasets = summary_collections[exec_name_step][self.tag_data]
+                        tmp_attrs = summary_collections[exec_name_step][self.tag_info]
 
-        write_file_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', html_name=file_path_dest_summary,
-                           run_name=exec_name_list, run_summary=summary_collections,
-                           tag_summary_data=self.tag_data, tag_summary_info=self.tag_info,
-                           tag_alert_section=self.tag_summary_alert_section,
-                           tag_alert_value=self.tag_summary_alert_value,
-                           tag_alert_index=self.tag_summary_alert_index,
-                           tag_alarm_section=self.tag_summary_alarm_section,
-                           tag_alarm_value=self.tag_summary_alarm_value,
-                           tag_alarm_index=self.tag_summary_alarm_index)
+                        # check the datasets
+                        if tmp_datasets is None:
+                            summary_collections[exec_name_step][self.tag_data] = summary_datasets
+                        else:
+                            summary_merged = merge_bulletin_datasets(summary_datasets, tmp_datasets)
+                            summary_collections[exec_name_step][self.tag_data] = summary_merged
 
-        logging.info(' ----> Save summary bulletin ' + file_name_dest_summary + ' ... DONE')
+                        if tmp_attrs is None:
+                            summary_collections[exec_name_step][self.tag_info] = init_bulletin_attrs(attrs_datasets)
+                        else:
+                            attrs_merged = merge_bulletin_attrs(init_bulletin_attrs(attrs_datasets), tmp_attrs)
+                            summary_collections[exec_name_step][self.tag_info] = attrs_merged
 
-        # Save warnings bulletin
-        warnings_collections = {}
-        for warnings_key, warnings_data in analysis_warnings_collections.items():
+                    log_stream.info(' ------> Execution reference "' + exec_name_step + '" ... DONE')
 
-            if warnings_data is not None:
-                warnings_collections[warnings_key] = {}
-                for summary_key, summary_fields in warnings_structure.items():
+                log_stream.info(' -----> Domain reference "' + domain_name_step + '" ... DONE')
 
-                    key_ref = summary_fields['key_ref']
-                    key_list = summary_fields['key_list']
+            log_stream.info(' ----> Organize summary bulletin ... DONE')
 
-                    values_ref = warnings_data[key_ref]
-                    index_ref = int(values_ref.index(max(values_ref)))
+            # organize bulletin thr generic
+            log_stream.info(' ----> Organize section bulletin generic ... ')
+            bulletin_dframe_sections_generic = organize_bulletin_warnings_generic(
+                exec_name_list, summary_collections, sections_dframe)
+            log_stream.info(' ----> Organize section bulletin generic ... DONE')
 
-                    warnings_collections[warnings_key][summary_key] = {}
-                    for key_step in key_list:
-                        value_step = warnings_data[key_step][index_ref]
-                        warnings_collections[warnings_key][summary_key][key_step] = value_step
+            # organize bulletin thr max
+            log_stream.info(' ----> Organize section bulletin maximum ... ')
+            bulletin_dframe_sections_max = organize_bulletin_warnings_section(
+                bulletin_dframe_sections_generic, sections_dframe)
+            log_stream.info(' ----> Organize section bulletin maximum ... DONE')
 
-        folder_name_dest_warnings, file_name_dest_warnings = os.path.split(file_path_dest_warnings)
-        make_folder(folder_name_dest_warnings)
+            # organize bulletin thr today
+            log_stream.info(' ----> Organize section bulletin today ... ')
+            bulletin_dframe_sections_today = select_bulletin_time(
+                time_run, bulletin_dframe_sections_generic, time_mode='today')
+            bulletin_dframe_today = organize_bulletin_warnings_section(
+                bulletin_dframe_sections_today, sections_dframe)
+            log_stream.info(' ----> Organize section bulletin today ... DONE')
 
-        logging.info(' ----> Save warnings bulletin ' + file_name_dest_warnings + ' ... ')
+            # organize bulletin thr tomorrow
+            log_stream.info(' ----> Organize section bulletin tomorrow ... ')
+            bulletin_dframe_sections_tomorrow = select_bulletin_time(
+                time_run, bulletin_dframe_sections_generic, time_mode='tomorrow')
+            bulletin_dframe_tomorrow = organize_bulletin_warnings_section(
+                bulletin_dframe_sections_tomorrow, sections_dframe)
+            log_stream.info(' ----> Organize section bulletin tomorrow ... DONE')
 
-        write_file_warnings(file_path_dest_warnings, warnings_collections, warnings_structure)
+            # organize bulletin info
+            log_stream.info(' ----> Organize info bulletin  ... ')
+            bulletin_dframe_info, bulletin_dframe_thr = organize_bulletin_info(exec_name_list, summary_collections)
+            log_stream.info(' ----> Organize info bulletin  ... DONE')
 
-        logging.info(' ----> Save warnings bulletin ' + file_name_dest_warnings + ' ... DONE')
+            # save datasets to ancillary file
+            folder_name_anc, file_name_anc = os.path.split(file_path_anc)
+            make_folder(folder_name_anc)
 
-        logging.info(' ---> Dump dynamic datasets [' + str(time_run) + '] ... DONE')
+            bulletin_collections = {
+                self.tag_bulletin_info: bulletin_dframe_info,
+                self.tag_bulletin_thr: bulletin_dframe_thr,
+                self.tag_bulletin_sections_generic: bulletin_dframe_sections_generic,
+                self.tag_bulletin_sections_max: bulletin_dframe_sections_max,
+                self.tag_bulletin_sections_today: bulletin_dframe_today,
+                self.tag_bulletin_sections_tomorrow: bulletin_dframe_tomorrow}
+
+            write_obj(file_path_anc, bulletin_collections)
+
+        else:
+            # read datasets from ancillary file
+            bulletin_collections = read_obj(file_path_anc)
+            bulletin_dframe_info = bulletin_collections[self.tag_bulletin_info]
+            bulletin_dframe_thr = bulletin_collections[self.tag_bulletin_thr]
+            bulletin_dframe_sections_generic = bulletin_collections[self.tag_bulletin_sections_generic]
+            bulletin_dframe_sections_max = bulletin_collections[self.tag_bulletin_sections_max]
+            bulletin_dframe_sections_today = bulletin_collections[self.tag_bulletin_sections_today]
+            bulletin_dframe_sections_tomorrow = bulletin_collections[self.tag_bulletin_sections_tomorrow]
+
+        # save bulletin summary
+        log_stream.info(' ----> Save bulletin summary' + file_path_dest_summary + ' ... ')
+        if status_dest_summary:
+            folder_name_dest_summary, file_name_dest_summary = os.path.split(file_path_dest_summary)
+            make_folder(folder_name_dest_summary)
+
+            write_bulletin_summary(
+                time_run, time_exec, time_mode=time_mode, time_format='%Y-%m-%d %H:%M',
+                file_name=file_path_dest_summary,
+                bulletin_dframe_info=bulletin_dframe_info,
+                bulletin_dframe_thr=bulletin_dframe_thr,
+                tag_op_chain=title_name)
+
+            log_stream.info(' ----> Save bulletin summary ' + file_path_dest_summary + ' ... DONE')
+        else:
+            log_stream.info(' ----> Save bulletin summary ' + file_path_dest_summary +
+                            ' ... SKIPPED. File is not activated')
+
+        # save bulletin warnings max
+        log_stream.info(' ----> Save bulletin warnings max ' + file_path_dest_warn_max + ' ... ')
+        if status_dest_warn_max:
+            folder_name_dest_warn_max, file_name_dest_warn_max = os.path.split(file_path_dest_warn_max)
+            make_folder(folder_name_dest_warn_max)
+
+            write_bulletin_warn_xml(
+                time_run, time_exec,
+                file_name=file_path_dest_warn_max,
+                bulletin_dframe=bulletin_dframe_sections_max, sections_dframe=sections_dframe)
+
+            log_stream.info(' ----> Save bulletin warnings max ' + file_path_dest_warn_max + ' ... DONE')
+        else:
+            log_stream.info(' ----> Save bulletin warnings max ' + file_path_dest_warn_max +
+                            ' ... SKIPPED. File is not activated')
+
+        # save bulletin warnings daily
+        log_stream.info(' ----> Save bulletin warnings daily ' + file_path_dest_warn_daily + ' ... ')
+        if status_dest_warn_daily:
+            folder_name_dest_warn_daily, file_name_dest_warn_daily = os.path.split(file_path_dest_warn_daily)
+            make_folder(folder_name_dest_warn_daily)
+
+            write_bulletin_warn_csv(
+                time_run, time_exec,
+                file_name=file_path_dest_warn_daily,
+                bulletin_dframe_today=bulletin_dframe_sections_today,
+                bulletin_dframe_tomorrow=bulletin_dframe_sections_tomorrow,
+                sections_dframe=sections_dframe)
+
+            log_stream.info(' ----> Save bulletin warnings daily ' + file_path_dest_warn_daily + ' ... DONE')
+        else:
+            log_stream.info(' ----> Save bulletin warnings daily ' + file_path_dest_warn_daily +
+                            ' ... SKIPPED. File is not activated')
+
+        # info time end
+        log_stream.info(' ---> Dump dynamic datasets [' + str(time_run) + '] ... DONE')
 
     # -------------------------------------------------------------------------------------
 
@@ -502,14 +765,16 @@ class DriverDynamic:
     def analyze_dynamic_data(self, file_workspace):
 
         time = self.time_run
+
+        domain_name_list = self.domain_name_list
         exec_name_list = self.exec_name_list
 
-        exec_collections = self.execution_data_collection
+        exec_dframe = self.exec_dframe
 
         file_path_anc = self.file_path_anc_analysis
         flag_clean_anc = self.flag_cleaning_dynamic_analysis
 
-        logging.info(' ---> Analyze dynamic datasets [' + str(time) + '] ... ')
+        log_stream.info(' ---> Analyze dynamic datasets [' + str(time) + '] ... ')
 
         if flag_clean_anc:
             if os.path.exists(file_path_anc):
@@ -517,91 +782,84 @@ class DriverDynamic:
 
         if not os.path.exists(file_path_anc):
 
-            analyze_warnings_collections = {}
-            analyze_datasets_collections = {}
-            for exec_name_step in exec_name_list:
+            # cycles over domain name(s)
+            analyze_warnings_collections, analyze_datasets_collections = {}, {}
+            for domain_name_step in domain_name_list:
 
-                logging.info(' ----> Execution ' + exec_name_step + ' ... ')
+                log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... ')
 
-                exec_data = exec_collections[exec_collections.index == exec_name_step]
-                exec_run_var_sim = exec_data[self.tag_run_var_sim].values[0]
-                exec_run_var_obs = exec_data[self.tag_run_var_obs].values[0]
+                # get file information for selected domain
+                domain_workspace = file_workspace[domain_name_step]
 
-                analyze_datasets_collections[exec_name_step] = {}
-                if exec_name_step in list(file_workspace.keys()):
+                # init workspace using domain tag
+                if analyze_warnings_collections is None:
+                    analyze_warnings_collections = {}
+                analyze_warnings_collections[domain_name_step] = {}
+                if analyze_datasets_collections is None:
+                    analyze_datasets_collections = {}
+                analyze_datasets_collections[domain_name_step] = {}
 
-                    exec_workspace = file_workspace[exec_name_step]
+                # cycles over execution name(s)
+                for exec_name_step in exec_name_list:
 
-                    exec_info_collection = deepcopy(exec_workspace[self.tag_info])
-                    exec_data_collection = deepcopy(exec_workspace[self.tag_data])
+                    log_stream.info(' ----> Execution reference "' + exec_name_step + '" ... ')
 
-                    if (exec_info_collection[self.tag_run_ref_start] is not None) and \
-                            (exec_info_collection[self.tag_run_ref_start] is not None):
+                    exec_data = exec_dframe[exec_dframe.index == exec_name_step]
+                    exec_run_var_sim = exec_data[self.tag_run_var_sim].values[0]
+                    exec_run_var_obs = exec_data[self.tag_run_var_obs].values[0]
 
-                        analysis_time_creation_start, analysis_time_creation_end, \
-                            analysis_time_creation_elapsed = analyze_time_info(
-                                exec_info_collection[self.tag_run_ref_start],
-                                exec_info_collection[self.tag_run_ref_end],
-                                tag_file_create=self.tag_file_time_create)
+                    analyze_datasets_collections[domain_name_step][exec_name_step] = {}
+                    if exec_name_step in list(domain_workspace.keys()):
 
-                        analysis_datasets_section, analysis_warnings_section, \
-                            attrs_datasets_section = analyze_hydrograph_datasets(
-                                exec_name_step, exec_data_collection,
-                                tag_discharge_observed=exec_run_var_obs, tag_discharge_simulated=exec_run_var_sim,
-                                tag_discharge_thr_alert=self.tag_summary_alert_thr,
-                                tag_discharge_thr_alarm=self.tag_summary_alarm_thr,
-                                tag_discharge_max_alert_value=self.tag_summary_alert_value,
-                                tag_discharge_max_alert_index=self.tag_summary_alert_index,
-                                tag_discharge_max_alarm_value=self.tag_summary_alarm_value,
-                                tag_discharge_max_alarm_index=self.tag_summary_alarm_index,
-                                tag_run_n=self.tag_run_n, tag_section_n=self.tag_section_n)
+                        exec_workspace = domain_workspace[exec_name_step]
 
-                        logging.info(' ----> Execution ' + exec_name_step + ' ... DONE')
-                    else:
-                        analysis_time_creation_start = None
-                        analysis_time_creation_end = None
-                        analysis_time_creation_elapsed = None
-                        analysis_datasets_section = None
-                        analysis_warnings_section = None
-                        attrs_datasets_section = None
-                        logging.info(' ----> Execution ' + exec_name_step + ' ... SKIPPED. Execution datasets are null')
-                else:
-                    analysis_time_creation_start = None
-                    analysis_time_creation_end = None
-                    analysis_time_creation_elapsed = None
-                    analysis_datasets_section = None
-                    analysis_warnings_section = None
-                    attrs_datasets_section = None
-                    logging.info(' ----> Execution ' + exec_name_step + ' ... SKIPPED. Execution not available')
+                        exec_info_collection = deepcopy(exec_workspace[self.tag_info])
+                        exec_data_collection = deepcopy(exec_workspace[self.tag_data])
 
-                analyze_datasets_collections[exec_name_step][self.tag_run_ref_start] = analysis_time_creation_start
-                analyze_datasets_collections[exec_name_step][self.tag_run_ref_end] = analysis_time_creation_end
-                analyze_datasets_collections[exec_name_step][self.tag_run_ref_elapsed] = analysis_time_creation_elapsed
-                analyze_datasets_collections[exec_name_step][self.tag_run_datasets_section] = analysis_datasets_section
-                analyze_datasets_collections[exec_name_step][self.tag_run_datasets_attrs] = attrs_datasets_section
+                        if (exec_info_collection[self.tag_run_ref_start] is not None) and \
+                                (exec_info_collection[self.tag_run_ref_start] is not None):
 
-                if analysis_warnings_section is not None:
-                    for warnings_key, warnings_data in analysis_warnings_section.items():
+                            analysis_time_reference_start, analysis_time_reference_end, \
+                                analysis_time_reference_elapsed = analyze_time_info(
+                                    exec_info_collection[self.tag_run_ref_start],
+                                    exec_info_collection[self.tag_run_ref_end],
+                                    tag_file_reference=self.tag_file_time_reference)
 
-                        if warnings_key not in list(analyze_warnings_collections.keys()):
-                            analyze_warnings_collections[warnings_key] = {}
+                            analysis_datasets_section, attrs_datasets_section = analyze_discharge_ts(
+                                    exec_name_step, exec_data_collection,
+                                    tag_discharge_observed=exec_run_var_obs, tag_discharge_simulated=exec_run_var_sim,
+                                    tag_discharge_thr_alert=self.tag_summary_alert_thr,
+                                    tag_discharge_thr_alarm=self.tag_summary_alarm_thr,
+                                    tag_discharge_max_alert_value=self.tag_summary_alert_value,
+                                    tag_discharge_max_alert_index=self.tag_summary_alert_index,
+                                    tag_discharge_max_alarm_value=self.tag_summary_alarm_value,
+                                    tag_discharge_max_alarm_index=self.tag_summary_alarm_index,
+                                    tag_run_n=self.tag_run_n, tag_section_n=self.tag_section_n)
 
-                        if warnings_data is not None:
-                            for var_key, var_value in warnings_data.items():
-                                if var_key not in list(analyze_warnings_collections[warnings_key].keys()):
-                                    analyze_warnings_collections[warnings_key][var_key] = var_value
-                                else:
-                                    warning_value_tmp = analyze_warnings_collections[warnings_key][var_key]
-                                    warning_value_tmp.extend(var_value)
-                                    analyze_warnings_collections[warnings_key][var_key] = warning_value_tmp
+                            log_stream.info(' ----> Execution reference "' + exec_name_step + '" ... DONE')
                         else:
-                            analyze_warnings_collections[warnings_key] = None
+                            analysis_time_reference_start, analysis_time_reference_end = None, None
+                            analysis_time_reference_elapsed, attrs_datasets_section = None, None
+                            analysis_datasets_section = None
+                            log_stream.info(' ----> Execution reference "' + exec_name_step + '" ... SKIPPED. '
+                                            'Execution datasets are null')
+                    else:
+                        analysis_time_reference_start, analysis_time_reference_end = None, None
+                        analysis_time_reference_elapsed, attrs_datasets_section = None, None
+                        analysis_datasets_section = None
+                        log_stream.info(' ----> Execution reference "' + exec_name_step +
+                                        '" ... SKIPPED. Execution not available')
+
+                    analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_ref_start] = analysis_time_reference_start
+                    analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_ref_end] = analysis_time_reference_end
+                    analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_ref_elapsed] = analysis_time_reference_elapsed
+                    analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_datasets_section] = analysis_datasets_section
+                    analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_datasets_attrs] = attrs_datasets_section
 
             folder_name_anc, file_name_anc = os.path.split(file_path_anc)
             make_folder(folder_name_anc)
 
-            analyze_collections = {self.tag_data: analyze_datasets_collections,
-                                   self.tag_warnings: analyze_warnings_collections}
+            analyze_collections = {self.tag_data: analyze_datasets_collections}
 
             write_obj(file_path_anc, analyze_collections)
 
@@ -609,11 +867,10 @@ class DriverDynamic:
 
             analyze_collections = read_obj(file_path_anc)
             analyze_datasets_collections = analyze_collections[self.tag_data]
-            analyze_warnings_collections = analyze_collections[self.tag_warnings]
 
-        logging.info(' ---> Analyze dynamic datasets [' + str(time) + '] ... DONE')
+        log_stream.info(' ---> Analyze dynamic datasets [' + str(time) + '] ... DONE')
 
-        return analyze_datasets_collections, analyze_warnings_collections
+        return analyze_datasets_collections
 
     # -------------------------------------------------------------------------------------
 
@@ -623,18 +880,20 @@ class DriverDynamic:
 
         time = self.time_run
 
-        outlet_name_list = self.outlet_name_list
+        outlet_name_obj = self.outlet_name_obj
+
+        domain_name_list = self.domain_name_list
         exec_name_list = self.exec_name_list
 
-        exec_collections = self.execution_data_collection
+        exec_dframe = self.exec_dframe
 
-        file_collections_src_ref_start = self.file_collections_src_ref_start
-        file_collections_src_ref_end = self.file_collections_src_ref_end
+        file_obj_src_ref_start = self.file_obj_src_ref_start
+        file_obj_src_ref_end = self.file_obj_src_ref_end
 
         file_path_anc = self.file_path_anc_source
         flag_clean_anc = self.flag_cleaning_dynamic_source
 
-        logging.info(' ---> Organize dynamic datasets [' + str(time) + '] ... ')
+        log_stream.info(' ---> Organize dynamic datasets [' + str(time) + '] ... ')
 
         if flag_clean_anc:
             if os.path.exists(file_path_anc):
@@ -642,132 +901,182 @@ class DriverDynamic:
 
         if not os.path.exists(file_path_anc):
 
-            file_workspace = {}
-            for exec_name_step in exec_name_list:
+            # cycles over domain name(s)
+            file_workspace = None
+            for domain_name_step in domain_name_list:
 
-                logging.info(' ----> Execution ' + exec_name_step + ' ... ')
+                log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... ')
 
-                file_path_src_ref_start = file_collections_src_ref_start[exec_name_step]
-                file_path_src_ref_end = file_collections_src_ref_end[exec_name_step]
+                # get domain information
+                outlet_name_list = outlet_name_obj[domain_name_step]
+                file_collections_src_ref_start = file_obj_src_ref_start[domain_name_step]
+                file_collections_src_ref_end = file_obj_src_ref_end[domain_name_step]
 
-                exec_data = exec_collections[exec_collections.index == exec_name_step]
-                exec_time_period = exec_data[self.tag_time_period].values[0]
-                exec_time_frequency = exec_data[self.tag_time_frequency].values[0]
-                exec_time_rounding = exec_data[self.tag_time_rounding].values[0]
+                # init workspace using domain tag
+                if file_workspace is None:
+                    file_workspace = {}
+                file_workspace[domain_name_step] = {}
 
-                time_search = self.define_time_search(time,
-                                                      time_period=exec_time_period, time_frequency=exec_time_frequency,
-                                                      time_rounding=exec_time_rounding, time_reverse=True)
+                # cycles over execution name(s)
+                for exec_name_step in exec_name_list:
 
-                file_workspace[exec_name_step] = {}
-                file_workspace[exec_name_step][self.tag_info] = {}
-                file_workspace[exec_name_step][self.tag_data] = {}
-                file_workspace[exec_name_step][self.tag_info][self.tag_run_ref_start] = None
-                file_workspace[exec_name_step][self.tag_info][self.tag_time_ref_start] = None
-                file_workspace[exec_name_step][self.tag_info][self.tag_run_ref_end] = None
-                file_workspace[exec_name_step][self.tag_info][self.tag_time_ref_end] = None
-                file_workspace[exec_name_step][self.tag_data] = None
+                    log_stream.info(' -----> Execution reference "' + exec_name_step + '" ... ')
 
-                for time_step in time_search:
+                    file_path_src_ref_start = file_collections_src_ref_start[exec_name_step]
+                    file_path_src_ref_end = file_collections_src_ref_end[exec_name_step]
 
-                    logging.info(' -----> Time  ' + str(time_step) + ' ... ')
+                    exec_data = exec_dframe[exec_dframe.index == exec_name_step]
+                    exec_time_period = exec_data[self.tag_time_period].values[0]
+                    exec_time_frequency = exec_data[self.tag_time_frequency].values[0]
+                    exec_time_rounding = exec_data[self.tag_time_rounding].values[0]
 
-                    logging.info(' ------> Reference run_start datasets ... ')
-                    if file_workspace[exec_name_step]['info']['run_start'] is None:
-                        if file_path_src_ref_start.__len__() == 1:
+                    time_search = self.define_time_search(
+                        time, time_period=exec_time_period, time_frequency=exec_time_frequency,
+                        time_rounding=exec_time_rounding, time_reverse=True)
 
-                            file_path_src_start_raw = file_path_src_ref_start[0]
-                            file_path_src_start_def = self.define_file_string(time_step, file_path_src_start_raw)
+                    file_workspace[domain_name_step][exec_name_step] = {}
+                    file_workspace[domain_name_step][exec_name_step][self.tag_info] = {}
+                    file_workspace[domain_name_step][exec_name_step][self.tag_data] = {}
+                    file_workspace[domain_name_step][exec_name_step][self.tag_info][self.tag_run_ref_start] = None
+                    file_workspace[domain_name_step][exec_name_step][self.tag_info][self.tag_time_ref_start] = None
+                    file_workspace[domain_name_step][exec_name_step][self.tag_info][self.tag_run_ref_end] = None
+                    file_workspace[domain_name_step][exec_name_step][self.tag_info][self.tag_time_ref_end] = None
+                    file_workspace[domain_name_step][exec_name_step][self.tag_data] = None
 
-                            if file_path_src_start_def.endswith('.x'):
-                                if os.path.exists(file_path_src_start_def):
-                                    file_info_start = read_file_execution_info(file_path_src_start_def)
-                                else:
-                                    file_info_start = None
-                            else:
-                                logging.error(' ------> Reference run_start datasets ... FAILED')
-                                raise NotImplementedError('Case not implemented in source reference type start')
+                    for time_step in time_search:
 
-                            file_check_start = all(elem is None for elem in list([file_info_start]))
-                            if file_check_start:
-                                file_insert_start = False
-                                logging.info(' ------> Reference run_start datasets ... SKIPPED. Datasets not defined')
-                            else:
-                                file_insert_start = True
-                                logging.info(' ------> Reference run_start datasets ... DONE')
-                        else:
-                            logging.error(' ------> Reference run_start datasets ... FAILED')
-                            raise NotImplementedError('Case not implemented in source reference file start')
-                    else:
-                        logging.info(' ------> Reference run_start datasets ... SKIPPED. Datasets already selected')
-                        file_insert_start = False
+                        log_stream.info(' ------> Time  "' + str(time_step) + '" ... ')
 
-                    logging.info(' ------> Reference run_end datasets ... ')
-                    if file_workspace[exec_name_step]['info']['run_end'] is None:
-                        if file_path_src_ref_end.__len__() == 1:
-                            logging.error(' ------> Reference run_end datasets ... FAILED')
-                            raise NotImplementedError('Case not implemented in source reference file end')
-                        elif file_path_src_ref_end.__len__() > 1:
+                        log_stream.info(' -------> Reference run_start datasets ... ')
+                        if file_workspace[domain_name_step][exec_name_step]['info']['run_start'] is None:
 
-                            if file_path_src_ref_end[0].endswith('.json'):
+                            if file_path_src_ref_start.__len__() == 1:
 
-                                file_info_end = {}
-                                file_data_end = {}
-                                for outlet_name_step, file_path_src_end_raw in zip(outlet_name_list,
-                                                                                   file_path_src_ref_end):
+                                file_path_src_start_raw = file_path_src_ref_start[0]
+                                file_path_src_start_def = self.define_file_string(time_step, file_path_src_start_raw)
 
-                                    file_path_src_end_def = self.define_file_string(time_step, file_path_src_end_raw)
-
-                                    if os.path.exists(file_path_src_end_def):
-                                        file_info_src_ref_end = read_file_hydrograph_info(file_path_src_end_def)
-                                        file_data_src_ref_end = read_file_hydrograph_ts(file_path_src_end_def)
+                                if file_path_src_start_def.endswith('.x'):
+                                    if os.path.exists(file_path_src_start_def):
+                                        file_info_start = read_file_execution_info(file_path_src_start_def)
                                     else:
-                                        file_info_src_ref_end = None
-                                        file_data_src_ref_end = None
-
-                                    file_info_end[outlet_name_step] = file_info_src_ref_end
-                                    file_data_end[outlet_name_step] = file_data_src_ref_end
-
-                                file_check_end = all(elem is None for elem in list(file_info_end.values()))
-                                if file_check_end:
-                                    file_insert_end = False
-                                    logging.info(' ------> Reference run_end datasets ... SKIPPED. Datasets not defined')
+                                        file_info_start = None
+                                elif file_path_src_start_def.endswith('.txt'):
+                                    if os.path.exists(file_path_src_start_def):
+                                        file_info_start = read_file_execution_info(file_path_src_start_def)
+                                    else:
+                                        file_info_start = None
                                 else:
-                                    file_insert_end = True
-                                    logging.info(' ------> Reference run_end datasets ... DONE')
+                                    log_stream.error(' ===> Reference run_start datasets ... FAILED')
+                                    raise NotImplementedError('Case not implemented in source reference type start')
+
+                                file_check_start = all(elem is None for elem in list([file_info_start]))
+                                if file_check_start:
+                                    file_insert_start = False
+                                    log_stream.info(' -------> Reference run_start datasets ... SKIPPED. '
+                                                    'Some Datasets are not defined')
+                                else:
+                                    file_insert_start = True
+                                    log_stream.info(' -------> Reference run_start datasets ... DONE')
                             else:
-                                logging.error(' ------> Reference run_end datasets ... FAILED')
-                                raise NotImplementedError('Case not implemented in source reference type end')
+                                file_info_start, file_insert_start = None, False
+                                log_stream.info(' -------> Reference run_start datasets ... SKIPPED. '
+                                                'All Datasets are not defined')
                         else:
-                            logging.error(' ------> Reference run_end datasets ... FAILED')
-                            raise NotImplementedError('Case not implemented in source reference file end')
-                    else:
-                        logging.info(' ------> Reference run_end datasets ... SKIPPED. Datasets already selected')
-                        file_insert_end = False
+                            log_stream.info(' -------> Reference run_start datasets ... SKIPPED. '
+                                            'Datasets already selected')
+                            file_info_start, file_insert_start = None, False
 
-                    # Store reference source information and datasets
-                    if file_insert_start:
-                        file_workspace[exec_name_step][self.tag_info][self.tag_run_ref_start] = file_info_start
-                        file_workspace[exec_name_step][self.tag_info][self.tag_time_ref_start] = time_step
-                    elif file_insert_end:
-                        file_workspace[exec_name_step][self.tag_info][self.tag_run_ref_end] = file_info_end
-                        file_workspace[exec_name_step][self.tag_info][self.tag_time_ref_end] = time_step
-                        file_workspace[exec_name_step][self.tag_data] = file_data_end
+                        log_stream.info(' -------> Reference run_end datasets ... ')
+                        if file_workspace[domain_name_step][exec_name_step]['info']['run_end'] is None:
 
-                    logging.info(' -----> Time  ' + str(time_step) + ' ... DONE')
+                            file_info_end, file_data_end = {}, {}
+                            if file_path_src_ref_end.__len__() >= 1:
 
-                logging.info(' ----> Execution ' + exec_name_step + ' ... DONE')
+                                if file_path_src_ref_end[0].endswith('.json'):
 
-            folder_name_anc, file_name_anc = os.path.split(file_path_anc)
-            make_folder(folder_name_anc)
+                                    for outlet_name_step, file_path_src_end_raw in zip(outlet_name_list,
+                                                                                       file_path_src_ref_end):
 
-            write_obj(file_path_anc, file_workspace)
+                                        file_path_src_end_def = self.define_file_string(
+                                            time_step, file_path_src_end_raw)
 
+                                        if os.path.exists(file_path_src_end_def):
+                                            file_info_src_ref_end = read_file_hydrograph_info(file_path_src_end_def)
+                                            file_data_src_ref_end = read_file_hydrograph_ts(file_path_src_end_def)
+                                        else:
+                                            file_info_src_ref_end = None
+                                            file_data_src_ref_end = None
+
+                                        file_info_end[outlet_name_step] = file_info_src_ref_end
+                                        file_data_end[outlet_name_step] = file_data_src_ref_end
+
+                                    file_check_end = all(elem is None for elem in list(file_info_end.values()))
+                                    if file_check_end:
+                                        file_insert_end = False
+                                        log_stream.info(' -------> Reference run_end datasets ... SKIPPED. '
+                                                        'Some datasets are not defined')
+                                    else:
+                                        file_insert_end = True
+                                        log_stream.info(' -------> Reference run_end datasets ... DONE')
+                                else:
+                                    log_stream.error(' ===> Reference run_end datasets ... FAILED')
+                                    raise NotImplementedError('Case not implemented in source reference type end')
+                            else:
+
+                                file_info_end, file_data_end = None, None
+                                file_insert_end = False
+                                log_stream.info(' -------> Reference run_end datasets ... SKIPPED. '
+                                                'All datasets are not defined')
+
+                        else:
+                            log_stream.info(' -------> Reference run_end datasets ... SKIPPED. '
+                                            'Datasets already selected')
+                            file_info_end, file_data_end, file_insert_end = None, None, False
+
+                        # Store reference source information and datasets
+                        log_stream.info(' -------> Update start process information ... ')
+                        if file_insert_start:
+                            file_workspace[domain_name_step][exec_name_step][
+                                self.tag_info][self.tag_run_ref_start] = file_info_start
+                            file_workspace[domain_name_step][exec_name_step][
+                                self.tag_info][self.tag_time_ref_start] = time_step
+                            log_stream.info(' -------> Update start process information ... DONE')
+                        else:
+                            log_stream.info(' -------> Update start process information ... SKIPPED. '
+                                            'Information are not available')
+
+                        log_stream.info(' -------> Update end process information ... ')
+                        if file_insert_end:
+                            file_workspace[domain_name_step][exec_name_step][
+                                self.tag_info][self.tag_run_ref_end] = file_info_end
+                            file_workspace[domain_name_step][exec_name_step][
+                                self.tag_info][self.tag_time_ref_end] = time_step
+                            file_workspace[domain_name_step][exec_name_step][
+                                self.tag_data] = file_data_end
+                            log_stream.info(' -------> Update end process information ... DONE')
+                        else:
+                            log_stream.info(' -------> Update end process information ... SKIPPED. '
+                                            'Information are not available')
+
+                        log_stream.info(' ------> Time  "' + str(time_step) + '" ... DONE')
+
+                    log_stream.info(' -----> Execution reference "' + exec_name_step + '" ... DONE')
+
+                log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... DONE')
+
+            # store data in a workspace file
+            log_stream.info(' ----> Freeze dynamic datasets ... ')
+            if file_workspace is not None:
+                folder_name_anc, file_name_anc = os.path.split(file_path_anc)
+                make_folder(folder_name_anc)
+                write_obj(file_path_anc, file_workspace)
+                log_stream.info(' ----> Freeze dynamic datasets ... DONE')
+            else:
+                log_stream.info(' ----> Freeze dynamic datasets ... SKIPPED. All datasets are undefined')
         else:
-
             file_workspace = read_obj(file_path_anc)
 
-        logging.info(' ---> Organize dynamic datasets [' + str(time) + '] ... DONE')
+        log_stream.info(' ---> Organize dynamic datasets [' + str(time) + '] ... DONE')
 
         return file_workspace
 

@@ -1,3 +1,12 @@
+"""
+Library Features:
+
+Name:          lib_utils_io
+Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
+Date:          '20201202'
+Version:       '1.0.0'
+"""
+
 # -------------------------------------------------------------------------------------
 # Libraries
 import logging

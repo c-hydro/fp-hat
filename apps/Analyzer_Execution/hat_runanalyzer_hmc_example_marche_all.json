@@ -1,0 +1,129 @@
+{
+  "algorithm":{
+    "flags": {
+      "cleaning_dynamic_source": false,
+      "cleaning_dynamic_analysis": false,
+      "cleaning_dynamic_destination": false,
+      "cleaning_dynamic_tmp": true
+    },
+    "template": {
+      "source_datetime": "%Y%m%d%H%M",
+      "source_sub_path_time": "%Y/%m/%d/%H",
+      "run_sub_path_datasets": "string_sub_path_datasets",
+      "run_sub_path_execution": "string_sub_path_execution",
+      "ancillary_datetime": "%Y%m%d%H%M",
+      "ancillary_sub_path_time": "%Y/%m/%d/%H",
+      "destination_datetime": "%Y%m%d%H%M",
+      "destination_sub_path_time": "%Y/%m/%d/",
+      "run_name": "string_name",
+      "section_name": "string_section_name",
+      "basin_name": "string_basin_name",
+      "domain_name": "string_domain_name"
+    },
+    "ancillary": {
+      "domain_name" : "marche",
+      "title_name": "Bulletin of Regione Marche Operational Chain",
+      "time_mode": "LOCAL"
+    },
+    "general": {
+      "title": "HAT - Run analyzer to control the execution of the HMC model",
+      "web-site": "",
+      "source": "Python library developed by CIMA Research Foundation",
+      "history": "1.6.0 [20230127]",
+      "project-info": "HAT - Hydrological Analysis Tool",
+      "algorithm": "Analysis tools developed by CIMA Research Foundation"
+    }
+  },
+  "time": {
+    "time_now": null,
+    "time_period": 0,
+    "time_frequency": "H",
+    "time_rounding": "H"
+  },
+  "data": {
+    "static": {
+      "section_data": {
+        "folder_name": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/opchain_marche/data/data_static/shapefile/",
+        "file_name": "fp_sections_marche.shp"
+      },
+      "execution_data": {
+        "id_01": {
+          "features": {"run_name": "rfarm_lami-2i_realtime_marche", "run_sub_path_execution": "probabilistic_001","run_description": "LAMI PROBABILISTICO",
+            "run_sub_path_datasets": "probabilistic_ensemble/collections/", "run_variable_sim": "discharge_simulated_{:}", "run_variable_obs": "discharge_observed"},
+          "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_02": {
+          "features": {"run_name": "weather_stations_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "RUN OSSERVATO",
+            "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed" },
+          "time": {"time_period": 2, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_03": {
+          "features": {"run_name": "nwp_ecmwf0100_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "ECMWF DETERMINISTICO",
+            "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed" },
+          "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_04": {
+          "features": {"run_name": "rfarm_ecmwf0100_realtime_marche", "run_sub_path_execution": "probabilistic_001", "run_description": "ECMWF PROBABILISTICO",
+            "run_sub_path_datasets": "probabilistic_ensemble/collections/", "run_variable_sim": "discharge_simulated_{:}", "run_variable_obs": "discharge_observed"},
+          "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_05": {
+          "features": {"run_name": "nwp_lami-2i_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "LAMI DETERMINISTICO",
+            "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed"},
+          "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
+        }
+      }
+    },
+    "dynamic" : {
+      "source": {
+        "run_reference_start": {
+          "__comment__" : "file: [marche.info.txt, HMC_Model_V3_{run_name}.x]",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/run/{run_name}/{run_sub_path_execution}/exec/",
+          "file_name": "marche.info.txt"
+        },
+        "run_reference_end": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/archive/{run_name}/{source_sub_path_time}/{run_sub_path_datasets}",
+          "file_name": "hydrograph_{section_name}_{basin_name}_{source_datetime}.json"
+        }
+      },
+      "ancillary": {
+        "run_source": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/bulletin/ancillary/{ancillary_sub_path_time}",
+          "file_name": "run_analyzer_data_source_{ancillary_datetime}.workspace"
+        },
+        "run_analysis": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/bulletin/ancillary/{ancillary_sub_path_time}",
+          "file_name": "run_analyzer_data_analysis_{ancillary_datetime}.workspace"
+        },
+        "run_destination": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/bulletin/ancillary/{ancillary_sub_path_time}",
+          "file_name": "run_analyzer_data_destination_{ancillary_datetime}.workspace"
+        }
+      },
+      "destination": {
+        "run_summary": {
+          "__comment__": "file format in [.html]",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/bulletin/summary/{destination_sub_path_time}",
+          "file_name": "bulletin_simulations_marche.html",
+          "active": true
+        },
+        "run_warnings_maximum": {
+          "__comment__": "file format in [.xml]",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/bulletin/warnings/{destination_sub_path_time}",
+          "file_name": "bulletin_warnings_marche.xml",
+          "active": true
+        },
+        "run_warnings_daily": {
+          "__comment__": "file format in [.csv]",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/bulletin/warnings/{destination_sub_path_time}",
+          "file_name": "bulletin_warnings_marche.csv",
+          "active": true
+        }
+      }
+    }
+  },
+  "log": {
+    "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/log/",
+    "file_name": "hat_analyzer_hmc_executions.txt"
+  }
+}

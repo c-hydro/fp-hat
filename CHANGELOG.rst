@@ -2,6 +2,16 @@
 Changelog
 =========
 
+Version 1.6.0 [2023-01-27]
+===========
+APP: **HAT_RunAnalyzer_HMC.py**
+    - Operational Release
+    	- add multi-domain analysis;
+    	- refactor of classes and methods;
+    	- update the format of html and csv output files;
+    	- add the xml output file 
+
+
 Version 1.5.2 [2022-12-19]
 ===========
 APP: **HAT_RunAnalyzer_HMC.py**
@@ -23,7 +33,7 @@ APP: **HAT_RunPublisher_HMC_Maps.py**
 APP: **HAT_RunPublisher_HMC_TimeSeries.py**
     - Operational Release.
 
-Version 1.5.0 [2021-09-03]
+Version 1.5.0 [2021-03-09]
 ===========
 APP: **HAT_RunPublisher_HMC_Maps.py**
 	- Release for refactoring maps app.

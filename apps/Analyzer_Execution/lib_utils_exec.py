@@ -12,8 +12,12 @@ Version:       '1.0.0'
 import logging
 import os
 import time
-
 import pandas as pd
+
+from lib_info_args import logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
 # -------------------------------------------------------------------------------------
 
 
@@ -38,15 +42,15 @@ def read_file_execution_info(file_name,
 # -------------------------------------------------------------------------------------
 # Method to read file execution data
 def read_file_execution_data(execution_data, tag_name='run_name'):
-    logging.info(' ---> Read execution data ... ')
-    collections_data = {}
-    collections_columns = None
+
+    log_stream.info(' ---> Read execution data ... ')
+
+    collections_data, collections_columns = {}, None
     for exec_id, exec_step in execution_data.items():
         exec_key = exec_step['features'][tag_name]
         collections_data[exec_key] = {}
 
-        data_list = []
-        columns_list = []
+        data_list, columns_list = [], []
         for exec_subkey in exec_step.keys():
             for exec_type, exec_value in exec_step[exec_subkey].items():
                 columns_list.append(exec_type)
@@ -58,7 +62,7 @@ def read_file_execution_data(execution_data, tag_name='run_name'):
 
     execution_df = pd.DataFrame.from_dict(collections_data, orient='index', columns=collections_columns)
 
-    logging.info(' ---> Read execution data ... DONE')
+    log_stream.info(' ---> Read execution data ... DONE')
 
     return execution_df
 

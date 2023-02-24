@@ -1,7 +1,24 @@
+"""
+Library Features:
 
+Name:          lib_utils_system
+Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
+Date:          '20201202'
+Version:       '1.0.0'
+"""
+# -------------------------------------------------------------------------------------
+# Library
 import os
 from copy import deepcopy
 from datetime import datetime
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to slice list every n elements
+def slice_list(source, step):
+    return [source[i::step] for i in range(step)]
+# -------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------

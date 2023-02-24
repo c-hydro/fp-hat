@@ -12,8 +12,13 @@ Version:       '1.0.0'
 import logging
 import os
 
-from lib_data_io_shapefile import read_file_section_data
+from lib_data_io_shapefile import read_file_section_data, filter_file_section_data
 from lib_utils_exec import read_file_execution_data
+
+from lib_info_args import logger_name
+
+# Logging
+log_stream = logging.getLogger(logger_name)
 
 # Debug
 # import matplotlib.pylab as plt
@@ -45,6 +50,11 @@ class DriverStatic:
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
 
+        # get domain name information
+        self.domain_name_list = self.alg_ancillary['domain_name']
+        if not isinstance(self.domain_name_list, list):
+            self.domain_name_list = [self.domain_name_list]
+
         self.folder_name_section = self.src_dict[self.flag_section_data][self.folder_name_tag]
         self.file_name_section = self.src_dict[self.flag_section_data][self.file_name_tag]
         self.file_path_section = os.path.join(self.folder_name_section, self.file_name_section)
@@ -60,13 +70,15 @@ class DriverStatic:
     def organize_static(self):
 
         # Info start
-        logging.info(' ---> Organize static datasets ... ')
+        log_stream.info(' ---> Organize static datasets ... ')
 
         # Data collection object
         dframe_collections = {}
 
         # Read section dataset
         dframe_section = read_file_section_data(self.file_path_section)
+        dframe_section = filter_file_section_data(
+            dframe_section, field_value_list=self.domain_name_list, field_tag='domain_name')
         # Read execution dataset
         dframe_execution = read_file_execution_data(self.execution_data)
 
@@ -75,7 +87,7 @@ class DriverStatic:
         dframe_collections[self.flag_execution_data] = dframe_execution
 
         # Info end
-        logging.info(' ---> Organize static datasets ... DONE')
+        log_stream.info(' ---> Organize static datasets ... DONE')
 
         return dframe_collections
     # -------------------------------------------------------------------------------------

@@ -21,29 +21,27 @@ log_stream = logging.getLogger(logger_name)
 
 
 # -------------------------------------------------------------------------------------
-# Method to analyze data hydrograph
-def analyze_hydrograph_datasets(run_name, file_datasets,
-                                tag_discharge_observed='discharge_observed',
-                                tag_discharge_simulated='discharge_simulated',
-                                tag_discharge_thr_alert='section_discharge_thr_alert',
-                                tag_discharge_thr_alarm='section_discharge_thr_alarm',
-                                tag_discharge_max_alert_value='discharge_alert_max_value',
-                                tag_discharge_max_alert_index='discharge_alert_max_index',
-                                tag_discharge_max_alarm_value='discharge_alarm_max_value',
-                                tag_discharge_max_alarm_index='discharge_alarm_max_index',
-                                tag_section_n='section_n', tag_run_n='run_n',
-                                tag_run_type='run_type'):
+# Method to analyze discharge time series
+def analyze_discharge_ts(run_name, file_datasets,
+                         tag_discharge_observed='discharge_observed',
+                         tag_discharge_simulated='discharge_simulated',
+                         tag_discharge_thr_alert='section_discharge_thr_alert',
+                         tag_discharge_thr_alarm='section_discharge_thr_alarm',
+                         tag_discharge_max_alert_value='discharge_alert_max_value',
+                         tag_discharge_max_alert_index='discharge_alert_max_index',
+                         tag_discharge_max_alarm_value='discharge_alarm_max_value',
+                         tag_discharge_max_alarm_index='discharge_alarm_max_index',
+                         tag_section_n='section_n', tag_run_n='run_n',
+                         tag_run_type='run_type'):
 
-    logging.info(' ----> Analyze hydrograph  ... ')
+    log_stream.info(' ----> Analyze discharge time-series  ... ')
     if file_datasets is not None:
         section_n = file_datasets.__len__()
 
-        analysis_warnings_section = {}
-        analysis_datasets_section = {}
-        attrs_ts_collections = None
+        analysis_datasets_section, attrs_ts_collections = {}, None
         for section_tag, section_datasets in file_datasets.items():
 
-            logging.info(' -----> Analyze section ' + section_tag + ' ... ')
+            log_stream.info(' -----> Section "' + section_tag + '" ... ')
 
             if section_datasets is not None:
 
@@ -51,15 +49,23 @@ def analyze_hydrograph_datasets(run_name, file_datasets,
                 section_attrs = section_datasets[1]
 
                 section_ts_vars = section_attrs['run_var'].split(',')
-                # data_thr_alert = float(section_attrs[tag_discharge_thr_alert])
-                # data_thr_alarm = float(section_attrs[tag_discharge_thr_alarm])
                 data_thr_alert = float(section_attrs['section_discharge_thr_alert'])
                 data_thr_alarm = float(section_attrs['section_discharge_thr_alarm'])
 
-                # DEBUG
-                # data_thr_alert = 1
-                # data_thr_alarm = 10
+                if data_thr_alert < 0:
+                    log_stream.warning(' ===> Threshold alarm is equal to "' + str(data_thr_alert) +
+                                       '" is less then 0. The threshold is set to NoneType')
+                    data_thr_alert = None
+                if data_thr_alarm < 0:
+                    log_stream.warning(' ===> Threshold alarm is equal to "' + str(data_thr_alarm) +
+                                       '" is less then 0. The threshold is set to NoneType')
+                    data_thr_alarm = None
 
+
+                '''
+                # DEBUG
+                data_thr_alert, data_thr_alarm = 1, 10
+                '''
                 section_ts_time = section_dframe.index
                 section_ts_days = section_ts_time[1:].normalize().unique()
 
@@ -77,25 +83,28 @@ def analyze_hydrograph_datasets(run_name, file_datasets,
                         section_ts_collections[section_ts_step][tag_discharge_max_alarm_value] = {}
                         section_ts_collections[section_ts_step][tag_discharge_max_alarm_index] = {}
 
-                        ts_day = section_ts_step.day
-                        ts_month = section_ts_step.month
-                        ts_year = section_ts_step.year
+                        ts_day, ts_month, ts_year = section_ts_step.day, section_ts_step.month, section_ts_step.year
 
-                        section_dframe_day = section_dframe.loc[(section_dframe.index.day == ts_day) &
-                                                                (section_dframe.index.month == ts_month) &
-                                                                (section_dframe.index.year == ts_year), :]
+                        section_dframe_day = section_dframe.loc[
+                                             (section_dframe.index.day == ts_day) &
+                                             (section_dframe.index.month == ts_month) &
+                                             (section_dframe.index.year == ts_year), :]
 
                         section_ts_day_sim = section_dframe_day[tag_discharge_simulated]
                         section_ts_day_obs = section_dframe_day[tag_discharge_observed]
 
-                        section_ts_thr_alert = section_ts_day_sim.where(section_ts_day_sim > data_thr_alert)
-                        section_ts_thr_alarm = section_ts_day_sim.where(section_ts_day_sim > data_thr_alarm)
-
-                        section_ts_alert_max_value = section_ts_thr_alert.max(skipna=True)
-                        section_ts_alert_max_index = section_ts_thr_alert.idxmax(skipna=True)
-
-                        section_ts_alarm_max_value = section_ts_thr_alarm.max(skipna=True)
-                        section_ts_alarm_max_index = section_ts_thr_alarm.idxmax(skipna=True)
+                        if data_thr_alert is not None:
+                            section_ts_thr_alert = section_ts_day_sim.where(section_ts_day_sim > data_thr_alert)
+                            section_ts_alert_max_value = section_ts_thr_alert.max(skipna=True)
+                            section_ts_alert_max_index = section_ts_thr_alert.idxmax(skipna=True)
+                        else:
+                            section_ts_alert_max_value, section_ts_alert_max_index = None, None
+                        if data_thr_alarm is not None:
+                            section_ts_thr_alarm = section_ts_day_sim.where(section_ts_day_sim > data_thr_alarm)
+                            section_ts_alarm_max_value = section_ts_thr_alarm.max(skipna=True)
+                            section_ts_alarm_max_index = section_ts_thr_alarm.idxmax(skipna=True)
+                        else:
+                            section_ts_alarm_max_value, section_ts_alarm_max_index = None, None
 
                         section_ts_collections[section_ts_step][tag_discharge_max_alert_value] = section_ts_alert_max_value
                         section_ts_collections[section_ts_step][tag_discharge_max_alert_index] = section_ts_alert_max_index
@@ -122,34 +131,35 @@ def analyze_hydrograph_datasets(run_name, file_datasets,
                         section_ts_collections[section_ts_step][tag_discharge_thr_alert] = {}
                         section_ts_collections[section_ts_step][tag_discharge_thr_alarm] = {}
 
-                        ts_day = section_ts_step.day
-                        ts_month = section_ts_step.month
-                        ts_year = section_ts_step.year
+                        ts_day, ts_month, ts_year = section_ts_step.day, section_ts_step.month, section_ts_step.year
 
-                        section_ts_alert_max_value_list = []
-                        section_ts_alert_max_index_list = []
-                        section_ts_alarm_max_value_list = []
-                        section_ts_alarm_max_index_list = []
+                        section_ts_alert_max_value_list, section_ts_alert_max_index_list = [], []
+                        section_ts_alarm_max_value_list, section_ts_alarm_max_index_list = [], []
                         for section_ts_var in section_ts_vars:
 
                             tag_discharge_simulated_var = tag_discharge_simulated.format(section_ts_var)
                             tag_discharge_observed_var = tag_discharge_observed.format(section_ts_var)
 
-                            section_dframe_day = section_dframe.loc[(section_dframe.index.day == ts_day) &
-                                                                    (section_dframe.index.month == ts_month) &
-                                                                    (section_dframe.index.year == ts_year), :]
+                            section_dframe_day = section_dframe.loc[
+                                                 (section_dframe.index.day == ts_day) &
+                                                 (section_dframe.index.month == ts_month) &
+                                                 (section_dframe.index.year == ts_year), :]
 
                             section_ts_sim_var = section_dframe_day[tag_discharge_simulated_var]
                             section_ts_obs_var = section_dframe_day[tag_discharge_observed_var]
 
-                            section_ts_thr_alert_var = section_ts_sim_var.where(section_ts_sim_var > data_thr_alert)
-                            section_ts_thr_alarm_var = section_ts_sim_var.where(section_ts_sim_var > data_thr_alarm)
-
-                            section_ts_alert_max_value_var = section_ts_thr_alert_var.max(skipna=True)
-                            section_ts_alert_max_index_var = section_ts_thr_alert_var.idxmax(skipna=True)
-
-                            section_ts_alarm_max_value_var = section_ts_thr_alarm_var.max(skipna=True)
-                            section_ts_alarm_max_index_var = section_ts_thr_alarm_var.idxmax(skipna=True)
+                            if data_thr_alert is not None:
+                                section_ts_thr_alert_var = section_ts_sim_var.where(section_ts_sim_var > data_thr_alert)
+                                section_ts_alert_max_value_var = section_ts_thr_alert_var.max(skipna=True)
+                                section_ts_alert_max_index_var = section_ts_thr_alert_var.idxmax(skipna=True)
+                            else:
+                                section_ts_alert_max_value_var, section_ts_alert_max_index_var = None, None
+                            if data_thr_alarm is not None:
+                                section_ts_thr_alarm_var = section_ts_sim_var.where(section_ts_sim_var > data_thr_alarm)
+                                section_ts_alarm_max_value_var = section_ts_thr_alarm_var.max(skipna=True)
+                                section_ts_alarm_max_index_var = section_ts_thr_alarm_var.idxmax(skipna=True)
+                            else:
+                                section_ts_alarm_max_value_var, section_ts_alarm_max_index_var = None, None
 
                             if section_ts_alert_max_index_var not in section_ts_alert_max_index_list:
                                 section_ts_alert_max_value_list.append(section_ts_alert_max_value_var)
@@ -158,8 +168,11 @@ def analyze_hydrograph_datasets(run_name, file_datasets,
                                 section_ts_alarm_max_value_list.append(section_ts_alarm_max_value_var)
                                 section_ts_alarm_max_index_list.append(section_ts_alarm_max_index_var)
 
-                        #section_ts_alert_max_value_list = [2.65, 2.71, 2.74]
-                        #section_ts_alert_max_index_list = [pd.Timestamp('2021-03-18 00:00:00'), pd.Timestamp('2021-03-18 19:00:00'), pd.Timestamp('2021-03-18 20:00:00')]
+                        '''
+                        # DEBUG
+                        section_ts_alert_max_value_list = [2.65, 2.71, 2.74]
+                        section_ts_alert_max_index_list = [pd.Timestamp('2021-03-18 00:00:00'), pd.Timestamp('2021-03-18 19:00:00'), pd.Timestamp('2021-03-18 20:00:00')]
+                        '''
 
                         if section_ts_alert_max_value_list.__len__() > 1:
                             idx_max = section_ts_alert_max_value_list.index(max(section_ts_alert_max_value_list))
@@ -194,15 +207,15 @@ def analyze_hydrograph_datasets(run_name, file_datasets,
                             if section_ts_alert_max_value.__len__() == 1:
                                 section_ts_alert_max_value = section_ts_alert_max_value[0]
                             else:
-                                raise NotImplementedError(
-                                    'Analysis hydrograph format max alert value in unsupported format')
+                                log_stream.error(' ===> Analysis has defined the max alert value in unsupported format')
+                                raise NotImplemented('Case not implemented yet')
 
                         if isinstance(section_ts_alarm_max_value, list):
                             if section_ts_alarm_max_value.__len__() == 1:
                                 section_ts_alarm_max_value = section_ts_alarm_max_value[0]
                             else:
-                                raise NotImplementedError(
-                                    'Analysis hydrograph format max alarm value in unsupported format')
+                                log_stream.error(' ===> Analysis has defined the max alarm value in unsupported format')
+                                raise NotImplemented('Case not implemented yet')
 
                         section_ts_collections[section_ts_step][tag_discharge_max_alert_value] = section_ts_alert_max_value
                         section_ts_collections[section_ts_step][tag_discharge_max_alert_index] = section_ts_alert_max_index
@@ -215,111 +228,99 @@ def analyze_hydrograph_datasets(run_name, file_datasets,
                         if attrs_ts_collections is None:
                             attrs_ts_collections = {tag_run_n: run_n, tag_section_n: section_n, tag_run_type: run_name}
 
-                # Create analysis warning section
-                if section_tag not in list(analysis_warnings_section.keys()):
-                    analysis_warnings_section[section_tag] = {}
-                    for section_time, section_data in section_ts_collections.items():
-                        for section_key, section_value in section_data.items():
-                            if section_key in list(analysis_warnings_section[section_tag].keys()):
-                                section_value_tmp = deepcopy(analysis_warnings_section[section_tag][section_key])
-                                section_value_tmp.append(section_value)
-                                analysis_warnings_section[section_tag][section_key] = section_value_tmp
-                            else:
-                                analysis_warnings_section[section_tag][section_key] = {}
-                                analysis_warnings_section[section_tag][section_key] = [section_value]
-
                 analysis_datasets_section[section_tag] = section_ts_collections
 
-                logging.info(' -----> Analyze section ' + section_tag + ' ... DONE')
+                log_stream.info(' -----> Section "' + section_tag + '" ... DONE')
 
             else:
                 analysis_datasets_section[section_tag] = None
-                analysis_warnings_section[section_tag] = None
-                logging.info(' -----> Analyze section ' + section_tag + ' ... SKIPPED. Datasets is undefined')
+                log_stream.info(' -----> Section "' + section_tag + '" ... SKIPPED. Datasets is undefined')
 
-        logging.info(' ----> Analyze hydrograph  ... DONE')
+        log_stream.info(' ----> Analyze discharge time-series  ... DONE')
 
     else:
-        logging.info(' ----> Analyze hydrograph  ... SKIPPED. Datasets is undefined')
-        analysis_datasets_section = None
-        analysis_warnings_section = None
-        attrs_ts_collections = None
+        log_stream.info(' ----> Analyze discharge time-series  ... SKIPPED. Datasets are undefined')
+        analysis_datasets_section, attrs_ts_collections = None, None
 
-    return analysis_datasets_section, analysis_warnings_section, attrs_ts_collections
+    return analysis_datasets_section, attrs_ts_collections
 
 # -------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------
 # Method to analyze time information
-def analyze_time_info(file_info_start, file_info_end, tag_file_create='file_create'):
+def analyze_time_info(file_info_start, file_info_end, tag_file_reference='file_create'):
 
-    time_creation_start = define_time_creation(
-        file_info_start, tag_file_create=tag_file_create)
-    time_creation_end = define_time_creation(
-        file_info_end, tag_file_create=tag_file_create)
+    time_ref_start = define_time_reference(
+        file_info_start, tag_file_reference=tag_file_reference)
+    time_ref_end = define_time_reference(
+        file_info_end, tag_file_reference=tag_file_reference)
 
-    if (time_creation_start is not None) and (time_creation_end is not None):
-        time_creation_elapsed = time_creation_end[0] - time_creation_start[0]
+    if (time_ref_start is not None) and (time_ref_end is not None):
+        time_ref_elapsed = time_ref_end[0] - time_ref_start[0]
 
-        if isinstance(time_creation_start, list) and (time_creation_start.__len__() == 1):
-            time_creation_start = time_creation_start[0]
+        if isinstance(time_ref_start, list) and (time_ref_start.__len__() == 1):
+            time_ref_start = time_ref_start[0]
         else:
-            raise NotImplementedError('Time creation start format not supported yet')
+            log_stream.error(' ===> The format of "time_ref_start" is not supported')
+            raise NotImplemented('Case not implemented yet')
 
-        if isinstance(time_creation_end, list) and (time_creation_end.__len__() == 1):
-            time_creation_end = time_creation_end[0]
+        if isinstance(time_ref_end, list) and (time_ref_end.__len__() == 1):
+            time_ref_end = time_ref_end[0]
         else:
-            raise NotImplementedError('Time creation end format not supported yet')
+            log_stream.error(' ===> The format of "time_ref_end" is not supported')
+            raise NotImplemented('Case not implemented yet')
 
-        if time_creation_start > time_creation_end:
-            time_creation_end = None
-            time_creation_elapsed = None
-        elif time_creation_start <= time_creation_end:
+        if time_ref_start > time_ref_end:
+            log_stream.warning(' ===> The case between "time_ref_start" < "time_ref_end" is not expected')
+            time_ref_end, time_ref_elapsed = None, None
+        elif time_ref_start <= time_ref_end:
             pass
         else:
-            raise NotImplementedError('Analyze time information case not implemented yet')
+            log_stream.error(' ===> The case between "time_ref_start" and "time_ref_end" is not supported')
+            raise NotImplemented('Case not implemented yet')
 
-    elif (time_creation_start is not None) and (time_creation_end is None):
-        time_creation_end = None
-        time_creation_elapsed = None
-
+    elif (time_ref_start is not None) and (time_ref_end is None):
+        time_ref_end, time_ref_elapsed = None, None
     else:
-        raise NotImplementedError('Time creation start and end case not supported yet')
+        log_stream.error(' ===> The case of "time_ref_start" and ""time_ref_end" is not supported')
+        raise NotImplemented('Case not implemented yet')
 
-    return time_creation_start, time_creation_end, time_creation_elapsed
-
-# -------------------------------------------------------------------------------------
-
+    return time_ref_start, time_ref_end, time_ref_elapsed
 
 # -------------------------------------------------------------------------------------
-# Method to define file creation
-def define_time_creation(file_info, tag_file_create='file_create'):
+
+
+# -------------------------------------------------------------------------------------
+# Method to define file reference
+def define_time_reference(file_info, tag_file_reference='file_create'):
 
     if file_info is not None:
         if isinstance(file_info, dict):
 
-            if tag_file_create in list(file_info.keys()):
-                file_time_creation = [file_info[tag_file_create]]
+            if tag_file_reference in list(file_info.keys()):
+                file_time_reference = [file_info[tag_file_reference]]
             else:
                 file_time_list = []
                 for file_key, file_values in file_info.items():
                     if file_values is not None:
-                        if tag_file_create in list(file_values.keys()):
-                            file_time_step = file_values[tag_file_create]
+                        if tag_file_reference in list(file_values.keys()):
+                            file_time_step = file_values[tag_file_reference]
                             file_time_list.append(file_time_step)
                     else:
-                        logging.warning(' ===> Define time creation for section "' +
-                                        file_key + '" is not possible. All fields are undefined.')
+                        log_stream.warning(' ===> Define time reference for section "' +
+                                           file_key + '" is not possible. All fields are undefined.')
                 if file_time_list:
                     file_time_idx = pd.DatetimeIndex(file_time_list)
-                    file_time_creation = [file_time_idx.max()]
+                    file_time_reference = [file_time_idx.max()]
                 else:
-                    file_time_creation = None
-                    logging.warning(' ===> Time list object is not defined, All datasets are undefined.')
+                    file_time_reference = None
+                    log_stream.warning(' ===> Time list object is not defined, All datasets are undefined.')
         else:
-            raise NotImplementedError('File info obj is not defined by known format')
+            log_stream.error(' ===> Define time reference is not possible; the info object format is not supported')
+            raise NotImplemented('Case not implemented yet')
     else:
-        file_time_creation = None
-    return file_time_creation
+        file_time_reference = None
+
+    return file_time_reference
 # -------------------------------------------------------------------------------------
