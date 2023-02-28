@@ -63,3 +63,56 @@ def set_time(time_run_args=None, time_run_file=None, time_format='%Y-%m-%d %H:$M
     return time_run, time_exec, time_range
 
 # -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# method to define time boundaries
+def define_time_boundaries(time_reference, time_period=1, time_frequency='H',
+                           time_index='first', time_direction='left'):
+
+    if time_reference is None:
+        log_stream.error(' ===> The "time_reference" defined by "NoneType" is not allowed')
+        raise RuntimeError('The variable must be defined by TimeStamp object')
+    if time_index is None:
+        log_stream.warning(' ===> The "time_index" is defined by NoneType. Set the "first" default flag')
+        time_index = 'first'
+    if time_direction is None:
+        log_stream.warning(' ===> The "time_direction" is defined by NoneType. Set the "left" default flag')
+        time_direction = 'left'
+
+    if (time_period is not None) and (time_frequency is not None):
+        if time_period == 0:
+            log_stream.warning(' ===> The "time_period" must be at least defined by 1 time step')
+            time_period = 1
+
+        if not time_frequency[0].isdigit():
+            time_delta_str = str(1) + time_frequency
+        else:
+            time_delta_str = time_frequency
+
+        if time_direction == 'left':
+            time_range = pd.date_range(end=time_reference, periods=time_period, freq=time_frequency)
+        elif time_direction == 'right':
+            time_reference = time_reference + pd.Timedelta(time_delta_str)
+            time_range = pd.date_range(start=time_reference, periods=time_period, freq=time_frequency)
+        else:
+            log_stream.error(' ===> The "time_direction" defined by "' + time_direction + '" is not supported')
+            raise NotImplemented('Case not implemented yet')
+
+        if time_index == 'first':
+            time_select = time_range[0]
+        elif time_index == 'last':
+            time_select = time_range[-1]
+        elif time_index == 'first_last':
+            time_select = [time_range[0], time_range[::-1]]
+        else:
+            log_stream.error(' ===> The "time_index" defined by "' + time_index + '" is not supported')
+            raise NotImplemented('Case not implemented yet')
+    else:
+        log_stream.warning(' ===> The "time_period" or the "time_frequency" is/are defined by NoneType. '
+                           'The "time_select" variable will be defined by NoneType too')
+        time_select = None
+
+    return time_select
+
+# -------------------------------------------------------------------------------------

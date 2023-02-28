@@ -23,7 +23,7 @@
     "ancillary": {
       "domain_name" : "marche",
       "title_name": "Bulletin of Regione Marche Operational Chain",
-      "time_mode": "LOCAL"
+      "time_settings" : {"time_mode":  "LOCAL", "time_window_left": 4, "time_window_right":  null}
     },
     "general": {
       "title": "HAT - Run analyzer to control the execution of the HMC model",

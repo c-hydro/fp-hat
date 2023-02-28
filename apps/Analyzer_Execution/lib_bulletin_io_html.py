@@ -10,6 +10,7 @@ Version:       '1.0.0'
 # -------------------------------------------------------------------------------------
 # Libraries
 import logging
+import numpy as np
 import pandas as pd
 
 from lib_info_args import logger_name
@@ -25,7 +26,7 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                            file_name='bulletin_operational_chain.html',
                            bulletin_dframe_info=None, bulletin_dframe_thr=None,
                            tag_op_chain='Bulletin of Operational Chain',
-                           no_data_time='NAT', no_data_value='NA'):
+                           no_data_time='NAT', no_data_value='NA', no_data_expected='-'):
 
     # --------------------------------------------------------------------------------------------------------------
     # compute today time(s)
@@ -37,6 +38,20 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
     time_stamp_tomorrow = time_stamp_tomorrow.round('D')
     time_stamp_tomorrow_from = time_stamp_tomorrow.replace(hour=0, minute=0, second=0)
     time_stamp_tomorrow_to = time_stamp_tomorrow.replace(hour=23, minute=59, second=59)
+    # --------------------------------------------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------------------------------------------
+    # select datasets into the maximum period (today and tomorrow
+    bulletin_dframe_thr = bulletin_dframe_thr.loc[
+        (bulletin_dframe_thr['section_time'] >= time_stamp_today_from) &
+        (bulletin_dframe_thr['section_time'] <= time_stamp_tomorrow_to)]
+
+    run_section_list = sorted(list(set(bulletin_dframe_thr['section_name'])))
+    run_section_counts = {}
+    for run_section_step in run_section_list:
+        tmp_dframe_thr = bulletin_dframe_thr.loc[bulletin_dframe_thr['section_name'] == run_section_step]
+        run_section_n = tmp_dframe_thr.value_counts(['reference_time', 'data_code']).max()
+        run_section_counts[run_section_step] = run_section_n
     # --------------------------------------------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------------------------------------------
@@ -60,6 +75,7 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
         html_handle.write('th {font-family: Times New Roman, Times, serif; font-size: 14px;}\n')
         html_handle.write('td {font-family: Times New Roman, Times, serif; font-size: 12px;}\n')
         html_handle.write('.red {background-color: rgba(255,0,0,0.5);color: black;}\n')
+        html_handle.write('.orange {background-color: rgba(235,149,50,0.5);color: black;}\n')
         html_handle.write('.white {background-color: rgba(255,255,255, 0.3);color: black;}\n')
         html_handle.write('.yellow {background-color: rgba(255,255,0,0.5); color: black;}\n')
         html_handle.write('.verde {background-color: rgba(0,255,0,0.5); color: black;}\n')
@@ -97,7 +113,6 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
 
         # --------------------------------------------------------------------------------------------------------------
         # part 1 - reference time
-
         td_time_run = time_run.strftime(time_format) + ' ' + time_mode
         td_time_exec = time_exec.strftime(time_format) + ' ' + time_mode
 
@@ -139,13 +154,15 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
         html_handle.write('<th class="blue ColumnWidth_Type1 ColumnStyle_Center"><b>TimeStart</b></th>\n')
         html_handle.write('<th class="blue ColumnWidth_Type1 ColumnStyle_Center"><b>TimeEnd</b></th>\n')
         html_handle.write('<th class="blue ColumnWidth_Type1 ColumnStyle_Center"><b>TimeElapsed</b></th>\n')
-        html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Scenarios</b></th>\n')
+        html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Scenarios Completed</b></th>\n')
+        html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Scenarios Expected</b></th>\n')
         html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Sections</b></th>\n')
         html_handle.write('</tr>\n')
 
         # iterate over run(s)
         for run_info_id, run_info_row in bulletin_dframe_info.iterrows():
             run_n = run_info_row['run_n']
+            run_expected = run_info_row['run_expected']
             run_description = run_info_row['run_description']
             run_status_code = run_info_row['run_status_code']
             run_status_description = run_info_row['run_status_description']
@@ -156,10 +173,16 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
             domain_name = run_info_row['domain_name']
 
             if time_start != no_data_time and time_end != no_data_time:
-                td_color = 'cyan'
-                td_time_start = time_start + ' ' + time_mode
-                td_time_end = time_end + ' ' + time_mode
-                td_time_elapsed = time_elapsed
+                if run_n == run_expected:
+                    td_color = 'cyan'
+                    td_time_start = time_start + ' ' + time_mode
+                    td_time_end = time_end + ' ' + time_mode
+                    td_time_elapsed = time_elapsed
+                else:
+                    td_color = 'orange'
+                    td_time_start = time_start + ' ' + time_mode
+                    td_time_end = time_end + ' ' + time_mode
+                    td_time_elapsed = time_elapsed
             elif time_start != no_data_time and time_end == no_data_time:
                 td_color = 'gray'
                 td_time_start = time_start + ' ' + time_mode
@@ -189,6 +212,8 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                               td_time_elapsed + ' </td>\n')
             html_handle.write('<td class="' + td_color + ' ColumnWidth_Type5 ColumnStyle_Center">' +
                               run_n + '</td>\n')
+            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type5 ColumnStyle_Center">' +
+                              run_expected + '</td>\n')
             html_handle.write('<td class="' + td_color + ' ColumnWidth_Type5 ColumnStyle_Center">' +
                               section_n + '</td>\n')
             html_handle.write('</tr>\n')
@@ -235,15 +260,27 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     (run_select_summary['section_time'] >= time_stamp_today_from) &
                     (run_select_summary['section_time'] <= time_stamp_today_to)]
 
+                run_shape_section = run_section_counts[run_section_name]
+
                 run_data_today = run_section_today.loc[bulletin_dframe_thr['section_name'] == run_section_name]
-                run_shape_today = str(run_data_today.shape[0])
+                run_shape_today = run_data_today.shape[0]
+
+                if run_shape_section == run_shape_today:
+                    td_shape_today = str(run_shape_section)
+                    td_shape_extra = 0
+                elif run_shape_section > run_shape_today:
+                    td_shape_today = str(run_shape_section)
+                    td_shape_extra = run_shape_section - run_shape_today
+                else:
+                    td_shape_today = str(run_shape_section)
+                    td_shape_extra = 0
 
                 # check data availability
                 html_handle.write('<tr>\n')
                 if not run_data_today.empty:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="' + run_shape_today + '" class="yellow ColumnWidth_Type1 ColumnStyle_Left"><b> ' +
+                        '<td rowspan="' + td_shape_today + '" class="yellow ColumnWidth_Type1 ColumnStyle_Left"><b> ' +
                         run_section_name + '</b> </td>\n')
                     # iterate over data
                     for run_id, run_data in run_data_today.iterrows():
@@ -271,35 +308,59 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                         # close section
                         html_handle.write('</tr>\n')
 
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        # write data to html
+                        html_handle.write('<td class="yellow ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_expected + '</b></td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+
+                        # close section
+                        html_handle.write('</tr>\n')
+
                 else:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
+                        '<td rowspan="' + td_shape_today + '" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
                         run_section_name + '</b></td>\n')
-                    # write no data to html
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
-                                      no_data_value + '</b> </td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_value + '</b> </td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_time + '</td>\n')
 
-                    # close section
-                    html_handle.write('</tr>\n')
+                        # close section
+                        html_handle.write('</tr>\n')
 
         else:
+
             # write section info
             html_handle.write('<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>-</b></td>\n')
             # write null to html
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b> - </b></td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center"> - </td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                              no_data_expected + '</b></td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
 
             # close section
             html_handle.write('</tr>\n')
@@ -335,15 +396,27 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     (run_select_summary['section_time'] >= time_stamp_tomorrow_from) &
                     (run_select_summary['section_time'] <= time_stamp_tomorrow_to)]
 
+                run_shape_section = run_section_counts[run_section_name]
+
                 run_data_tomorrow = run_section_tomorrow.loc[bulletin_dframe_thr['section_name'] == run_section_name]
-                run_shape_tomorrow = str(run_data_tomorrow.shape[0])
+                run_shape_tomorrow = run_data_tomorrow.shape[0]
+
+                if run_shape_section == run_shape_tomorrow:
+                    td_shape_tomorrow = str(run_shape_section)
+                    td_shape_extra = 0
+                elif run_shape_section > run_shape_tomorrow:
+                    td_shape_tomorrow = str(run_shape_section)
+                    td_shape_extra = run_shape_section - run_shape_tomorrow
+                else:
+                    td_shape_tomorrow = str(run_shape_section)
+                    td_shape_extra = 0
 
                 # check data availability
                 html_handle.write('<tr>\n')
                 if not run_data_tomorrow.empty:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="' + run_shape_tomorrow + '" class="yellow ColumnWidth_Type1 ColumnStyle_Left"><b>' +
+                        '<td rowspan="' + td_shape_tomorrow + '" class="yellow ColumnWidth_Type1 ColumnStyle_Left"><b>' +
                         run_section_name + '</b></td>\n')
                     # iterate over data
                     for run_id, run_data in run_data_tomorrow.iterrows():
@@ -371,35 +444,59 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                         # close section
                         html_handle.write('</tr>\n')
 
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        # write data to html
+                        html_handle.write('<td class="yellow ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_expected + '</b></td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="yellow ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+
+                        # close section
+                        html_handle.write('</tr>\n')
+
                 else:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
+                        '<td rowspan="' + td_shape_tomorrow + '" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
                         run_section_name + '</b></td>\n')
-                    # write no data to html
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
-                                      no_data_value + '</b> </td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_value + '</b> </td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_time + '</td>\n')
 
-                    # close section
-                    html_handle.write('</tr>\n')
+                        # close section
+                        html_handle.write('</tr>\n')
 
         else:
+
             # write section info
             html_handle.write('<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>-</b></td>\n')
             # write null to html
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b> - </b></td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center"> - </td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                              no_data_expected + '</b></td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
 
             # close section
             html_handle.write('</tr>\n')
@@ -449,15 +546,27 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     (run_select_summary['section_time'] >= time_stamp_today_from) &
                     (run_select_summary['section_time'] <= time_stamp_today_to)]
 
+                run_shape_section = run_section_counts[run_section_name]
+
                 run_data_today = run_section_today.loc[bulletin_dframe_thr['section_name'] == run_section_name]
-                run_shape_today = str(run_data_today.shape[0])
+                run_shape_today = run_data_today.shape[0]
+
+                if run_shape_section == run_shape_today:
+                    td_shape_today = str(run_shape_section)
+                    td_shape_extra = 0
+                elif run_shape_section > run_shape_today:
+                    td_shape_today = str(run_shape_section)
+                    td_shape_extra = run_shape_section - run_shape_today
+                else:
+                    td_shape_today = str(run_shape_section)
+                    td_shape_extra = 0
 
                 # check data availability
                 html_handle.write('<tr>\n')
                 if not run_data_today.empty:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="' + run_shape_today + '" class="red ColumnWidth_Type1 ColumnStyle_Left"><b>' +
+                        '<td rowspan="' + td_shape_today + '" class="red ColumnWidth_Type1 ColumnStyle_Left"><b>' +
                         run_section_name + '</b></td>\n')
                     # iterate over data
                     for run_id, run_data in run_data_today.iterrows():
@@ -485,35 +594,58 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                         # close section
                         html_handle.write('</tr>\n')
 
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        # write data to html
+                        html_handle.write('<td class="red ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_expected + '</b></td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+
+                        # close section
+                        html_handle.write('</tr>\n')
+
                 else:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
+                        '<td rowspan="' + td_shape_today + '" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
                         run_section_name + '</b></td>\n')
-                    # write no data to html
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
-                                      no_data_value + '</b> </td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_value + '</b> </td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_time + '</td>\n')
 
-                    # close section
-                    html_handle.write('</tr>\n')
+                        # close section
+                        html_handle.write('</tr>\n')
 
         else:
             # write section info
             html_handle.write('<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>-</b></td>\n')
             # write null to html
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b> - </b></td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center"> - </td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                              no_data_expected + '</b></td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
 
             # close section
             html_handle.write('</tr>\n')
@@ -548,15 +680,27 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     (run_select_summary['section_time'] >= time_stamp_tomorrow_from) &
                     (run_select_summary['section_time'] <= time_stamp_tomorrow_to)]
 
+                run_shape_section = run_section_counts[run_section_name]
+
                 run_data_tomorrow = run_section_tomorrow.loc[bulletin_dframe_thr['section_name'] == run_section_name]
-                run_shape_tomorrow = str(run_data_tomorrow.shape[0])
+                run_shape_tomorrow = run_data_tomorrow.shape[0]
+
+                if run_shape_section == run_shape_tomorrow:
+                    td_shape_tomorrow = str(run_shape_section)
+                    td_shape_extra = 0
+                elif run_shape_section > run_shape_tomorrow:
+                    td_shape_tomorrow = str(run_shape_section)
+                    td_shape_extra = run_shape_section - run_shape_tomorrow
+                else:
+                    td_shape_tomorrow = str(run_shape_section)
+                    td_shape_extra = 0
 
                 # check data availability
                 html_handle.write('<tr>\n')
                 if not run_data_tomorrow.empty:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="' + run_shape_tomorrow + '" class="red ColumnWidth_Type1 ColumnStyle_Left"><b>' +
+                        '<td rowspan="' + td_shape_tomorrow + '" class="red ColumnWidth_Type1 ColumnStyle_Left"><b>' +
                         run_section_name + '</b></td>\n')
                     # iterate over section data
                     for run_id, run_data in run_data_tomorrow.iterrows():
@@ -584,35 +728,58 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                         # close section
                         html_handle.write('</tr>\n')
 
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        # write data to html
+                        html_handle.write('<td class="red ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_expected + '</b></td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+                        html_handle.write('<td class="red ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_expected + '</td>\n')
+
+                        # close section
+                        html_handle.write('</tr>\n')
+
                 else:
                     # write section info
                     html_handle.write(
-                        '<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
+                        '<td rowspan="' + td_shape_tomorrow + '" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>' +
                         run_section_name + '</b></td>\n')
-                    # write no data to html
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
-                                      no_data_value + '</b> </td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_value + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
-                    html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
-                                      no_data_time + '</td>\n')
+                    # iterate over extra
+                    for extra_id in range(0, td_shape_extra):
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                                          no_data_value + '</b> </td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                                          no_data_value + '</td>\n')
+                        html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                                          no_data_time + '</td>\n')
 
-                    # close section
-                    html_handle.write('</tr>\n')
+                        # close section
+                        html_handle.write('</tr>\n')
 
         else:
             # write section info
             html_handle.write('<td rowspan="1" class="white ColumnWidth_Type1 ColumnStyle_Left"><b>-</b></td>\n')
             # write null to html
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b> - </b></td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center"> - </td>\n')
-            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center"> - </td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+                              no_data_expected + '</b></td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
+            html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center">' +
+                              no_data_expected + '</td>\n')
 
             # close section
             html_handle.write('</tr>\n')

@@ -16,6 +16,8 @@ import pandas as pd
 
 from copy import deepcopy
 
+from lib_utils_time import define_time_boundaries
+
 from lib_utils_io import read_obj, write_obj
 from lib_utils_system import fill_tags2string, make_folder
 
@@ -48,7 +50,9 @@ class DriverDynamic:
 
     # -------------------------------------------------------------------------------------
     # Initialize class
-    def __init__(self, time_now, time_exec, time_run, src_dict, anc_dict, dest_dict, static_data_collection,
+    def __init__(self, time_now, time_exec, time_run, time_rounding='H', time_frequency='H',
+                 src_dict=None, anc_dict=None, dest_dict=None,
+                 static_data_collection=None,
                  alg_ancillary=None, alg_template_tags=None,
                  tag_section_data='section_data', tag_execution_data='execution_data',
                  tag_src_reference_start='run_reference_start', tag_src_reference_end='run_reference_end',
@@ -63,6 +67,8 @@ class DriverDynamic:
         self.time_now = time_now
         self.time_exec = time_exec
         self.time_run = time_run
+        self.time_rounding = time_rounding
+        self.time_frequency = time_frequency
 
         self.tag_section_data = tag_section_data
         self.tag_execution_data = tag_execution_data
@@ -95,11 +101,13 @@ class DriverDynamic:
             self.title_name = self.alg_ancillary['title_name']
         else:
             self.title_name = 'Bulletin of Operational Chain'
-        # get time mode information
-        if 'time_mode' in list(self.alg_ancillary.keys()):
-            self.time_mode = self.alg_ancillary['time_mode']
+        # get time settings information
+        if 'time_settings' in list(self.alg_ancillary.keys()):
+            self.time_mode = self.alg_ancillary['time_settings']['time_mode']
+            self.time_window_left = self.alg_ancillary['time_settings']['time_window_left']
+            self.time_window_right = self.alg_ancillary['time_settings']['time_window_right']
         else:
-            self.time_mode = 'LOCAL'
+            self.time_mode, self.time_window_left, self.time_window_right = 'LOCAL', None, None
 
         self.domain_name_list = self.alg_ancillary['domain_name']
         if not isinstance(self.domain_name_list, list):
@@ -214,6 +222,14 @@ class DriverDynamic:
             self.time_run, os.path.join(self.folder_name_dest_warn_daily, self.file_name_dest_warn_daily),
             file_extra_variables=None, file_extra_collections=None)
 
+        # define time boundaries to select analysis period
+        self.time_select_start = define_time_boundaries(
+            self.time_run, time_period=self.time_window_left,
+            time_frequency=self.time_frequency, time_direction='left', time_index='first')
+        self.time_select_end = define_time_boundaries(
+            self.time_run, time_period=self.time_window_right,
+            time_frequency=self.time_frequency, time_direction='right', time_index='last')
+
         # flags
         self.flag_cleaning_dynamic_source = flag_cleaning_dynamic_source
         self.flag_cleaning_dynamic_analysis = flag_cleaning_dynamic_analysis
@@ -241,10 +257,12 @@ class DriverDynamic:
         self.tag_summary_alert_index = 'alert_index'
         self.tag_summary_alert_section = 'alert_section'
         self.tag_summary_alert_thr = 'alert_thr'
+        self.tag_summary_alert_run = 'alert_run'
         self.tag_summary_alarm_value = 'alarm_value'
         self.tag_summary_alarm_index = 'alarm_index'
         self.tag_summary_alarm_section = 'alarm_section'
         self.tag_summary_alarm_thr = 'alarm_thr'
+        self.tag_summary_alarm_run = 'alarm_run'
         self.tag_summary_run_name = 'run_name'
         self.tag_summary_run_description = 'run_description'
 
@@ -337,6 +355,20 @@ class DriverDynamic:
             obj_data_tmp = obj_dframe_tmp[key_column].values.tolist()
             obj_data_out[obj_key_tmp] = obj_data_tmp
         return obj_data_out
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # Method to define time period search
+    @staticmethod
+    def define_time_search(time_step, time_period=1, time_frequency='H', time_rounding='H', time_reverse=False):
+
+        time_step = time_step.floor(time_rounding)
+        time_range = pd.date_range(end=time_step, periods=time_period, freq=time_frequency)
+
+        if time_reverse:
+            time_range = time_range[::-1]
+
+        return time_range
     # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
@@ -435,32 +467,36 @@ class DriverDynamic:
     # Method to dump dynamic data
     def dump_dynamic_data(self, analysis_datasets_collections):
 
-        time_exec = self.time_exec
-        time_run = self.time_run
-        time_mode = self.time_mode
+        # get reference time(s)
+        time_exec, time_run, time_mode = self.time_exec, self.time_run, self.time_mode
 
         title_name = self.title_name
 
+        # get domain and execution list
         domain_name_list = self.domain_name_list
         exec_name_list = self.exec_name_list
 
+        # get execution and section dataframe(s)
         exec_dframe = self.exec_dframe
         sections_dframe = self.sections_dframe
 
+        # get ancillary and destination file
         file_path_anc = self.file_path_anc_destination
         file_path_dest_summary = self.file_path_dest_summary
         file_path_dest_warn_max = self.file_path_dest_warn_max
         file_path_dest_warn_daily = self.file_path_dest_warn_daily
 
+        # get status destination file
         status_dest_summary = self.status_dest_summary
-        status_dest_warn_max = self.status_dest_warn_max
-        status_dest_warn_daily = self.status_dest_warn_daily
+        status_dest_warn_max, status_dest_warn_daily = self.status_dest_warn_max, self.status_dest_warn_daily
 
+        # get ancillary flag
         flag_clean_anc = self.flag_cleaning_dynamic_destination
 
         # info time start
         log_stream.info(' ---> Dump dynamic datasets [' + str(time_run) + '] ... ')
 
+        # check ancillary flag and file
         if flag_clean_anc:
             if os.path.exists(file_path_anc):
                 os.remove(file_path_anc)
@@ -468,7 +504,7 @@ class DriverDynamic:
         # organize bulletin datasets
         log_stream.info(' ----> Organize summary bulletin  ... ')
 
-        # check availability of ancillary file
+        # check ancillary file
         if not os.path.exists(file_path_anc):
 
             # iterate over domains list
@@ -525,21 +561,28 @@ class DriverDynamic:
 
                                     max_alert_value = data_step[self.tag_summary_alert_value]
                                     max_alert_idx = data_step[self.tag_summary_alert_index]
+                                    max_alert_run = data_step[self.tag_summary_alert_run]
                                     max_alarm_value = data_step[self.tag_summary_alarm_value]
                                     max_alarm_idx = data_step[self.tag_summary_alarm_index]
+                                    max_alarm_run = data_step[self.tag_summary_alarm_run]
                                     thr_alert_value = data_step[self.tag_summary_alert_thr]
                                     thr_alarm_value = data_step[self.tag_summary_alarm_thr]
+
+                                    if max_alert_run is not None and section_name == 'misa:misa':
+                                        print('ciao')
 
                                     if time_step not in list(summary_datasets.keys()):
                                         summary_datasets[time_step] = {}
 
                                         summary_datasets[time_step][self.tag_summary_alert_value] = [max_alert_value]
                                         summary_datasets[time_step][self.tag_summary_alert_index] = [max_alert_idx]
+                                        summary_datasets[time_step][self.tag_summary_alert_run] = [max_alert_run]
                                         summary_datasets[time_step][self.tag_summary_alert_section] = [section_name]
                                         summary_datasets[time_step][self.tag_summary_alert_thr] = [thr_alert_value]
 
                                         summary_datasets[time_step][self.tag_summary_alarm_value] = [max_alarm_value]
                                         summary_datasets[time_step][self.tag_summary_alarm_index] = [max_alarm_idx]
+                                        summary_datasets[time_step][self.tag_summary_alarm_run] = [max_alarm_run]
                                         summary_datasets[time_step][self.tag_summary_alarm_section] = [section_name]
                                         summary_datasets[time_step][self.tag_summary_alarm_thr] = [thr_alarm_value]
 
@@ -552,29 +595,36 @@ class DriverDynamic:
 
                                         tmp_alert_value = tmp_datasets[self.tag_summary_alert_value]
                                         tmp_alert_idx = tmp_datasets[self.tag_summary_alert_index]
+                                        tmp_alert_run = tmp_datasets[self.tag_summary_alert_run]
                                         tmp_alert_section = tmp_datasets[self.tag_summary_alert_section]
                                         tmp_alert_thr = tmp_datasets[self.tag_summary_alert_thr]
+
                                         tmp_alert_value.append(max_alert_value)
                                         tmp_alert_idx.append(max_alert_idx)
+                                        tmp_alert_run.append(max_alert_run)
                                         tmp_alert_section.append(section_name)
                                         tmp_alert_thr.append(thr_alert_value)
 
                                         summary_datasets[time_step][self.tag_summary_alert_value] = tmp_alert_value
                                         summary_datasets[time_step][self.tag_summary_alert_index] = tmp_alert_idx
+                                        summary_datasets[time_step][self.tag_summary_alert_run] = tmp_alert_run
                                         summary_datasets[time_step][self.tag_summary_alert_section] = tmp_alert_section
                                         summary_datasets[time_step][self.tag_summary_alert_thr] = tmp_alert_thr
 
                                         tmp_alarm_value = tmp_datasets[self.tag_summary_alarm_value]
                                         tmp_alarm_idx = tmp_datasets[self.tag_summary_alarm_index]
+                                        tmp_alarm_run = tmp_datasets[self.tag_summary_alarm_run]
                                         tmp_alarm_section = tmp_datasets[self.tag_summary_alarm_section]
                                         tmp_alarm_thr = tmp_datasets[self.tag_summary_alarm_thr]
                                         tmp_alarm_value.append(max_alarm_value)
                                         tmp_alarm_idx.append(max_alarm_idx)
+                                        tmp_alarm_run.append(max_alarm_run)
                                         tmp_alarm_section.append(section_name)
                                         tmp_alarm_thr.append(thr_alarm_value)
 
                                         summary_datasets[time_step][self.tag_summary_alarm_value] = tmp_alarm_value
                                         summary_datasets[time_step][self.tag_summary_alarm_index] = tmp_alarm_idx
+                                        summary_datasets[time_step][self.tag_summary_alarm_run] = tmp_alarm_run
                                         summary_datasets[time_step][self.tag_summary_alarm_section] = tmp_alarm_section
                                         summary_datasets[time_step][self.tag_summary_alarm_thr] = tmp_alarm_thr
 
@@ -747,45 +797,38 @@ class DriverDynamic:
     # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
-    # Method to define time period search
-    @staticmethod
-    def define_time_search(time_step, time_period=1, time_frequency='H', time_rounding='H', time_reverse=False):
-
-        time_step = time_step.floor(time_rounding)
-        time_range = pd.date_range(end=time_step, periods=time_period, freq=time_frequency)
-
-        if time_reverse:
-            time_range = time_range[::-1]
-
-        return time_range
-    # -------------------------------------------------------------------------------------
-
-    # -------------------------------------------------------------------------------------
     # Method to analyze dynamic data
     def analyze_dynamic_data(self, file_workspace):
 
+        # get reference time(s)
         time = self.time_run
+        time_select_start, time_select_end = self.time_select_start, self.time_select_end
 
+        # get domain and execution list
         domain_name_list = self.domain_name_list
         exec_name_list = self.exec_name_list
-
+        # get execution dataframe
         exec_dframe = self.exec_dframe
-
+        # get ancillary object(s)
         file_path_anc = self.file_path_anc_analysis
         flag_clean_anc = self.flag_cleaning_dynamic_analysis
 
+        # info routine start
         log_stream.info(' ---> Analyze dynamic datasets [' + str(time) + '] ... ')
 
+        # check ancillary flag and file
         if flag_clean_anc:
             if os.path.exists(file_path_anc):
                 os.remove(file_path_anc)
 
+        # check ancillary file
         if not os.path.exists(file_path_anc):
 
             # cycles over domain name(s)
             analyze_warnings_collections, analyze_datasets_collections = {}, {}
             for domain_name_step in domain_name_list:
 
+                # info domain start
                 log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... ')
 
                 # get file information for selected domain
@@ -802,6 +845,7 @@ class DriverDynamic:
                 # cycles over execution name(s)
                 for exec_name_step in exec_name_list:
 
+                    # info execution start
                     log_stream.info(' ----> Execution reference "' + exec_name_step + '" ... ')
 
                     exec_data = exec_dframe[exec_dframe.index == exec_name_step]
@@ -827,47 +871,58 @@ class DriverDynamic:
 
                             analysis_datasets_section, attrs_datasets_section = analyze_discharge_ts(
                                     exec_name_step, exec_data_collection,
+                                    time_start=time_select_start, time_end=time_select_end,
                                     tag_discharge_observed=exec_run_var_obs, tag_discharge_simulated=exec_run_var_sim,
                                     tag_discharge_thr_alert=self.tag_summary_alert_thr,
                                     tag_discharge_thr_alarm=self.tag_summary_alarm_thr,
                                     tag_discharge_max_alert_value=self.tag_summary_alert_value,
                                     tag_discharge_max_alert_index=self.tag_summary_alert_index,
+                                    tag_discharge_max_alert_run=self.tag_summary_alert_run,
                                     tag_discharge_max_alarm_value=self.tag_summary_alarm_value,
                                     tag_discharge_max_alarm_index=self.tag_summary_alarm_index,
+                                    tag_discharge_max_alarm_run=self.tag_summary_alarm_run,
                                     tag_run_n=self.tag_run_n, tag_section_n=self.tag_section_n)
 
+                            # info execution end (done)
                             log_stream.info(' ----> Execution reference "' + exec_name_step + '" ... DONE')
                         else:
+                            # info execution end (datasets are null)
                             analysis_time_reference_start, analysis_time_reference_end = None, None
                             analysis_time_reference_elapsed, attrs_datasets_section = None, None
                             analysis_datasets_section = None
                             log_stream.info(' ----> Execution reference "' + exec_name_step + '" ... SKIPPED. '
                                             'Execution datasets are null')
                     else:
+                        # info execution end (execution not available)
                         analysis_time_reference_start, analysis_time_reference_end = None, None
                         analysis_time_reference_elapsed, attrs_datasets_section = None, None
                         analysis_datasets_section = None
                         log_stream.info(' ----> Execution reference "' + exec_name_step +
                                         '" ... SKIPPED. Execution not available')
 
+                    # organize common workspace
                     analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_ref_start] = analysis_time_reference_start
                     analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_ref_end] = analysis_time_reference_end
                     analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_ref_elapsed] = analysis_time_reference_elapsed
                     analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_datasets_section] = analysis_datasets_section
                     analyze_datasets_collections[domain_name_step][exec_name_step][self.tag_run_datasets_attrs] = attrs_datasets_section
 
+                # info domain end
+                log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... DONE')
+
+            # dump ancillary obj to file
             folder_name_anc, file_name_anc = os.path.split(file_path_anc)
             make_folder(folder_name_anc)
 
             analyze_collections = {self.tag_data: analyze_datasets_collections}
-
             write_obj(file_path_anc, analyze_collections)
 
         else:
-
+            # get ancillary obj from file
             analyze_collections = read_obj(file_path_anc)
             analyze_datasets_collections = analyze_collections[self.tag_data]
 
+        # info routine end
         log_stream.info(' ---> Analyze dynamic datasets [' + str(time) + '] ... DONE')
 
         return analyze_datasets_collections

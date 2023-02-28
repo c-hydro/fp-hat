@@ -174,6 +174,7 @@ def shrink_bulletin_attrs(summary_attrs_all, op_element_list=None):
     if op_element_list is None:
         op_element_list = [
             'run_n:get_unique_value:unique',
+            'run_expected:get_unique_value:unique',
             'section_n:compute_unique_value:sum',
             'run_type:get_unique_value:unique',
             'run_name:get_unique_value:unique',

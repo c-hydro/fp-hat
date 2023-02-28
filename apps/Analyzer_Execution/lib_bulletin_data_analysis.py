@@ -53,7 +53,7 @@ def get_bulletin_field(field_name, field_info, field_value_null='NA', field_time
 # -------------------------------------------------------------------------------------
 # method to create bulletin obj
 def create_bulletin_obj(run_name_list, run_description_list, run_time_list,
-                        thr_data_list, thr_time_list, thr_type_list, thr_code_list,
+                        thr_data_list, thr_time_list, thr_run_list, thr_type_list, thr_code_list,
                         thr_value_alert_list, thr_value_alarm_list, thr_section_list,
                         section_longitude_list, section_latitude_list, section_tag_list,
                         section_name_list, section_code_list, section_catchment_list,
@@ -66,7 +66,7 @@ def create_bulletin_obj(run_name_list, run_description_list, run_time_list,
 
         'thr_type': thr_type_list, 'thr_code': thr_code_list,
         'thr_value_alert': thr_value_alert_list, 'thr_value_alarm': thr_value_alarm_list,
-        'thr_value_data': thr_data_list, 'thr_time': thr_time_list,
+        'thr_value_data': thr_data_list, 'thr_time': thr_time_list, 'thr_run': thr_run_list,
         'thr_section': thr_section_list,
 
         'section_longitude': section_longitude_list, 'section_latitude': section_latitude_list,
@@ -83,7 +83,7 @@ def create_bulletin_obj(run_name_list, run_description_list, run_time_list,
 
 # -------------------------------------------------------------------------------------
 # method to organize bulletin obj
-def organize_bulletin_obj(section_dframe_generic):
+def organize_bulletin_obj(section_dframe_generic, sep_root=';', sep_sub='::'):
 
     # check generic dataframe
     if not section_dframe_generic.empty:
@@ -97,17 +97,31 @@ def organize_bulletin_obj(section_dframe_generic):
             section_dframe_max = section_dframe_finite.loc[
                 section_dframe_finite['thr_code'] == thr_code_max]
 
+            # organize fields with duplicates (for example the same maximum value)
+            time_root_list, run_root_list = [], []
+            for thr_time, thr_run in zip(section_dframe_max['thr_time'], section_dframe_max['thr_run']):
+                time_sub_list, run_sub_list = [], []
+                for time_sub, run_sub in zip(thr_time, thr_run):
+                    time_str = time_sub.strftime('%Y-%m-%d %H:%M')
+                    time_sub_list.append(time_str)
+                    run_sub_list.append(run_sub)
+                time_sub_str = sep_sub.join(time_sub_list)
+                run_sub_str = sep_sub.join(run_sub_list)
+                time_root_list.append(time_sub_str)
+                run_root_list.append(run_sub_str)
+
             # multi-fields
-            run_name_list = ';'.join(list(section_dframe_max['run_name'].values))
-            run_description_list = ';'.join(list(section_dframe_max['run_description'].values))
-            run_time_list = ';'.join(list(section_dframe_max['run_time'].dt.strftime('%Y-%m-%d %H:%M')))
-            thr_data_list = ';'.join(list(section_dframe_max['thr_value_data'].astype(str)))
-            thr_time_list = ';'.join(list(section_dframe_max['thr_time'].dt.strftime('%Y-%m-%d %H:%M')))
+            run_name_list = sep_root.join(list(section_dframe_max['run_name'].values))
+            run_description_list = sep_root.join(list(section_dframe_max['run_description'].values))
+            run_time_list = sep_root.join(list(section_dframe_max['run_time'].dt.strftime('%Y-%m-%d %H:%M')))
+            thr_data_list = sep_root.join(list(section_dframe_max['thr_value_data'].astype(str)))
+            thr_time_list = sep_root.join(time_root_list)
+            thr_run_list = sep_root.join(run_root_list)
             thr_type = section_dframe_max['thr_type'].values[0]
             thr_code = section_dframe_max['thr_code'].values[0]
         else:
             run_name_list, run_description_list, run_time_list = 'NA', 'NA', 'NA'
-            thr_data_list, thr_time_list = 'NA', 'NA'
+            thr_data_list, thr_time_list, thr_run_list = 'NA', 'NA', 'NA'
             thr_type = section_dframe_generic['thr_type'].values[0]
             thr_code = section_dframe_generic['thr_code'].values[0]
 
@@ -127,7 +141,7 @@ def organize_bulletin_obj(section_dframe_generic):
     else:
 
         run_name_list, run_description_list, run_time_list = [], [], []
-        thr_data_list, thr_time_list, thr_type, thr_code = [], [], [], []
+        thr_data_list, thr_time_list, thr_run_list, thr_type, thr_code = [], [], [], [], []
         thr_value_alert, thr_value_alarm, thr_section = np.nan, np.nan, np.nan
         section_longitude, section_latitude = np.nan, np.nan
         section_tag, section_name, section_code, section_catchment = '', '', '', ''
@@ -135,7 +149,8 @@ def organize_bulletin_obj(section_dframe_generic):
 
         log_stream.warning(' ===> The threshold DataFrame is empty. All the datasets are not defined.')
 
-    return run_name_list, run_description_list, run_time_list, thr_data_list, thr_time_list, thr_type, thr_code, \
+    return run_name_list, run_description_list, run_time_list, thr_data_list, thr_time_list, thr_run_list, \
+        thr_type, thr_code, \
         thr_value_alert, thr_value_alarm, thr_section, \
         section_longitude, section_latitude, section_tag, section_name, section_code, section_catchment, \
         section_description, domain_description
@@ -183,7 +198,8 @@ def organize_bulletin_warnings_section(bulletin_dframe_generic, sections_dframe)
     log_stream.info(' ------> Organize bulletin warnings sections ... ')
 
     # initialize variable(s)
-    run_name_summary, run_description_summary, run_time_summary, thr_data_summary, thr_time_summary = [], [], [], [], []
+    run_name_summary, run_description_summary, run_time_summary = [], [], []
+    thr_data_summary, thr_time_summary, thr_run_summary = [], [], []
     thr_type_summary, thr_code_summary = [], []
     thr_value_alert_summary, thr_value_alarm_summary, thr_section_summary = [], [], []
     section_longitude_summary, section_latitude_summary = [], []
@@ -195,14 +211,15 @@ def organize_bulletin_warnings_section(bulletin_dframe_generic, sections_dframe)
 
         # get section tag
         section_reference = section_row['section_tag']
-        log_stream.info(' -------> Section "' + section_reference + ' ... ')
+        log_stream.info(' -------> Section "' + section_reference.lower() + ' ... ')
 
         # extract section dataframe
         section_dframe_generic = bulletin_dframe_generic.loc[
             bulletin_dframe_generic['section_tag'].str.lower() == section_reference.lower()]
 
         # organize section field
-        run_name_list, run_description_list, run_time_list, thr_data_list, thr_time_list, thr_type, thr_code, \
+        run_name_list, run_description_list, run_time_list, thr_data_list, thr_time_list, thr_run_list, \
+            thr_type, thr_code, \
             thr_value_alert, thr_value_alarm, thr_section, \
             section_longitude, section_latitude, section_tag, section_name, section_code, section_catchment, \
             section_description, domain_description = organize_bulletin_obj(section_dframe_generic)
@@ -213,6 +230,7 @@ def organize_bulletin_warnings_section(bulletin_dframe_generic, sections_dframe)
         run_time_summary.append(run_time_list)
         thr_data_summary.append(thr_data_list)
         thr_time_summary.append(thr_time_list)
+        thr_run_summary.append(thr_run_list)
         thr_type_summary.append(thr_type)
         thr_code_summary.append(thr_code)
         thr_value_alert_summary.append(thr_value_alert)
@@ -227,12 +245,12 @@ def organize_bulletin_warnings_section(bulletin_dframe_generic, sections_dframe)
         section_description_summary.append(section_description)
         domain_description_summary.append(domain_description)
 
-        log_stream.info(' -------> Section "' + section_reference + ' ... DONE')
+        log_stream.info(' -------> Section "' + section_reference.lower() + ' ... DONE')
 
     # create bulletin obj
     bulletin_dframe_maximum = create_bulletin_obj(
         run_name_summary, run_description_summary, run_time_summary,
-        thr_data_summary, thr_time_summary, thr_type_summary, thr_code_summary,
+        thr_data_summary, thr_time_summary, thr_run_summary, thr_type_summary, thr_code_summary,
         thr_value_alert_summary, thr_value_alarm_summary, thr_section_summary,
         section_longitude_summary, section_latitude_summary, section_tag_summary,
         section_name_summary, section_code_summary, section_catchment_summary,
@@ -257,7 +275,8 @@ def organize_bulletin_warnings_generic(run_name_list, run_summary, section_colle
     pnt_run_id_list, pnt_run_time_list = [], []
     pnt_thr_type_list, pnt_thr_code_list = [], []
     pnt_thr_value_default_list, pnt_thr_alert_list, pnt_thr_alarm_list = [], [], []
-    pnt_thr_value_data_list, pnt_thr_value_time_list, pnt_thr_section_list, pnt_description_list = [], [], [], []
+    pnt_thr_value_data_list, pnt_thr_value_time_list, pnt_thr_value_run_list = [], [], []
+    pnt_thr_section_list, pnt_description_list = [], []
     pnt_longitude_list, pnt_latitude_list = [], []
     pnt_section_code_list, pnt_section_name_list, pnt_section_catchment_list = [], [], []
     pnt_section_description_list, pnt_domain_description_list, pnt_section_tag_list = [], [], []
@@ -277,10 +296,12 @@ def organize_bulletin_warnings_generic(run_name_list, run_summary, section_colle
 
                 alert_value_list = data_step['alert_value']
                 alert_time_list = data_step['alert_index']
+                alert_run_list = data_step['alert_run']
                 # alert_thr_list = data_step['alert_thr']
                 alert_section_list = data_step['alert_section']
                 alarm_value_list = data_step['alarm_value']
                 alarm_time_list = data_step['alarm_index']
+                alarm_run_list = data_step['alarm_run']
                 # alarm_thr_list = data_step['alarm_thr']
                 alarm_section_list = data_step['alarm_section']
                 run_name_list = data_step['run_name']
@@ -324,18 +345,21 @@ def organize_bulletin_warnings_generic(run_name_list, run_summary, section_colle
                         if np.isfinite(check_value):
                             pnt_thr_value_data_list.append(alert_value_list[pnt_id_step])
                             pnt_thr_value_time_list.append(alert_time_list[pnt_id_step])
+                            pnt_thr_value_run_list.append(alert_run_list[pnt_id_step])
                             pnt_thr_section_list.append(alert_section_list[pnt_id_step])
                             pnt_thr_type_list.append('alert')
                             pnt_thr_code_list.append(1)
                         else:
                             pnt_thr_value_data_list.append(alert_value_list[pnt_id_step])
                             pnt_thr_value_time_list.append(alert_time_list[pnt_id_step])
+                            pnt_thr_value_run_list.append(alert_run_list[pnt_id_step])
                             pnt_thr_section_list.append(alert_section_list[pnt_id_step])
                             pnt_thr_type_list.append(None)
                             pnt_thr_code_list.append(0)
                     else:
                         pnt_thr_value_data_list.append(alert_value_list[pnt_id_step])
                         pnt_thr_value_time_list.append(alert_time_list[pnt_id_step])
+                        pnt_thr_value_run_list.append(alert_run_list[pnt_id_step])
                         pnt_thr_section_list.append(alert_section_list[pnt_id_step])
                         pnt_thr_type_list.append(None)
                         pnt_thr_code_list.append(0)
@@ -378,18 +402,21 @@ def organize_bulletin_warnings_generic(run_name_list, run_summary, section_colle
                         if np.isfinite(alarm_value_list[pnt_id_step]):
                             pnt_thr_value_data_list.append(alarm_value_list[pnt_id_step])
                             pnt_thr_value_time_list.append(alarm_time_list[pnt_id_step])
+                            pnt_thr_value_run_list.append(alarm_run_list[pnt_id_step])
                             pnt_thr_section_list.append(alarm_section_list[pnt_id_step])
                             pnt_thr_type_list.append('alarm')
                             pnt_thr_code_list.append(2)
                         else:
                             pnt_thr_value_data_list.append(alarm_value_list[pnt_id_step])
                             pnt_thr_value_time_list.append(alarm_time_list[pnt_id_step])
+                            pnt_thr_value_run_list.append(alarm_run_list[pnt_id_step])
                             pnt_thr_section_list.append(alarm_section_list[pnt_id_step])
                             pnt_thr_type_list.append(None)
                             pnt_thr_code_list.append(0)
                     else:
                         pnt_thr_value_data_list.append(alarm_value_list[pnt_id_step])
                         pnt_thr_value_time_list.append(alarm_time_list[pnt_id_step])
+                        pnt_thr_value_run_list.append(alarm_run_list[pnt_id_step])
                         pnt_thr_section_list.append(alarm_section_list[pnt_id_step])
                         pnt_thr_type_list.append(None)
                         pnt_thr_code_list.append(0)
@@ -408,7 +435,7 @@ def organize_bulletin_warnings_generic(run_name_list, run_summary, section_colle
         'thr_type': pnt_thr_type_list, 'thr_code': pnt_thr_code_list,
         'thr_value_alert': pnt_thr_alert_list, 'thr_value_alarm': pnt_thr_alarm_list,
         'thr_value_data': pnt_thr_value_data_list, 'thr_time': pnt_thr_value_time_list,
-        'thr_section': pnt_thr_section_list,
+        'thr_run': pnt_thr_value_run_list, 'thr_section': pnt_thr_section_list,
 
         'section_longitude': pnt_longitude_list, 'section_latitude': pnt_latitude_list,
         'section_tag': pnt_section_tag_list, 'section_name': pnt_section_name_list,
@@ -432,9 +459,10 @@ def organize_bulletin_info(run_name_list, run_summary,
                            tag_summary_data='data', tag_summary_info='info',
                            summary_no_data_run='NAT', summary_no_data_time='NAT',
                            summary_run_status_completed='COMPLETED', summary_run_code_completed=0,
+                           summary_run_status_not_completed='NOT COMPLETED', summary_run_code_not_completed=-1,
                            summary_run_status_running='RUNNING', summary_run_code_running=1,
                            summary_run_status_not_available='NOT AVAILABLE', summary_run_code_not_available=2,
-                           summary_run_status_unknown='UNKNOWN', summary_run_code_unknown=-1,
+                           summary_run_status_unknown='UNKNOWN', summary_run_code_unknown=-2,
                            summary_level_nothing_status='none', summary_level_nothing_code=0,
                            summary_level_alert_status='alert', summary_level_alert_code=1,
                            summary_level_alarm_status='alarm', summary_level_alarm_code=2):
@@ -443,7 +471,7 @@ def organize_bulletin_info(run_name_list, run_summary,
     log_stream.info(' -----> Organize bulletin info run ... ')
 
     # iterate over run name
-    run_id_list, run_n_list, run_description_list, run_type_list = [], [], [], []
+    run_id_list, run_n_list, run_expected_list, run_description_list, run_type_list = [], [], [], [], []
     run_status_description_list, run_status_code_list = [], []
     time_start_list, time_end_list, time_elapsed_list = [], [], []
     section_n_list, domain_name_list = [], []
@@ -459,6 +487,7 @@ def organize_bulletin_info(run_name_list, run_summary,
         run_info_step = shrink_bulletin_attrs(run_info_step)
 
         run_n_step = get_bulletin_field('run_n', run_info_step, field_value_null=summary_no_data_run)
+        run_expected_step = get_bulletin_field('run_expected', run_info_step, field_value_null=summary_no_data_run)
         run_description_step = get_bulletin_field('run_description', run_info_step, field_value_null=summary_no_data_run)
         run_type_step = get_bulletin_field('run_type', run_info_step, field_value_null=summary_no_data_run)
         section_n_step = get_bulletin_field('section_n', run_info_step, field_value_null=summary_no_data_run)
@@ -469,8 +498,12 @@ def organize_bulletin_info(run_name_list, run_summary,
 
         # check time
         if time_start_step != summary_no_data_time and time_end_step != summary_no_data_time:
-            run_status_description_step = summary_run_status_completed
-            run_status_code_step = summary_run_code_completed
+            if run_n_step == run_expected_step:
+                run_status_description_step = summary_run_status_completed
+                run_status_code_step = summary_run_code_completed
+            else:
+                run_status_description_step = summary_run_status_not_completed
+                run_status_code_step = summary_run_code_not_completed
         elif time_start_step != summary_no_data_time and time_end_step == summary_no_data_time:
             run_status_description_step = summary_run_status_running
             run_status_code_step = summary_run_code_running
@@ -483,6 +516,7 @@ def organize_bulletin_info(run_name_list, run_summary,
 
         run_id_list.append(run_id_step)
         run_n_list.append(run_n_step)
+        run_expected_list.append(run_expected_step)
         run_description_list.append(run_description_step)
         run_status_description_list.append(run_status_description_step)
         run_status_code_list.append(run_status_code_step)
@@ -498,7 +532,7 @@ def organize_bulletin_info(run_name_list, run_summary,
 
     # define run info dframe
     run_info_dict = {
-        'run_id': run_id_list, 'run_n': run_n_list,
+        'run_id': run_id_list, 'run_n': run_n_list, 'run_expected': run_expected_list,
         'run_description': run_description_list, 'run_type': run_type_list,
         'run_status_description': run_status_description_list, 'run_status_code': run_status_code_list,
         'time_start': time_start_list, 'time_end': time_end_list, 'time_elapsed': time_elapsed_list,
@@ -515,7 +549,7 @@ def organize_bulletin_info(run_name_list, run_summary,
     # info start
     log_stream.info(' -----> Organize bulletin info warning ... ')
 
-    thr_run_name_ref, thr_run_tag_ref, thr_id_ref, thr_time_ref, thr_default_ref = [], [], [], [], []
+    thr_run_name_ref, thr_run_tag_ref, thr_id_ref, thr_time_ref, thr_run_def, thr_default_ref = [], [], [], [], [], []
     thr_type_def, thr_code_def = [], []
     thr_value_def, thr_time_def, thr_section_def, thr_description_def = [], [], [], []
     # iterate over run name
@@ -532,10 +566,12 @@ def organize_bulletin_info(run_name_list, run_summary,
 
                 alert_value_raw = data_step['alert_value']
                 alert_index_raw = data_step['alert_index']
+                alert_run_raw = data_step['alert_run']
                 alert_thr_raw = data_step['alert_thr']
                 alert_section_raw = data_step['alert_section']
                 alarm_value_raw = data_step['alarm_value']
                 alarm_index_raw = data_step['alarm_index']
+                alarm_run_raw = data_step['alarm_run']
                 alarm_thr_raw = data_step['alarm_thr']
                 alarm_section_raw = data_step['alarm_section']
 
@@ -554,7 +590,24 @@ def organize_bulletin_info(run_name_list, run_summary,
 
                     thr_default_ref.append(alert_thr_raw[idx])
                     thr_value_def.append(alert_value_raw[idx])
-                    thr_time_def.append(alert_index_raw[idx])
+
+                    if isinstance(alert_index_raw[idx], list):
+                        if alert_index_raw[idx].__len__() == 1:
+                            alert_index_select = alert_index_raw[idx][0]
+                        else:
+                            alert_index_select = pd.DatetimeIndex(alert_index_raw[idx]).max()
+                    else:
+                        alert_index_select = alert_index_raw[idx]
+                    thr_time_def.append(alert_index_select)
+
+                    if isinstance(alert_run_raw[idx], list):
+                        if alert_run_raw[idx].__len__() == 1:
+                            alert_run_select = alert_run_raw[idx][0]
+                        else:
+                            alert_run_select = '::'.join(alert_run_raw[idx])
+                    else:
+                        alert_run_select = alert_run_raw[idx]
+                    thr_run_def.append(alert_run_select)
                     thr_section_def.append(alert_section_raw[idx])
                     thr_type_def.append(summary_level_alert_status)
                     thr_code_def.append(summary_level_alert_code)
@@ -578,7 +631,25 @@ def organize_bulletin_info(run_name_list, run_summary,
 
                     thr_default_ref.append(alarm_thr_raw[idx])
                     thr_value_def.append(alarm_value_raw[idx])
-                    thr_time_def.append(alarm_index_raw[idx])
+
+                    if isinstance(alarm_index_raw[idx], list):
+                        if alarm_index_raw[idx].__len__() == 1:
+                            alarm_index_select = alarm_index_raw[idx][0]
+                        else:
+                            alarm_index_select = pd.DatetimeIndex(alarm_index_raw[idx]).max()
+                    else:
+                        alarm_index_select = alarm_index_raw[idx]
+                    thr_time_def.append(alarm_index_select)
+
+                    if isinstance(alarm_run_raw[idx], list):
+                        if alarm_run_raw[idx].__len__() == 1:
+                            alarm_run_select = alarm_run_raw[idx][0]
+                        else:
+                            alarm_run_select = '::'.join(alarm_run_raw[idx])
+                    else:
+                        alarm_run_select = alarm_run_raw[idx]
+                    thr_run_def.append(alarm_run_select)
+
                     thr_section_def.append(alarm_section_raw[idx])
                     thr_type_def.append(summary_level_alarm_status)
                     thr_code_def.append(summary_level_alarm_code)
@@ -599,7 +670,7 @@ def organize_bulletin_info(run_name_list, run_summary,
         'reference_run_name': thr_run_name_ref, 'reference_run_tag': thr_run_tag_ref,
         'reference_id': thr_id_ref, 'reference_time': thr_time_ref,
         'section_thr': thr_default_ref, 'section_data': thr_value_def,
-        'section_time': thr_time_def, 'section_name': thr_section_def,
+        'section_time': thr_time_def, 'section_name': thr_section_def, 'section_run': thr_run_def,
         'data_type': thr_type_def, 'data_code': thr_code_def, 'data_description': thr_description_def}
 
     run_thr_dframe = pd.DataFrame(run_thr_dict)

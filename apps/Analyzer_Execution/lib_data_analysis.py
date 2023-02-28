@@ -10,6 +10,7 @@ Version:       '1.0.0'
 # Library
 import logging
 
+import numpy as np
 import pandas as pd
 from copy import deepcopy
 
@@ -21,226 +22,320 @@ log_stream = logging.getLogger(logger_name)
 
 
 # -------------------------------------------------------------------------------------
+# method to select discharge columns by tag
+def filter_discharge_ts_by_tag(section_dframe,
+                               tag_discharge_simulated='discharge_simulated',
+                               tag_discharge_observed='discharge_observed'):
+
+    if '{:}' in tag_discharge_simulated:
+        tag_root_simulated = tag_discharge_simulated.strip('{:}')
+        tag_root_simulated = tag_root_simulated.strip('_')
+    else:
+        tag_root_simulated = deepcopy(tag_discharge_simulated)
+    if '{:}' in tag_discharge_observed:
+        tag_root_observed = tag_discharge_simulated.strip('{:}')
+        tag_root_observed = tag_root_observed.strip('_')
+    else:
+        tag_root_observed = deepcopy(tag_discharge_observed)
+
+    section_dframe_simulated = section_dframe[section_dframe.columns[
+        section_dframe.columns.str.contains(tag_root_simulated, na=False, case=False)]]
+    section_dframe_observed = section_dframe[section_dframe.columns[
+        section_dframe.columns.str.contains(tag_root_observed, na=False, case=False)]]
+
+    return section_dframe_simulated, section_dframe_observed
+
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# method to select discharge columns by limits
+def filter_discharge_ts_by_limits(section_dframe_generic, section_attrs, discharge_min=0, discharge_max=None):
+
+    ts_vars = section_attrs['run_var'].split(',')
+    if isinstance(ts_vars, str):
+        ts_n_exp = 1
+    else:
+        ts_n_exp = ts_vars.__len__()
+
+    # remove nans ts
+    section_dframe_tmp = section_dframe_generic.dropna(axis=1, how='all')
+    # keep ts ge min
+    if discharge_min is not None:
+        index_finite = section_dframe_tmp.ge(discharge_min).any()
+        section_dframe_tmp = section_dframe_tmp.loc[:, index_finite]
+    # keep th le max
+    if discharge_max is not None:
+        index_finite = section_dframe_tmp.le(discharge_max).any()
+        section_dframe_tmp = section_dframe_tmp.loc[:, index_finite]
+
+    section_dframe_filtered = deepcopy(section_dframe_tmp)
+    if not section_dframe_filtered.empty:
+        ts_n_filter = list(section_dframe_filtered.columns).__len__()
+    else:
+        ts_n_filter = 0
+        log_stream.warning(' ===> The filtered DataFrame by limits is empty')
+
+    section_dframe_filtered.attrs['ts_exp'] = ts_n_exp
+    section_dframe_filtered.attrs['ts_filter'] = ts_n_filter
+
+    return section_dframe_filtered
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
 # Method to analyze discharge time series
-def analyze_discharge_ts(run_name, file_datasets,
+def analyze_discharge_ts(run_name, file_datasets, time_start=None, time_end=None,
+                         time_format='%Y-%m-%d %H:%M', sep_format=',',
                          tag_discharge_observed='discharge_observed',
                          tag_discharge_simulated='discharge_simulated',
                          tag_discharge_thr_alert='section_discharge_thr_alert',
                          tag_discharge_thr_alarm='section_discharge_thr_alarm',
                          tag_discharge_max_alert_value='discharge_alert_max_value',
                          tag_discharge_max_alert_index='discharge_alert_max_index',
+                         tag_discharge_max_alert_run='discharge_alert_max_run',
                          tag_discharge_max_alarm_value='discharge_alarm_max_value',
                          tag_discharge_max_alarm_index='discharge_alarm_max_index',
-                         tag_section_n='section_n', tag_run_n='run_n',
+                         tag_discharge_max_alarm_run='discharge_alarm_max_run',
+                         tag_section_n='section_n', tag_run_n='run_n', tag_run_expected='run_expected',
                          tag_run_type='run_type'):
 
+    # info start routine
     log_stream.info(' ----> Analyze discharge time-series  ... ')
-    if file_datasets is not None:
-        section_n = file_datasets.__len__()
 
+    # check common datasets
+    if file_datasets is not None:
+
+        # get section number
+        section_n = file_datasets.__len__()
+        # iterate over section(s)
         analysis_datasets_section, attrs_ts_collections = {}, None
         for section_tag, section_datasets in file_datasets.items():
 
+            # info start section
             log_stream.info(' -----> Section "' + section_tag + '" ... ')
 
+            # check section datasets
             if section_datasets is not None:
 
-                section_dframe = section_datasets[0]
-                section_attrs = section_datasets[1]
+                # get section dframe and attr(s)
+                section_dframe, section_attrs = section_datasets[0], section_datasets[1]
 
-                section_ts_vars = section_attrs['run_var'].split(',')
+                # select dframe using the time start and time end
+                if (time_start is not None) and (time_end is not None):
+                    section_dframe_select = section_dframe.loc[
+                        (section_dframe.index >= time_start) &
+                        (section_dframe.index <= time_end)]
+                elif (time_start is not None) and (time_end is None):
+                    section_dframe_select = section_dframe.loc[
+                        (section_dframe.index >= time_start)]
+                elif (time_start is None) and (time_end is not None):
+                    section_dframe_select = section_dframe.loc[
+                        (section_dframe.index <= time_end)]
+                elif (time_start is None) and (time_end is None):
+                    section_dframe_select = deepcopy(section_dframe)
+                else:
+                    log_stream.error(' ===> The "time_start" and "time_end" case is not supported')
+                    raise NotImplemented('Case not implemented yet')
+
+                # get alert and alarm thr(s)
                 data_thr_alert = float(section_attrs['section_discharge_thr_alert'])
                 data_thr_alarm = float(section_attrs['section_discharge_thr_alarm'])
 
+                # check alert and alarm thr(s)
                 if data_thr_alert < 0:
-                    log_stream.warning(' ===> Threshold alarm is equal to "' + str(data_thr_alert) +
+                    log_stream.warning(' ===> The alert threshold is equal to "' + str(data_thr_alert) +
                                        '" is less then 0. The threshold is set to NoneType')
                     data_thr_alert = None
                 if data_thr_alarm < 0:
-                    log_stream.warning(' ===> Threshold alarm is equal to "' + str(data_thr_alarm) +
+                    log_stream.warning(' ===> The alarm threshold is equal to "' + str(data_thr_alarm) +
                                        '" is less then 0. The threshold is set to NoneType')
                     data_thr_alarm = None
 
-
+                if (data_thr_alert is not None) and (data_thr_alarm is not None):
+                    if data_thr_alert >= data_thr_alarm:
+                        log_stream.warning(' ===> The alert threshold "' + str(data_thr_alert) +
+                                           '" is equal or greater than the alarm threshold "' +
+                                           str(data_thr_alarm) + '"')
                 '''
                 # DEBUG
                 data_thr_alert, data_thr_alarm = 1, 10
                 '''
-                section_ts_time = section_dframe.index
+                # get times and normalize to days
+                section_ts_time = section_dframe_select.index
                 section_ts_days = section_ts_time[1:].normalize().unique()
 
-                # Create analysis datasets section
-                if section_ts_vars.__len__() == 1:
+                # filter dframe according to the tag
+                section_dframe_simulated, section_dframe_observed = filter_discharge_ts_by_tag(
+                    section_dframe_select,
+                    tag_discharge_simulated=tag_discharge_simulated, tag_discharge_observed=tag_discharge_observed)
+                # filter dframe by limits and nans
+                section_dframe_simulated = filter_discharge_ts_by_limits(section_dframe_simulated, section_attrs)
 
-                    run_n = 1
+                section_thr_collections = {}
+                for section_ts_step in section_ts_days:
 
-                    section_ts_collections = {}
-                    for section_ts_step in section_ts_days:
+                    # info time start
+                    log_stream.info(' ------> Time "' + str(section_ts_step) + '" ... ')
 
-                        section_ts_collections[section_ts_step] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_value] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_index] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_value] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_index] = {}
+                    # init the alert and alarm data selection
+                    section_thr_collections[section_ts_step] = {}
+                    section_thr_collections[section_ts_step][tag_discharge_max_alert_value] = {}
+                    section_thr_collections[section_ts_step][tag_discharge_max_alert_index] = {}
+                    section_thr_collections[section_ts_step][tag_discharge_max_alert_run] = {}
+                    section_thr_collections[section_ts_step][tag_discharge_max_alarm_value] = {}
+                    section_thr_collections[section_ts_step][tag_discharge_max_alarm_index] = {}
+                    section_thr_collections[section_ts_step][tag_discharge_max_alarm_run] = {}
 
-                        ts_day, ts_month, ts_year = section_ts_step.day, section_ts_step.month, section_ts_step.year
+                    # select dframe by day
+                    ts_day, ts_month, ts_year = section_ts_step.day, section_ts_step.month, section_ts_step.year
+                    section_dframe_day = section_dframe_simulated.loc[
+                                         (section_dframe_simulated.index.day == ts_day) &
+                                         (section_dframe_simulated.index.month == ts_month) &
+                                         (section_dframe_simulated.index.year == ts_year), :]
 
-                        section_dframe_day = section_dframe.loc[
-                                             (section_dframe.index.day == ts_day) &
-                                             (section_dframe.index.month == ts_month) &
-                                             (section_dframe.index.year == ts_year), :]
+                    # check alert thr
+                    log_stream.info(' -------> Select alert value, time and run ... ')
+                    section_thr_alert_max = None
+                    section_thr_alert_idxmax_list, section_thr_alert_run_list = None, None
+                    # section_thr_alert_idxmax_str, section_thr_alert_run_str = None, None
+                    if (data_thr_alert is not None) and (data_thr_alarm is not None):
 
-                        section_ts_day_sim = section_dframe_day[tag_discharge_simulated]
-                        section_ts_day_obs = section_dframe_day[tag_discharge_observed]
+                        # select dataframe based on threshold value(s)
+                        section_dframe_thr_alert = section_dframe_day.where(
+                            (section_dframe_day.values >= data_thr_alert) &
+                            (section_dframe_day.values < data_thr_alarm)).dropna()
 
-                        if data_thr_alert is not None:
-                            section_ts_thr_alert = section_ts_day_sim.where(section_ts_day_sim > data_thr_alert)
-                            section_ts_alert_max_value = section_ts_thr_alert.max(skipna=True)
-                            section_ts_alert_max_index = section_ts_thr_alert.idxmax(skipna=True)
+                        # check not empty dataframe
+                        if not section_dframe_thr_alert.empty:
+
+                            '''
+                            # debug
+                            if section_tag == 'misa:misa':
+                                if 'discharge_simulated_001' in list(section_dframe_thr_alert.columns):
+                                    section_dframe_thr_alert['discharge_simulated_001']['2023-02-28 02:00:00'] = 52.71
+                            '''
+
+                            section_thr_alert_max = section_dframe_thr_alert.max(skipna=True, axis=1).max()
+
+                            log_stream.info(' --------> Threshold analysis ... ')
+                            log_stream.info('      :::: Discharge value: "' + str(section_thr_alert_max) +
+                                            '" Discharge Threshold: "' + str(data_thr_alert) + '"')
+
+                            section_thr_alert_idxmax_list, section_thr_alert_run_list = [], []
+                            idx_i, idx_j = np.where(section_dframe_thr_alert.values == section_thr_alert_max)
+                            for step_n, (step_i, step_j) in enumerate(zip(idx_i, idx_j)):
+                                section_thr_alert_idxmax = section_dframe_thr_alert.index[step_i]
+                                section_thr_alert_run = section_dframe_thr_alert.columns[step_j]
+
+                                section_thr_alert_idxmax_list.append(section_thr_alert_idxmax)
+                                section_thr_alert_run_list.append(section_thr_alert_run)
+
+                                log_stream.info('      :::: [' + str(step_n + 1) + '] Discharge Time: "'
+                                                + str(section_thr_alert_idxmax) +
+                                                '" Discharge Run: "' + section_thr_alert_run + '"')
+
+                            # section_thr_alert_run_str = sep_format.join(section_thr_alert_run_list)
+                            # section_thr_alert_idxmax_tmp = [elem.strftime(time_format)
+                            #                                 for elem in section_thr_alert_idxmax_list]
+                            # section_thr_alert_idxmax_str = sep_format.join(section_thr_alert_idxmax_tmp)
+
+                            # info thr end
+                            log_stream.info(' -------> Select alert value, time and run ... DONE')
                         else:
-                            section_ts_alert_max_value, section_ts_alert_max_index = None, None
-                        if data_thr_alarm is not None:
-                            section_ts_thr_alarm = section_ts_day_sim.where(section_ts_day_sim > data_thr_alarm)
-                            section_ts_alarm_max_value = section_ts_thr_alarm.max(skipna=True)
-                            section_ts_alarm_max_index = section_ts_thr_alarm.idxmax(skipna=True)
+                            log_stream.info(' -------> Select alert value, time and run ... SKIPPED. '
+                                            'All values are less than the threshold')
+                    else:
+                        log_stream.info(' -------> Select alert value, time and run ... SKIPPED. '
+                                        'Threshold is undefined')
+
+                    # check thr alarm
+                    log_stream.info(' -------> Select alarm value, time and run ... ')
+                    section_thr_alarm_max = None
+                    section_thr_alarm_idxmax_list, section_thr_alarm_run_list = None, None
+                    # section_thr_alarm_idxmax_str, section_thr_alarm_run_str = None, None
+                    if data_thr_alarm is not None:
+
+                        # select dataframe based on threshold value(s)
+                        section_dframe_thr_alarm = section_dframe_day.where(
+                            section_dframe_day.values > data_thr_alarm).dropna()
+
+                        # check not empty dataframe
+                        if not section_dframe_thr_alarm.empty:
+                            section_thr_alarm_max = section_dframe_thr_alarm.max(skipna=True, axis=1).max()
+
+                            log_stream.info(' --------> Threshold analysis ... ')
+                            log_stream.info('      :::: Discharge value: "' + str(section_thr_alarm_max) +
+                                            '" Discharge Threshold: "' + str(data_thr_alarm) + '"')
+
+                            section_thr_alarm_idxmax_list, section_thr_alarm_run_list = [], []
+                            idx_i, idx_j = np.where(section_dframe_thr_alarm.values == section_thr_alarm_max)
+                            for step_n, (step_i, step_j) in enumerate(zip(idx_i, idx_j)):
+
+                                section_thr_alarm_idxmax = section_dframe_thr_alarm.index[step_i]
+                                section_thr_alarm_run = section_dframe_thr_alarm.columns[step_j]
+
+                                section_thr_alarm_idxmax_list.append(section_thr_alarm_idxmax)
+                                section_thr_alarm_run_list.append(section_thr_alarm_run)
+
+                                log_stream.info('      :::: [' + str(step_n + 1) + '] Discharge Time: "'
+                                                + str(section_thr_alarm_idxmax) +
+                                                '" Discharge Run: "' + section_thr_alarm_run + '"')
+
+                            # section_thr_alarm_run_str = sep_format.join(section_thr_alarm_run_list)
+                            # section_thr_alarm_idxmax_tmp = [elem.strftime(time_format)
+                            #                                 for elem in section_thr_alarm_idxmax_list]
+                            # section_thr_alarm_idxmax_str = sep_format.join(section_thr_alarm_idxmax_tmp)
+
+                            # info thr end
+                            log_stream.info(' -------> Select alarm value, time and run ... DONE')
                         else:
-                            section_ts_alarm_max_value, section_ts_alarm_max_index = None, None
+                            log_stream.info(' -------> Select alarm value, time and run ... SKIPPED. '
+                                            'All values are less than the threshold')
+                    else:
+                        log_stream.info(' -------> Select alarm value, time and run ... SKIPPED. '
+                                        'Threshold is undefined')
 
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_value] = section_ts_alert_max_value
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_index] = section_ts_alert_max_index
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_value] = section_ts_alarm_max_value
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_index] = section_ts_alarm_max_index
-                        section_ts_collections[section_ts_step][tag_discharge_thr_alert] = data_thr_alert
-                        section_ts_collections[section_ts_step][tag_discharge_thr_alarm] = data_thr_alarm
-                        section_ts_collections[section_ts_step][tag_run_type] = run_name
+                    # collect the alert and alarm data selection
+                    section_thr_collections[section_ts_step][tag_discharge_max_alert_value] = section_thr_alert_max
+                    section_thr_collections[section_ts_step][tag_discharge_max_alert_index] = section_thr_alert_idxmax_list
+                    section_thr_collections[section_ts_step][tag_discharge_max_alert_run] = section_thr_alert_run_list
+                    section_thr_collections[section_ts_step][tag_discharge_max_alarm_value] = section_thr_alarm_max
+                    section_thr_collections[section_ts_step][tag_discharge_max_alarm_index] = section_thr_alarm_idxmax_list
+                    section_thr_collections[section_ts_step][tag_discharge_max_alarm_run] = section_thr_alarm_run_list
+                    section_thr_collections[section_ts_step][tag_discharge_thr_alert] = data_thr_alert
+                    section_thr_collections[section_ts_step][tag_discharge_thr_alarm] = data_thr_alarm
+                    section_thr_collections[section_ts_step][tag_run_type] = run_name
 
+                    # collect the alert and alarm attributes
                     if attrs_ts_collections is None:
-                        attrs_ts_collections = {tag_run_n: run_n, tag_section_n: section_n, tag_run_type: run_name}
-                else:
+                        run_n_filtered = section_dframe_simulated.attrs['ts_filter']
+                        run_n_expected = section_dframe_simulated.attrs['ts_exp']
+                        attrs_ts_collections = {tag_run_n: run_n_filtered, tag_run_expected: run_n_expected,
+                                                tag_section_n: section_n, tag_run_type: run_name}
 
-                    run_n = section_ts_vars.__len__()
+                    # info time end
+                    log_stream.info(' ------> Time "' + str(section_ts_step) + '" ... DONE')
 
-                    section_ts_collections = {}
-                    for section_ts_step in section_ts_days:
+                # merge in a common object
+                analysis_datasets_section[section_tag] = section_thr_collections
 
-                        section_ts_collections[section_ts_step] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_value] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_index] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_value] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_index] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_thr_alert] = {}
-                        section_ts_collections[section_ts_step][tag_discharge_thr_alarm] = {}
-
-                        ts_day, ts_month, ts_year = section_ts_step.day, section_ts_step.month, section_ts_step.year
-
-                        section_ts_alert_max_value_list, section_ts_alert_max_index_list = [], []
-                        section_ts_alarm_max_value_list, section_ts_alarm_max_index_list = [], []
-                        for section_ts_var in section_ts_vars:
-
-                            tag_discharge_simulated_var = tag_discharge_simulated.format(section_ts_var)
-                            tag_discharge_observed_var = tag_discharge_observed.format(section_ts_var)
-
-                            section_dframe_day = section_dframe.loc[
-                                                 (section_dframe.index.day == ts_day) &
-                                                 (section_dframe.index.month == ts_month) &
-                                                 (section_dframe.index.year == ts_year), :]
-
-                            section_ts_sim_var = section_dframe_day[tag_discharge_simulated_var]
-                            section_ts_obs_var = section_dframe_day[tag_discharge_observed_var]
-
-                            if data_thr_alert is not None:
-                                section_ts_thr_alert_var = section_ts_sim_var.where(section_ts_sim_var > data_thr_alert)
-                                section_ts_alert_max_value_var = section_ts_thr_alert_var.max(skipna=True)
-                                section_ts_alert_max_index_var = section_ts_thr_alert_var.idxmax(skipna=True)
-                            else:
-                                section_ts_alert_max_value_var, section_ts_alert_max_index_var = None, None
-                            if data_thr_alarm is not None:
-                                section_ts_thr_alarm_var = section_ts_sim_var.where(section_ts_sim_var > data_thr_alarm)
-                                section_ts_alarm_max_value_var = section_ts_thr_alarm_var.max(skipna=True)
-                                section_ts_alarm_max_index_var = section_ts_thr_alarm_var.idxmax(skipna=True)
-                            else:
-                                section_ts_alarm_max_value_var, section_ts_alarm_max_index_var = None, None
-
-                            if section_ts_alert_max_index_var not in section_ts_alert_max_index_list:
-                                section_ts_alert_max_value_list.append(section_ts_alert_max_value_var)
-                                section_ts_alert_max_index_list.append(section_ts_alert_max_index_var)
-                            if section_ts_alarm_max_index_var not in section_ts_alarm_max_index_list:
-                                section_ts_alarm_max_value_list.append(section_ts_alarm_max_value_var)
-                                section_ts_alarm_max_index_list.append(section_ts_alarm_max_index_var)
-
-                        '''
-                        # DEBUG
-                        section_ts_alert_max_value_list = [2.65, 2.71, 2.74]
-                        section_ts_alert_max_index_list = [pd.Timestamp('2021-03-18 00:00:00'), pd.Timestamp('2021-03-18 19:00:00'), pd.Timestamp('2021-03-18 20:00:00')]
-                        '''
-
-                        if section_ts_alert_max_value_list.__len__() > 1:
-                            idx_max = section_ts_alert_max_value_list.index(max(section_ts_alert_max_value_list))
-                            section_ts_alert_max_value_list = [section_ts_alert_max_value_list[idx_max]]
-                            section_ts_alert_max_index_list = [section_ts_alert_max_index_list[idx_max]]
-
-                        if section_ts_alarm_max_value_list.__len__() > 1:
-                            idx_max = section_ts_alarm_max_value_list.index(max(section_ts_alarm_max_value_list))
-                            section_ts_alarm_max_value_list = [section_ts_alarm_max_value_list[idx_max]]
-                            section_ts_alarm_max_index_list = [section_ts_alarm_max_index_list[idx_max]]
-
-                        section_ts_thr_alert_max = pd.Series([section_ts_alert_max_value_list])
-                        section_ts_thr_alert_max.index = section_ts_alert_max_index_list
-                        section_ts_thr_alarm_max = pd.Series([section_ts_alarm_max_value_list])
-                        section_ts_thr_alarm_max.index = section_ts_alarm_max_index_list
-
-                        if section_ts_thr_alert_max.shape[0] == 1:
-                            section_ts_alert_max_value = section_ts_thr_alert_max.values[0]
-                            section_ts_alert_max_index = section_ts_thr_alert_max.index[0]
-                        else:
-                            section_ts_alert_max_value = section_ts_thr_alert_max.max(skipna=True)
-                            section_ts_alert_max_index = section_ts_thr_alert_max.idxmax(skipna=True)
-
-                        if section_ts_thr_alarm_max.shape[0] == 1:
-                            section_ts_alarm_max_value = section_ts_thr_alarm_max.values[0]
-                            section_ts_alarm_max_index = section_ts_thr_alarm_max.index[0]
-                        else:
-                            section_ts_alarm_max_value = section_ts_thr_alarm_max.max(skipna=True)
-                            section_ts_alarm_max_index = section_ts_thr_alarm_max.idxmax(skipna=True)
-
-                        if isinstance(section_ts_alert_max_value, list):
-                            if section_ts_alert_max_value.__len__() == 1:
-                                section_ts_alert_max_value = section_ts_alert_max_value[0]
-                            else:
-                                log_stream.error(' ===> Analysis has defined the max alert value in unsupported format')
-                                raise NotImplemented('Case not implemented yet')
-
-                        if isinstance(section_ts_alarm_max_value, list):
-                            if section_ts_alarm_max_value.__len__() == 1:
-                                section_ts_alarm_max_value = section_ts_alarm_max_value[0]
-                            else:
-                                log_stream.error(' ===> Analysis has defined the max alarm value in unsupported format')
-                                raise NotImplemented('Case not implemented yet')
-
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_value] = section_ts_alert_max_value
-                        section_ts_collections[section_ts_step][tag_discharge_max_alert_index] = section_ts_alert_max_index
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_value] = section_ts_alarm_max_value
-                        section_ts_collections[section_ts_step][tag_discharge_max_alarm_index] = section_ts_alarm_max_index
-                        section_ts_collections[section_ts_step][tag_discharge_thr_alert] = data_thr_alert
-                        section_ts_collections[section_ts_step][tag_discharge_thr_alarm] = data_thr_alarm
-                        section_ts_collections[section_ts_step][tag_run_type] = run_name
-
-                        if attrs_ts_collections is None:
-                            attrs_ts_collections = {tag_run_n: run_n, tag_section_n: section_n, tag_run_type: run_name}
-
-                analysis_datasets_section[section_tag] = section_ts_collections
-
+                # info section end
                 log_stream.info(' -----> Section "' + section_tag + '" ... DONE')
 
             else:
+                # section datasets not available
                 analysis_datasets_section[section_tag] = None
                 log_stream.info(' -----> Section "' + section_tag + '" ... SKIPPED. Datasets is undefined')
 
+        # info routine end
         log_stream.info(' ----> Analyze discharge time-series  ... DONE')
 
     else:
-        log_stream.info(' ----> Analyze discharge time-series  ... SKIPPED. Datasets are undefined')
+        # common datasets not available
         analysis_datasets_section, attrs_ts_collections = None, None
+        # info routine end
+        log_stream.info(' ----> Analyze discharge time-series  ... SKIPPED. Datasets are undefined')
 
     return analysis_datasets_section, attrs_ts_collections
 

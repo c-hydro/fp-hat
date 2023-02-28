@@ -109,6 +109,8 @@ def main():
             time_now=time_now,
             time_exec=time_exec,
             time_run=time_step,
+            time_frequency=data_settings['time']['time_frequency'],
+            time_rounding=data_settings['time']['time_rounding'],
             static_data_collection=static_data_collection,
             src_dict=data_settings['data']['dynamic']['source'],
             anc_dict=data_settings['data']['dynamic']['ancillary'],
