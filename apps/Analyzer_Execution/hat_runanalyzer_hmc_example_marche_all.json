@@ -71,6 +71,21 @@
           "features": {"run_name": "nwp_lami-2i_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "LAMI DETERMINISTICO",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed"},
           "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_06": {
+          "features": {"run_name": "rfarm_expert_forecast_realtime_marche", "run_sub_path_execution": "probabilistic_001", "run_description": "EXPERT FORECAST PROBABILISTICO",
+            "run_sub_path_datasets": "probabilistic_ensemble/collections/", "run_variable_sim": "discharge_simulated_{:}", "run_variable_obs": "discharge_observed"},
+          "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_07": {
+          "features": {"run_name": "radar_mcm_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "RADAR MCM",
+            "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed" },
+          "time": {"time_period": 2, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_08": {
+          "features": {"run_name": "mod_s3m_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "RADAR MCM S3M",
+            "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed" },
+          "time": {"time_period": 2, "time_frequency": "H", "time_rounding": "H"}
         }
       }
     },
