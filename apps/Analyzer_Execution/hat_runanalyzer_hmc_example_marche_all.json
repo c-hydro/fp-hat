@@ -3,7 +3,7 @@
     "flags": {
       "cleaning_dynamic_source": false,
       "cleaning_dynamic_analysis": false,
-      "cleaning_dynamic_destination": false,
+      "cleaning_dynamic_destination": true,
       "cleaning_dynamic_tmp": true
     },
     "template": {

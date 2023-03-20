@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Version 1.6.1 [2023-03-20]
+===========
+APP: **HAT_RunAnalyzer_HMC.py**
+    - Operational Release
+    	- bugs fix about the html bulletin
+
 Version 1.6.0 [2023-01-27]
 ===========
 APP: **HAT_RunAnalyzer_HMC.py**
@@ -10,7 +16,6 @@ APP: **HAT_RunAnalyzer_HMC.py**
     	- refactor of classes and methods;
     	- update the format of html and csv output files;
     	- add the xml output file 
-
 
 Version 1.5.2 [2022-12-19]
 ===========

@@ -2,8 +2,8 @@
 """
 Hydrological Analysis Tool - Analyzer_Execution
 
-__date__ = '20230127'
-__version__ = '1.6.0'
+__date__ = '20230320'
+__version__ = '1.6.1'
 __author__ =
         'Fabio Delogu (fabio.delogu@cimafoundation.org',
         'Flavio Pignone (flavio.pignone@cimafoundation.org',
@@ -14,8 +14,9 @@ General command line:
 python3 HAT_RunAnalyzer_HMC_Main.py -settings_file configuration.json -time "YYYY-MM-DD HH:MM"
 
 Version(s):
-20230127 (1.6.0) --> Operational release for Liguria and Marche operational chain
-20220317 (1.5.2) --> Bug fixing
+20230320 (1.6.1) --> Bugs fix for the Liguria and Marche operational chains
+20230127 (1.6.0) --> Release for the Liguria and Marche operational chains
+20220317 (1.5.2) --> Bugs fix
 20210728 (1.5.1) --> Operational release for HMC 3.x.x
 20210225 (1.5.0) --> Beta release for HMC 3.x.x
 20200605 (1.0.0) --> Beta release for HMC 2.x.x
@@ -44,8 +45,8 @@ log_stream = logging.getLogger(logger_name)
 
 # -------------------------------------------------------------------------------------
 # Algorithm information
-alg_version = '1.6.0'
-alg_release = '2023-01-27'
+alg_version = '1.6.1'
+alg_release = '2023-03-20'
 alg_name = 'RUN ANALYZER'
 # Algorithm parameter(s)
 time_format = '%Y-%m-%d %H:%M'

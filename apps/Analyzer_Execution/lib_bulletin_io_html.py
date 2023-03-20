@@ -53,9 +53,10 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
 
     # --------------------------------------------------------------------------------------------------------------
     # select datasets into the maximum period (today and tomorrow
-    bulletin_dframe_thr = bulletin_dframe_thr.loc[
-        (bulletin_dframe_thr['section_time'] >= time_stamp_today_from) &
-        (bulletin_dframe_thr['section_time'] <= time_stamp_tomorrow_to)]
+    if not bulletin_dframe_thr.empty:
+        bulletin_dframe_thr = bulletin_dframe_thr.loc[
+            (bulletin_dframe_thr['section_time'] >= time_stamp_today_from) &
+            (bulletin_dframe_thr['section_time'] <= time_stamp_tomorrow_to)]
 
     run_section_list = sorted(list(set(bulletin_dframe_thr['section_name'])))
     run_section_counts = {}
@@ -87,9 +88,10 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
         html_handle.write('td {font-family: Times New Roman, Times, serif; font-size: 12px;}\n')
         html_handle.write('.red {background-color: rgba(255,0,0,0.5);color: black;}\n')
         html_handle.write('.orange {background-color: rgba(235,149,50,0.5);color: black;}\n')
+        html_handle.write('.sky {background-color: rgba(0,206,241,0.5);color: black;}\n')
         html_handle.write('.white {background-color: rgba(255,255,255, 0.3);color: black;}\n')
         html_handle.write('.yellow {background-color: rgba(255,255,0,0.5); color: black;}\n')
-        html_handle.write('.verde {background-color: rgba(0,255,0,0.5); color: black;}\n')
+        html_handle.write('.green {background-color: rgba(0,255,0,0.5); color: black;}\n')
         html_handle.write('.cyan {background-color: rgba(0,255,255,0.5); color: black;}\n')
         html_handle.write('.gray {background-color: rgba(128,128,128,0.5); color: black;}\n')
         html_handle.write('.blue {background-color: rgba(0,0,255,0.5); color: black;}\n')
@@ -186,13 +188,13 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
             domain_name = run_info_row['domain_name']
 
             if time_start != no_data_time and time_end != no_data_time:
-                if run_n == run_expected:
+                if int(run_n) == int(run_expected):
                     td_color = 'cyan'
                     td_time_start = time_start + ' ' + time_mode
                     td_time_end = time_end + ' ' + time_mode
                     td_time_elapsed = time_elapsed
                 else:
-                    td_color = 'orange'
+                    td_color = 'sky'
                     td_time_start = time_start + ' ' + time_mode
                     td_time_end = time_end + ' ' + time_mode
                     td_time_elapsed = time_elapsed
@@ -346,15 +348,15 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     # iterate over extra
                     for extra_id in range(0, td_shape_extra):
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type"><b>' +
-                                          no_data_value + '</b> </td>\n')
+                                          no_data_expected + '</b> </td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_time + '</td>\n')
+                                          no_data_expected + '</td>\n')
 
                         # close section
                         html_handle.write('</tr>\n')
@@ -482,15 +484,15 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     # iterate over extra
                     for extra_id in range(0, td_shape_extra):
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type"><b>' +
-                                          no_data_value + '</b> </td>\n')
+                                          no_data_expected + '</b> </td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_time + '</td>\n')
+                                          no_data_expected + '</td>\n')
 
                         # close section
                         html_handle.write('</tr>\n')
@@ -632,15 +634,15 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     # iterate over extra
                     for extra_id in range(0, td_shape_extra):
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type"><b>' +
-                                          no_data_value + '</b> </td>\n')
+                                          no_data_expected + '</b> </td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_time + '</td>\n')
+                                          no_data_expected + '</td>\n')
 
                         # close section
                         html_handle.write('</tr>\n')
@@ -766,15 +768,15 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
                     # iterate over extra
                     for extra_id in range(0, td_shape_extra):
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type"><b>' +
-                                          no_data_value + '</b> </td>\n')
+                                          no_data_expected + '</b> </td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type2 ColumnStyle_Left RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type5 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_value + '</td>\n')
+                                          no_data_expected + '</td>\n')
                         html_handle.write('<td class="white ColumnWidth_Type1 ColumnStyle_Center RowHeight_Type">' +
-                                          no_data_time + '</td>\n')
+                                          no_data_expected + '</td>\n')
 
                         # close section
                         html_handle.write('</tr>\n')

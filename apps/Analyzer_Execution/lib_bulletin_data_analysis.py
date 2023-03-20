@@ -459,7 +459,7 @@ def organize_bulletin_info(run_name_list, run_summary,
                            tag_summary_data='data', tag_summary_info='info',
                            summary_no_data_run='NAT', summary_no_data_time='NAT',
                            summary_run_status_completed='COMPLETED', summary_run_code_completed=0,
-                           summary_run_status_not_completed='NOT COMPLETED', summary_run_code_not_completed=-1,
+                           summary_run_status_partial_completed='COMPLETED (partial ensembles)', summary_run_code_partial_completed=-1,
                            summary_run_status_running='RUNNING', summary_run_code_running=1,
                            summary_run_status_not_available='NOT AVAILABLE', summary_run_code_not_available=2,
                            summary_run_status_unknown='UNKNOWN', summary_run_code_unknown=-2,
@@ -498,12 +498,12 @@ def organize_bulletin_info(run_name_list, run_summary,
 
         # check time
         if time_start_step != summary_no_data_time and time_end_step != summary_no_data_time:
-            if run_n_step == run_expected_step:
+            if int(run_n_step) == int(run_expected_step):
                 run_status_description_step = summary_run_status_completed
                 run_status_code_step = summary_run_code_completed
             else:
-                run_status_description_step = summary_run_status_not_completed
-                run_status_code_step = summary_run_code_not_completed
+                run_status_description_step = summary_run_status_partial_completed
+                run_status_code_step = summary_run_code_partial_completed
         elif time_start_step != summary_no_data_time and time_end_step == summary_no_data_time:
             run_status_description_step = summary_run_status_running
             run_status_code_step = summary_run_code_running
