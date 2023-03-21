@@ -123,9 +123,9 @@ def main():
             flag_cleaning_dynamic_destination=data_settings['algorithm']['flags']['cleaning_dynamic_destination'],
             flag_cleaning_dynamic_tmp=data_settings['algorithm']['flags']['cleaning_dynamic_tmp'])
 
-        dynamic_data_collection = driver_data_dynamic.organize_dynamic_data()
+        dynamic_data_collection, time_data_collection = driver_data_dynamic.organize_dynamic_data()
         analyze_data_collection = driver_data_dynamic.analyze_dynamic_data(dynamic_data_collection)
-        driver_data_dynamic.dump_dynamic_data(analyze_data_collection)
+        driver_data_dynamic.dump_dynamic_data(analyze_data_collection, time_data_collection)
         driver_data_dynamic.clean_dynamic_tmp()
         # -------------------------------------------------------------------------------------
 

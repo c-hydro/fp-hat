@@ -172,6 +172,7 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
         html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Scenarios Completed</b></th>\n')
         html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Scenarios Expected</b></th>\n')
         html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Sections</b></th>\n')
+        html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Last Run</b></th>\n')
         html_handle.write('</tr>\n')
 
         # iterate over run(s)
@@ -186,51 +187,61 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
             time_elapsed = run_info_row['time_elapsed']
             section_n = run_info_row['section']
             domain_name = run_info_row['domain_name']
+            run_last = run_info_row['run_last']
 
             if time_start != no_data_time and time_end != no_data_time:
                 if int(run_n) == int(run_expected):
-                    td_color = 'cyan'
+                    td_color_time = 'cyan'
                     td_time_start = time_start + ' ' + time_mode
                     td_time_end = time_end + ' ' + time_mode
                     td_time_elapsed = time_elapsed
                 else:
-                    td_color = 'sky'
+                    td_color_time = 'sky'
                     td_time_start = time_start + ' ' + time_mode
                     td_time_end = time_end + ' ' + time_mode
                     td_time_elapsed = time_elapsed
             elif time_start != no_data_time and time_end == no_data_time:
-                td_color = 'gray'
+                td_color_time = 'gray'
                 td_time_start = time_start + ' ' + time_mode
                 td_time_end = no_data_time
                 td_time_elapsed = no_data_time
             elif time_start == no_data_time and time_end == no_data_time:
-                td_color = 'red'
+                td_color_time = 'red'
                 td_time_start = no_data_time
                 td_time_end = no_data_time
                 td_time_elapsed = no_data_time
             else:
-                td_color = 'black'
+                td_color_time = 'black'
                 td_time_start = 'UNKNOWN'
                 td_time_end = 'UNKNOWN'
                 td_time_elapsed = 'UNKNOWN'
 
+            if run_last != no_data_time:
+                td_color_run = 'green'
+                td_run_last = run_last + ' ' + time_mode
+            else:
+                td_color_run = 'red'
+                td_run_last = no_data_time
+
             html_handle.write('<tr>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type2 ColumnStyle_Left"><b>' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type2 ColumnStyle_Left"><b>' +
                               run_description + '</b></td>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type3 ColumnStyle_Center">' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type3 ColumnStyle_Center">' +
                               run_status_description + '</td>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type1 ColumnStyle_Center">' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type1 ColumnStyle_Center">' +
                               td_time_start + ' </td>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type1 ColumnStyle_Center">' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type1 ColumnStyle_Center">' +
                               td_time_end + ' </td>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type1 ColumnStyle_Center">' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type1 ColumnStyle_Center">' +
                               td_time_elapsed + ' </td>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type5 ColumnStyle_Center">' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type5 ColumnStyle_Center">' +
                               run_n + '</td>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type5 ColumnStyle_Center">' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type5 ColumnStyle_Center">' +
                               run_expected + '</td>\n')
-            html_handle.write('<td class="' + td_color + ' ColumnWidth_Type5 ColumnStyle_Center">' +
+            html_handle.write('<td class="' + td_color_time + ' ColumnWidth_Type5 ColumnStyle_Center">' +
                               section_n + '</td>\n')
+            html_handle.write('<td class="' + td_color_run + ' ColumnWidth_Type1 ColumnStyle_Center">' +
+                              td_run_last + '</td>\n')
             html_handle.write('</tr>\n')
 
         # close table

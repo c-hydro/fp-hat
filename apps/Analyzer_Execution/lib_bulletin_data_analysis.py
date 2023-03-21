@@ -27,6 +27,10 @@ def get_bulletin_field(field_name, field_info, field_value_null='NA', field_time
 
     if field_name in list(field_info.keys()):
         field_value = field_info[field_name]
+
+        if pd.isnull(field_value):
+            field_value = field_value_null
+
         if field_value is not None:
             if isinstance(field_value, pd.Timestamp):
                 field_value = field_value.strftime(field_time_format)
@@ -475,6 +479,7 @@ def organize_bulletin_info(run_name_list, run_summary,
     run_status_description_list, run_status_code_list = [], []
     time_start_list, time_end_list, time_elapsed_list = [], [], []
     section_n_list, domain_name_list = [], []
+    run_last_list = []
     for run_id_step, run_name_step in enumerate(run_name_list):
 
         # info start
@@ -495,6 +500,7 @@ def organize_bulletin_info(run_name_list, run_summary,
         time_start_step = get_bulletin_field('run_start', run_info_step, field_value_null=summary_no_data_time)
         time_end_step = get_bulletin_field('run_end', run_info_step, field_value_null=summary_no_data_time)
         time_elapsed_step = get_bulletin_field('run_elapsed', run_info_step, field_value_null=summary_no_data_time)
+        run_last_step = get_bulletin_field('run_last_available', run_info_step, field_value_null=summary_no_data_time)
 
         # check time
         if time_start_step != summary_no_data_time and time_end_step != summary_no_data_time:
@@ -526,6 +532,7 @@ def organize_bulletin_info(run_name_list, run_summary,
         time_start_list.append(time_start_step)
         time_end_list.append(time_end_step)
         time_elapsed_list.append(time_elapsed_step)
+        run_last_list.append(run_last_step)
 
         # info start
         log_stream.info(' ------> Run "' + run_name_step + '" ... DONE')
@@ -536,7 +543,7 @@ def organize_bulletin_info(run_name_list, run_summary,
         'run_description': run_description_list, 'run_type': run_type_list,
         'run_status_description': run_status_description_list, 'run_status_code': run_status_code_list,
         'time_start': time_start_list, 'time_end': time_end_list, 'time_elapsed': time_elapsed_list,
-        'section': section_n_list, 'domain_name': domain_name_list}
+        'section': section_n_list, 'domain_name': domain_name_list, 'run_last': run_last_list}
 
     run_info_dframe = pd.DataFrame(run_info_dict)
 

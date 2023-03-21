@@ -465,7 +465,7 @@ class DriverDynamic:
 
     # -------------------------------------------------------------------------------------
     # Method to dump dynamic data
-    def dump_dynamic_data(self, analysis_datasets_collections):
+    def dump_dynamic_data(self, analysis_datasets_collections, time_datasets_collections):
 
         # get reference time(s)
         time_exec, time_run, time_mode = self.time_exec, self.time_run, self.time_mode
@@ -512,7 +512,9 @@ class DriverDynamic:
             for domain_name_step in domain_name_list:
                 log_stream.info(' -----> Domain reference "' + domain_name_step + '" ... ')
 
+                # get analysis and time collections
                 analysis_datasets_domain = analysis_datasets_collections[domain_name_step]
+                time_datasets_domain = time_datasets_collections[domain_name_step]
 
                 # iterate over executions list
                 for exec_name_step in exec_name_list:
@@ -527,10 +529,17 @@ class DriverDynamic:
                     # get analysis data and attributes (2)
                     data_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_section]
                     attrs_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_attrs]
+                    # get time data
+                    data_time = time_datasets_domain[exec_name_step]
+
+                    # compute time last run available
+                    time_list = [elem for elem in data_time if elem is not None]
+                    time_idx = pd.DatetimeIndex(time_list)
+                    time_last_run = time_idx.max().ceil(freq='min')
 
                     # get extend attributes of run (some basic information) (3)
                     attrs_extend = {
-                        'domain_name': domain_name_step,
+                        'domain_name': domain_name_step, 'run_last_available': time_last_run,
                         self.tag_summary_run_name: run_name, self.tag_summary_run_description: run_description}
 
                     # add time attributes to analysis attributes
@@ -957,7 +966,7 @@ class DriverDynamic:
         if not os.path.exists(file_path_anc):
 
             # cycles over domain name(s)
-            file_workspace = None
+            file_workspace, history_workspace = None, None
             for domain_name_step in domain_name_list:
 
                 log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... ')
@@ -967,10 +976,14 @@ class DriverDynamic:
                 file_collections_src_ref_start = file_obj_src_ref_start[domain_name_step]
                 file_collections_src_ref_end = file_obj_src_ref_end[domain_name_step]
 
-                # init workspace using domain tag
+                # init file workspace using domain tag
                 if file_workspace is None:
                     file_workspace = {}
                 file_workspace[domain_name_step] = {}
+                # init history workspace using domain tag
+                if history_workspace is None:
+                    history_workspace = {}
+                history_workspace[domain_name_step] = {}
 
                 # cycles over execution name(s)
                 for exec_name_step in exec_name_list:
@@ -989,6 +1002,7 @@ class DriverDynamic:
                         time, time_period=exec_time_period, time_frequency=exec_time_frequency,
                         time_rounding=exec_time_rounding, time_reverse=True)
 
+                    # initialize file workspace
                     file_workspace[domain_name_step][exec_name_step] = {}
                     file_workspace[domain_name_step][exec_name_step][self.tag_info] = {}
                     file_workspace[domain_name_step][exec_name_step][self.tag_data] = {}
@@ -997,7 +1011,10 @@ class DriverDynamic:
                     file_workspace[domain_name_step][exec_name_step][self.tag_info][self.tag_run_ref_end] = None
                     file_workspace[domain_name_step][exec_name_step][self.tag_info][self.tag_time_ref_end] = None
                     file_workspace[domain_name_step][exec_name_step][self.tag_data] = None
+                    # initialize history workspace
+                    history_workspace[domain_name_step][exec_name_step] = {}
 
+                    # iterate to find actual running experiments
                     for time_step in time_search:
 
                         log_stream.info(' ------> Time  "' + str(time_step) + '" ... ')
@@ -1088,6 +1105,50 @@ class DriverDynamic:
                                             'Datasets already selected')
                             file_info_end, file_data_end, file_insert_end = None, None, False
 
+                        log_stream.info(' -------> Search available datasets ... ')
+                        history_time_list = []
+                        if file_path_src_ref_end.__len__() >= 1:
+
+                            if file_path_src_ref_end[0].endswith('.json'):
+
+                                for outlet_name_step, file_path_raw in zip(outlet_name_list, file_path_src_ref_end):
+
+                                    file_path_history = self.define_file_string(time_step, file_path_raw)
+
+                                    if os.path.exists(file_path_history):
+                                        file_info_history = read_file_hydrograph_info(file_path_history)
+                                        time_reference = file_info_history['time_modified']
+                                    else:
+                                        time_reference = None
+
+                                    history_time_list.append(time_reference)
+
+                                check_history = all(elem is None for elem in history_time_list)
+                                if check_history:
+                                    history_time_ref = None
+                                    log_stream.info(' -------> Search available datasets  ... ALL NOT FOUND')
+                                else:
+                                    history_time_tmp = [elem for elem in history_time_list if elem is not None]
+                                    history_time_idx = pd.DatetimeIndex(history_time_tmp)
+                                    history_time_ref = history_time_idx.max().ceil(freq='min')
+                                    log_stream.info(' -------> Search available datasets ... DONE')
+                            else:
+                                log_stream.error(' ===> Search available datasets ... FAILED')
+                                raise NotImplementedError('Case not implemented in source reference type end')
+                        else:
+                            history_time_ref = None
+                            log_stream.info(' -------> Search available datasets ... ALL NOT AVAILABLE.')
+
+                        # Store history information
+                        log_stream.info(' -------> Update history information ... ')
+                        if not history_workspace[domain_name_step][exec_name_step]:
+                            history_workspace[domain_name_step][exec_name_step] = [history_time_ref]
+                        else:
+                            history_time_tmp = history_workspace[domain_name_step][exec_name_step]
+                            history_time_tmp.append(history_time_ref)
+                            history_workspace[domain_name_step][exec_name_step] = history_time_tmp
+                        log_stream.info(' -------> Update history information ... DONE')
+
                         # Store reference source information and datasets
                         log_stream.info(' -------> Update start process information ... ')
                         if file_insert_start:
@@ -1124,16 +1185,23 @@ class DriverDynamic:
             if file_workspace is not None:
                 folder_name_anc, file_name_anc = os.path.split(file_path_anc)
                 make_folder(folder_name_anc)
-                write_obj(file_path_anc, file_workspace)
+                # merge file and history workspace
+                data_collections = {'file_workspace': file_workspace, 'history_workspace': history_workspace}
+                # save data collections
+                write_obj(file_path_anc, data_collections)
                 log_stream.info(' ----> Freeze dynamic datasets ... DONE')
             else:
                 log_stream.info(' ----> Freeze dynamic datasets ... SKIPPED. All datasets are undefined')
         else:
-            file_workspace = read_obj(file_path_anc)
+            # get data collections
+            data_collections = read_obj(file_path_anc)
+            # get file and history workspace
+            file_workspace = data_collections['file_workspace']
+            history_workspace = data_collections['history_workspace']
 
         log_stream.info(' ---> Organize dynamic datasets [' + str(time) + '] ... DONE')
 
-        return file_workspace
+        return file_workspace, history_workspace
 
     # -------------------------------------------------------------------------------------
 

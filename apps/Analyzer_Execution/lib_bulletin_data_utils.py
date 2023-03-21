@@ -189,7 +189,8 @@ def shrink_bulletin_attrs(summary_attrs_all, op_element_list=None):
             'run_sub_path_datasets:get_unique_value:concatenate',
             'run_variable_sim:get_unique_value:concatenate',
             'run_variable_obs:get_unique_value:concatenate',
-            'domain_name:get_unique_value:concatenate'
+            'domain_name:get_unique_value:concatenate',
+            'run_last_available:get_unique_value:unique'
         ]
 
     summary_attrs_unique = {}
