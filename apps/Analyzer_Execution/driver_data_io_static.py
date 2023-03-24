@@ -52,17 +52,14 @@ class DriverStatic:
         self.alg_template_tags = alg_template_tags
         self.file_name_tag = 'file_name'
         self.folder_name_tag = 'folder_name'
+        self.filter_tag = 'filter'
 
         # get domain name information
         self.domain_name_list = self.alg_ancillary['domain_name']
         if not isinstance(self.domain_name_list, list):
             self.domain_name_list = [self.domain_name_list]
 
-        self.section_data = self.define_section_data()
-
-        #self.folder_name_section = self.src_dict[self.flag_section_data][self.folder_name_tag]
-        #self.file_name_section = self.src_dict[self.flag_section_data][self.file_name_tag]
-        #self.file_path_section = os.path.join(self.folder_name_section, self.file_name_section)
+        self.section_data_file, self.section_data_filter = self.define_section_data()
 
         self.execution_data = self.src_dict[self.flag_execution_data]
 
@@ -84,18 +81,26 @@ class DriverStatic:
                     raise RuntimeError('All the domains must be defined in the source data obj')
 
         # case for domain or multi-domains declared in the source dictionary
-        section_data_dict = None
+        section_data_dict, filter_data_dict = None, None
         for domain_name_step in domain_name_list:
             if domain_name_step in list(src_dict[self.flag_section_data].keys()):
 
                 if section_data_dict is None:
                     section_data_dict = {}
+                if filter_data_dict is None:
+                    filter_data_dict = {}
 
                 folder_name_step = src_dict[self.flag_section_data][domain_name_step][self.folder_name_tag]
                 file_name_step = src_dict[self.flag_section_data][domain_name_step][self.file_name_tag]
                 file_path_step = os.path.join(folder_name_step, file_name_step)
 
+                if self.filter_tag in list(src_dict[self.flag_section_data][domain_name_step].keys()):
+                    filter_data_step = src_dict[self.flag_section_data][domain_name_step][self.filter_tag]
+                else:
+                    filter_data_step = None
+
                 section_data_dict[domain_name_step] = file_path_step
+                filter_data_dict[domain_name_step] = filter_data_step
 
         # case for single domain not declared in the source dictionary
         if (section_data_dict is None) and (domain_name_list.__len__() == 1):
@@ -106,10 +111,16 @@ class DriverStatic:
             file_name_step = src_dict[self.flag_section_data][self.file_name_tag]
             file_path_step = os.path.join(folder_name_step, file_name_step)
 
+            filter_data_step = src_dict[self.flag_section_data][domain_name_step][self.filter_tag]
+
             if section_data_dict is None:
                 section_data_dict = {}
             section_data_dict[domain_name_step] = {}
             section_data_dict[domain_name_step] = file_path_step
+            if filter_data_dict is None:
+                filter_data_dict = {}
+            filter_data_dict[domain_name_step] = {}
+            filter_data_dict[domain_name_step] = filter_data_step
         elif section_data_dict is not None:
             pass
         else:
@@ -121,7 +132,7 @@ class DriverStatic:
                 log_stream.error(' ===> Domain "' + domain_name_step + '" is not defined in the section data obj')
                 raise RuntimeError('All the domains must be defined in the section data obj')
 
-        return section_data_dict
+        return section_data_dict, filter_data_dict
 
     # -------------------------------------------------------------------------------------
 
@@ -131,12 +142,15 @@ class DriverStatic:
 
         # iterate over domain(s)
         dframe_section_merged = None
-        for section_data_name, section_data_file_path in self.section_data.items():
+        for (section_dset_name_file, section_dset_file_path), (section_dset_name_filter, section_dset_filter) \
+                in zip(self.section_data_file.items(), self.section_data_filter.items()):
 
-            log_stream.info(' -----> Domain reference "' + section_data_name + '" ... ')
+            log_stream.info(' -----> Domain reference "' + section_dset_name_file + '" ... ')
 
-            dframe_section_step = read_file_section_data(section_data_file_path)
-            dframe_section_step[tag_db] = section_data_name
+            assert section_dset_name_file == section_dset_name_filter, ' key of file and filter fields must be the same'
+
+            dframe_section_step = read_file_section_data(section_dset_file_path)
+            dframe_section_step[tag_db] = section_dset_name_file
 
             update_section_tag = False
             if 'section_tag' in list(dframe_section_step.columns):
@@ -156,12 +170,28 @@ class DriverStatic:
 
                 dframe_section_step['section_tag'] = section_tag_list
 
+            if section_dset_filter is not None:
+                section_column_filter = list(section_dset_filter.keys())[0]
+                section_value_filter = list(section_dset_filter.values())[0]
+
+                if section_column_filter in list(dframe_section_step.columns):
+                    dframe_section_step = dframe_section_step.loc[
+                        dframe_section_step[section_column_filter] == section_value_filter]
+                else:
+                    log_stream.warning(' ===> The filter key "' + section_column_filter +
+                                       '" is not available in the section dataframe. Filter is not activated')
+
+                if dframe_section_step.empty:
+                    log_stream.warning(' ===> The filter key "' + section_column_filter +
+                                       '" and the value key "' + str(section_value_filter) +
+                                       '" returned an empty dataframe')
+
             if dframe_section_merged is None:
                 dframe_section_merged = deepcopy(dframe_section_step)
             else:
                 dframe_section_merged = pd.concat([dframe_section_merged, dframe_section_step])
 
-            log_stream.info(' -----> Domain reference "' + section_data_name + '" ... DONE')
+            log_stream.info(' -----> Domain reference "' + section_dset_name_file + '" ... DONE')
 
         return dframe_section_merged
 

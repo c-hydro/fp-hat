@@ -127,11 +127,78 @@ class DriverDynamic:
         self.outlet_name_obj = self.merge_data_by_key(
             self.section_catchment_obj, self.section_name_obj, obj_data_separator=self.string_sep)
 
+        # define exec object(s)
+        self.exec_name_list = list(self.exec_dframe.index)
+        self.exec_values_list = list(self.exec_dframe.values)
+        self.exec_type_list = list(self.exec_dframe.columns)
+
         # source folder(s) and file(s)
-        self.folder_name_src_ref_start = src_dict[self.tag_src_reference_start][self.folder_name_tag]
-        self.file_name_src_ref_start = src_dict[self.tag_src_reference_start][self.file_name_tag]
-        self.folder_name_src_ref_end = src_dict[self.tag_src_reference_end][self.folder_name_tag]
-        self.file_name_src_ref_end = src_dict[self.tag_src_reference_end][self.file_name_tag]
+        file_obj_src_ref_start, file_obj_src_ref_end = {}, {}
+        exec_name_obj, view_warn_obj, view_exec_obj = {}, {}, {}
+        for exec_name, exec_fields in zip(self.exec_name_list, self.exec_values_list):
+
+            for domain_name_step in self.domain_name_list:
+
+                folder_name_src_ref_start = src_dict[domain_name_step][self.tag_src_reference_start][self.folder_name_tag]
+                file_name_src_ref_start = src_dict[domain_name_step][self.tag_src_reference_start][self.file_name_tag]
+                folder_name_src_ref_end = src_dict[domain_name_step][self.tag_src_reference_end][self.folder_name_tag]
+                file_name_src_ref_end = src_dict[domain_name_step][self.tag_src_reference_end][self.file_name_tag]
+
+                exec_dframe_step = self.exec_dframe.loc[self.exec_dframe['run_name'] == exec_name]
+                if exec_dframe_step['run_domain_reference'].values[0].lower() == domain_name_step.lower():
+
+                    # get run domain information to add in the bulletin
+                    run_view_warn_step = exec_dframe_step['view_warnings'].values[0]
+                    run_view_exec_step = exec_dframe_step['view_execution'].values[0]
+
+                    if domain_name_step not in list(file_obj_src_ref_start.keys()):
+                        file_obj_src_ref_start[domain_name_step] = {}
+                    if domain_name_step not in list(file_obj_src_ref_end.keys()):
+                        file_obj_src_ref_end[domain_name_step] = {}
+
+                    section_name_list = self.section_name_obj[domain_name_step]
+                    section_catchment_list = self.section_catchment_obj[domain_name_step]
+
+                    file_extra_variables = dict(zip(self.exec_type_list, exec_fields))
+                    file_extra_variables['domain_name'] = domain_name_step
+                    file_extra_collections = {self.tag_section_catchment: section_catchment_list,
+                                              self.tag_section_name: section_name_list}
+
+                    file_list_src_ref_start = self.define_file_string(
+                            None, os.path.join(folder_name_src_ref_start, file_name_src_ref_start),
+                            file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                    file_list_src_ref_start = self.filter_file_string(file_list_src_ref_start)
+
+                    file_list_src_ref_end = self.define_file_string(
+                            None, os.path.join(folder_name_src_ref_end, file_name_src_ref_end),
+                            file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                    file_list_src_ref_end = self.filter_file_string(file_list_src_ref_end)
+
+                    file_obj_src_ref_start[domain_name_step][exec_name] = file_list_src_ref_start
+                    file_obj_src_ref_end[domain_name_step][exec_name] = file_list_src_ref_end
+
+                    if domain_name_step not in list(exec_name_obj.keys()):
+                        exec_name_obj[domain_name_step] = [exec_name]
+                    else:
+                        tmp_exec = exec_name_obj[domain_name_step]
+                        tmp_exec.append(exec_name)
+                        exec_name_obj[domain_name_step] = tmp_exec
+
+                    if domain_name_step not in list(view_warn_obj.keys()):
+                        view_warn_obj[domain_name_step] = [run_view_warn_step]
+                    else:
+                        run_view_warn_tmp = view_warn_obj[domain_name_step]
+                        run_view_warn_tmp.append(run_view_warn_step)
+                        view_warn_obj[domain_name_step] = run_view_warn_tmp
+                    if domain_name_step not in list(view_exec_obj.keys()):
+                        view_exec_obj[domain_name_step] = [run_view_exec_step]
+                    else:
+                        run_view_exec_tmp = view_exec_obj[domain_name_step]
+                        run_view_exec_tmp.append(run_view_exec_step)
+                        view_exec_obj[domain_name_step] = run_view_exec_tmp
+
+        self.file_obj_src_ref_start = file_obj_src_ref_start
+        self.file_obj_src_ref_end = file_obj_src_ref_end
 
         # ancillary folder(s) and file(s)
         self.folder_name_anc_source = anc_dict[self.tag_anc_source][self.folder_name_tag]
@@ -161,72 +228,6 @@ class DriverDynamic:
         else:
             self.status_dest_warn_daily = True
 
-        self.exec_name_list = list(self.exec_dframe.index)
-        self.exec_values_list = list(self.exec_dframe.values)
-        self.exec_type_list = list(self.exec_dframe.columns)
-
-        # define file source reference
-        file_obj_src_ref_start, file_obj_src_ref_end = {}, {}
-        exec_name_obj, view_warn_obj, view_exec_obj = {}, {}, {}
-        for exec_name, exec_fields in zip(self.exec_name_list, self.exec_values_list):
-
-            for domain_name_step in self.domain_name_list:
-
-                exec_dframe_step = self.exec_dframe.loc[self.exec_dframe['run_name'] == exec_name]
-                if exec_dframe_step['run_domain_reference'].values[0].lower() == domain_name_step.lower():
-
-                    # get run domain information to add in the bulletin
-                    run_view_warn_step = exec_dframe_step['view_warnings'].values[0]
-                    run_view_exec_step = exec_dframe_step['view_execution'].values[0]
-
-                    if domain_name_step not in list(file_obj_src_ref_start.keys()):
-                        file_obj_src_ref_start[domain_name_step] = {}
-                    if domain_name_step not in list(file_obj_src_ref_end.keys()):
-                        file_obj_src_ref_end[domain_name_step] = {}
-
-                    section_name_list = self.section_name_obj[domain_name_step]
-                    section_catchment_list = self.section_catchment_obj[domain_name_step]
-
-                    file_extra_variables = dict(zip(self.exec_type_list, exec_fields))
-                    file_extra_variables['domain_name'] = domain_name_step
-                    file_extra_collections = {self.tag_section_catchment: section_catchment_list,
-                                              self.tag_section_name: section_name_list}
-
-                    file_list_src_ref_start = self.define_file_string(
-                            None, os.path.join(self.folder_name_src_ref_start, self.file_name_src_ref_start),
-                            file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
-                    file_list_src_ref_start = self.filter_file_string(file_list_src_ref_start)
-
-                    file_list_src_ref_end = self.define_file_string(
-                            None, os.path.join(self.folder_name_src_ref_end, self.file_name_src_ref_end),
-                            file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
-                    file_list_src_ref_end = self.filter_file_string(file_list_src_ref_end)
-
-                    file_obj_src_ref_start[domain_name_step][exec_name] = file_list_src_ref_start
-                    file_obj_src_ref_end[domain_name_step][exec_name] = file_list_src_ref_end
-
-                    if domain_name_step not in list(exec_name_obj.keys()):
-                        exec_name_obj[domain_name_step] = [exec_name]
-                    else:
-                        tmp_exec = exec_name_obj[domain_name_step]
-                        tmp_exec.append(exec_name)
-                        exec_name_obj[domain_name_step] = tmp_exec
-
-                    if domain_name_step not in list(view_warn_obj.keys()):
-                        view_warn_obj[domain_name_step] = [run_view_warn_step]
-                    else:
-                        run_view_warn_tmp = view_warn_obj[domain_name_step]
-                        run_view_warn_tmp.append(run_view_warn_step)
-                        view_warn_obj[domain_name_step] = run_view_warn_tmp
-                    if domain_name_step not in list(view_exec_obj.keys()):
-                        view_exec_obj[domain_name_step] = [run_view_exec_step]
-                    else:
-                        run_view_exec_tmp = view_exec_obj[domain_name_step]
-                        run_view_exec_tmp.append(run_view_exec_step)
-                        view_exec_obj[domain_name_step] = run_view_exec_tmp
-
-        self.file_obj_src_ref_start = file_obj_src_ref_start
-        self.file_obj_src_ref_end = file_obj_src_ref_end
 
         self.exec_name_obj = exec_name_obj
         self.view_warn_obj = view_warn_obj

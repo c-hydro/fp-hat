@@ -178,7 +178,7 @@ def write_bulletin_summary(time_run, time_exec, time_format='%Y-%m-%d %H:%M', ti
         html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Sections</b></th>\n')
         html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Domain</b></th>\n')
         html_handle.write('<th class="blue ColumnWidth_Type5 ColumnStyle_Center"><b>Last Run</b></th>\n')
-        html_handle.write('<th class="blue ColumnWidth_Type4 ColumnStyle_Center"><b>Period Run</b></th>\n')
+        html_handle.write('<th class="blue ColumnWidth_Type4 ColumnStyle_Center"><b>Search Period Run</b></th>\n')
         html_handle.write('</tr>\n')
 
         # iterate over run(s)

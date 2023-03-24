@@ -3,7 +3,7 @@
     "flags": {
       "cleaning_dynamic_source": false,
       "cleaning_dynamic_analysis": false,
-      "cleaning_dynamic_destination": false,
+      "cleaning_dynamic_destination": true,
       "cleaning_dynamic_tmp": true
     },
     "template": {
@@ -21,7 +21,7 @@
       "domain_name": "string_domain_name"
     },
     "ancillary": {
-      "domain_name" : ["marche", "laminazione"],
+      "domain_name" : ["marche", "nera", "laminazione"],
       "title_name": "Bulletin of Regione Marche Operational Chain",
       "time_settings" : {"time_mode":  "LOCAL", "time_window_left": 4, "time_window_right":  null}
     },
@@ -45,7 +45,13 @@
       "section_data": {
         "marche": {
           "folder_name": "/home/fabio/Documents/Work_Area/Code_Development/Workspace/PyCharm_Workspace/hat-ws/opchain_marche/data/data_static/shapefile/",
-          "file_name": "fp_sections_marche.shp"
+          "file_name": "fp_sections_marche.shp",
+          "filter": null
+        },
+        "nera": {
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/data/data_static/shapefile_nera/",
+          "file_name": "fp_sections_marche.shp",
+          "filter": {"domain_name": "Nera"}
         },
         "laminazione": {
           "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/data/data_static/shapefile_laminazione/",
@@ -54,60 +60,66 @@
       },
       "execution_data": {
         "id_01": {
-          "features": {"run_name": "rfarm_lami-2i_realtime_marche", "run_sub_path_execution": "probabilistic_001","run_description": "LAMI PROBABILISTICO",
+          "features": {"run_name": "rfarm_lami-2i_realtime_marche", "run_sub_path_execution": "probabilistic_001","run_description": "LAMI PROBABILISTICO MARCHE",
             "run_sub_path_datasets": "probabilistic_ensemble/collections/", "run_variable_sim": "discharge_simulated_{:}", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
         },
         "id_02": {
+          "features": {"run_name": "rfarm_lami-2i_realtime_nera", "run_sub_path_execution": "probabilistic_001","run_description": "LAMI PROBABILISTICO NERA",
+            "run_sub_path_datasets": "probabilistic_ensemble/collections/", "run_variable_sim": "discharge_simulated_{:}", "run_variable_obs": "discharge_observed",
+            "run_domain_reference": "nera", "view_warnings": true},
+          "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
+        },
+        "id_03": {
           "features": {"run_name": "weather_stations_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "RUN OSSERVATO",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 4, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_03": {
+        "id_04": {
           "features": {"run_name": "nwp_ecmwf0100_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "ECMWF DETERMINISTICO",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_04": {
+        "id_06": {
           "features": {"run_name": "rfarm_ecmwf0100_realtime_marche", "run_sub_path_execution": "probabilistic_001", "run_description": "ECMWF PROBABILISTICO",
             "run_sub_path_datasets": "probabilistic_ensemble/collections/", "run_variable_sim": "discharge_simulated_{:}", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_05": {
+        "id_07": {
           "features": {"run_name": "nwp_lami-2i_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "LAMI DETERMINISTICO",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_06": {
+        "id_08": {
           "features": {"run_name": "rfarm_expert_forecast_realtime_marche", "run_sub_path_execution": "probabilistic_001", "run_description": "EXPERT FORECAST PROBABILISTICO",
             "run_sub_path_datasets": "probabilistic_ensemble/collections/", "run_variable_sim": "discharge_simulated_{:}", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_07": {
+        "id_09": {
           "features": {"run_name": "radar_mcm_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "RADAR MCM",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 4, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_08": {
+        "id_10": {
           "features": {"run_name": "mod_s3m_realtime_marche", "run_sub_path_execution": "deterministic", "run_description": "RADAR MCM S3M",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "marche", "view_warnings": true},
           "time": {"time_period": 4, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_09": {
+        "id_11": {
           "features": {"run_name": "nwp_ecmwf0100_realtime_laminazione", "run_sub_path_execution": "deterministic", "run_description": "ECMWF DETERMINISTICO LAMINAZIONE",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "laminazione", "view_warnings": false},
           "time": {"time_period": 24, "time_frequency": "H", "time_rounding": "H"}
         },
-        "id_10": {
+        "id_12": {
           "features": {"run_name": "nwp_lami-2i_realtime_laminazione", "run_sub_path_execution": "deterministic", "run_description": "LAMI DETERMINISTICO LAMINAZIONE",
             "run_sub_path_datasets": "collections/", "run_variable_sim": "discharge_simulated", "run_variable_obs": "discharge_observed",
             "run_domain_reference": "laminazione", "view_warnings": false, "view_execution": false},
@@ -117,14 +129,38 @@
     },
     "dynamic" : {
       "source": {
-        "run_reference_start": {
-          "__comment__" : "file: [marche.info.txt, HMC_Model_V3_{run_name}.x]",
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/run/{run_name}/{run_sub_path_execution}/exec/",
-          "file_name": "marche.info.txt"
+        "marche": {
+          "run_reference_start": {
+            "__comment__": "file: [marche.info.txt, HMC_Model_V3_{run_name}.x]",
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/run/{run_name}/{run_sub_path_execution}/exec/",
+            "file_name": "marche.info.txt"
+          },
+          "run_reference_end": {
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/archive/{run_name}/{source_sub_path_time}/{run_sub_path_datasets}",
+            "file_name": "hydrograph_{section_name}_{basin_name}_{source_datetime}.json"
+          }
         },
-        "run_reference_end": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/archive/{run_name}/{source_sub_path_time}/{run_sub_path_datasets}",
-          "file_name": "hydrograph_{section_name}_{basin_name}_{source_datetime}.json"
+       "nera": {
+          "run_reference_start": {
+            "__comment__": "file: [marche.info.txt, HMC_Model_V3_{run_name}.x]",
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/run/{run_name}/{run_sub_path_execution}/exec/",
+            "file_name": "nera.info.txt"
+          },
+          "run_reference_end": {
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/archive/{run_name}/{source_sub_path_time}/{run_sub_path_datasets}",
+            "file_name": "hydrograph_{section_name}_{basin_name}_{source_datetime}.json"
+          }
+        },
+       "laminazione": {
+          "run_reference_start": {
+            "__comment__": "file: [marche.info.txt, HMC_Model_V3_{run_name}.x]",
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/run/{run_name}/{run_sub_path_execution}/exec/",
+            "file_name": "marche.info.txt"
+          },
+          "run_reference_end": {
+            "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hat-ws/opchain_marche/archive/{run_name}/{source_sub_path_time}/{run_sub_path_datasets}",
+            "file_name": "hydrograph_{section_name}_{basin_name}_{source_datetime}.json"
+          }
         }
       },
       "ancillary": {
