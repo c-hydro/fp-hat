@@ -10,6 +10,8 @@ Version:       '1.0.0'
 # -------------------------------------------------------------------------------------
 # Libraries
 import logging
+
+import numpy as np
 import pandas as pd
 
 from statistics import mean
@@ -84,6 +86,32 @@ def merge_bulletin_attrs(summary_attrs_new, summary_attrs_tmp):
 
 
 # -------------------------------------------------------------------------------------
+# Method to get bool value
+def get_bool_value(values, method='unique', separator=';'):
+    values_filtered = [i for i in values if i is not None]
+    if not values_filtered:
+        values_filtered = None
+
+    if values_filtered is not None:
+        if method == 'unique':
+            values_filtered = list(set(values_filtered))
+            if values_filtered.__len__() == 1:
+                value = np.bool(values_filtered[0])
+            else:
+                log_stream.error(' ===> Obj type is not expected')
+                raise RuntimeError('Value must be defined by list of one element')
+        else:
+            log_stream.error(' ===> Get unique value method "' + method + '" is not supported')
+            raise NotImplemented('Case not implemented yet')
+    else:
+        log_stream.error(' ===> All the values are defined by NoneType')
+        value = None
+
+    return value
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
 # Method to compute unique list
 def get_unique_value(values, method='unique', separator=';'):
     values_filtered = [i for i in values if i is not None]
@@ -124,6 +152,8 @@ def compute_unique_date(values, method='min'):
             value = min(values_filtered)
         elif method == 'max':
             value = max(values_filtered)
+        elif method == 'null':
+            value = deepcopy(values)
         else:
             log_stream.error(' ===> Compute unique date method "' + method + '" is not supported')
             raise NotImplemented('Case not implemented yet')
@@ -189,8 +219,13 @@ def shrink_bulletin_attrs(summary_attrs_all, op_element_list=None):
             'run_sub_path_datasets:get_unique_value:concatenate',
             'run_variable_sim:get_unique_value:concatenate',
             'run_variable_obs:get_unique_value:concatenate',
+            'run_domain_reference:get_unique_value:unique',
             'domain_name:get_unique_value:concatenate',
-            'run_last_available:get_unique_value:unique'
+            'run_domain_warnings:get_unique_value:unique',
+            'view_warnings:get_bool_value:unique',
+            'view_execution:get_bool_value:unique',
+            'run_time_last:compute_unique_date:max',
+            'run_time_period:compute_unique_date:null',
         ]
 
     summary_attrs_unique = {}
@@ -206,6 +241,8 @@ def shrink_bulletin_attrs(summary_attrs_all, op_element_list=None):
         if op_var is not None:
             if op_fx == 'get_unique_value':
                 summary_value = get_unique_value(summary_obj, method=op_method)
+            elif op_fx == 'get_bool_value':
+                summary_value = get_bool_value(summary_obj, method=op_method)
             elif op_fx == 'compute_unique_date':
                 summary_value = compute_unique_date(summary_obj, method=op_method)
             elif op_fx == 'compute_unique_value':

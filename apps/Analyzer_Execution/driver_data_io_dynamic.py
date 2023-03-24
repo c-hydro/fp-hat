@@ -118,7 +118,7 @@ class DriverDynamic:
         self.status_active_tag = 'active'
 
         self.section_data_obj = self.filter_data_by_key(
-            self.sections_dframe, key_value=self.domain_name_list)
+            self.sections_dframe, key_value=self.domain_name_list, key_column='reference_db')
         self.section_name_obj = self.extract_data_by_key(
             self.section_data_obj, key_column=self.tag_section_name)
         self.section_catchment_obj = self.extract_data_by_key(
@@ -167,38 +167,70 @@ class DriverDynamic:
 
         # define file source reference
         file_obj_src_ref_start, file_obj_src_ref_end = {}, {}
+        exec_name_obj, view_warn_obj, view_exec_obj = {}, {}, {}
         for exec_name, exec_fields in zip(self.exec_name_list, self.exec_values_list):
 
             for domain_name_step in self.domain_name_list:
 
-                if domain_name_step not in list(file_obj_src_ref_start.keys()):
-                    file_obj_src_ref_start[domain_name_step] = {}
-                if domain_name_step not in list(file_obj_src_ref_end.keys()):
-                    file_obj_src_ref_end[domain_name_step] = {}
+                exec_dframe_step = self.exec_dframe.loc[self.exec_dframe['run_name'] == exec_name]
+                if exec_dframe_step['run_domain_reference'].values[0].lower() == domain_name_step.lower():
 
-                section_name_list = self.section_name_obj[domain_name_step]
-                section_catchment_list = self.section_catchment_obj[domain_name_step]
+                    # get run domain information to add in the bulletin
+                    run_view_warn_step = exec_dframe_step['view_warnings'].values[0]
+                    run_view_exec_step = exec_dframe_step['view_execution'].values[0]
 
-                file_extra_variables = dict(zip(self.exec_type_list, exec_fields))
-                file_extra_variables['domain_name'] = domain_name_step
-                file_extra_collections = {self.tag_section_catchment: section_catchment_list,
-                                          self.tag_section_name: section_name_list}
+                    if domain_name_step not in list(file_obj_src_ref_start.keys()):
+                        file_obj_src_ref_start[domain_name_step] = {}
+                    if domain_name_step not in list(file_obj_src_ref_end.keys()):
+                        file_obj_src_ref_end[domain_name_step] = {}
 
-                file_list_src_ref_start = self.define_file_string(
-                        None, os.path.join(self.folder_name_src_ref_start, self.file_name_src_ref_start),
-                        file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
-                file_list_src_ref_start = self.filter_file_string(file_list_src_ref_start)
+                    section_name_list = self.section_name_obj[domain_name_step]
+                    section_catchment_list = self.section_catchment_obj[domain_name_step]
 
-                file_list_src_ref_end = self.define_file_string(
-                        None, os.path.join(self.folder_name_src_ref_end, self.file_name_src_ref_end),
-                        file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
-                file_list_src_ref_end = self.filter_file_string(file_list_src_ref_end)
+                    file_extra_variables = dict(zip(self.exec_type_list, exec_fields))
+                    file_extra_variables['domain_name'] = domain_name_step
+                    file_extra_collections = {self.tag_section_catchment: section_catchment_list,
+                                              self.tag_section_name: section_name_list}
 
-                file_obj_src_ref_start[domain_name_step][exec_name] = file_list_src_ref_start
-                file_obj_src_ref_end[domain_name_step][exec_name] = file_list_src_ref_end
+                    file_list_src_ref_start = self.define_file_string(
+                            None, os.path.join(self.folder_name_src_ref_start, self.file_name_src_ref_start),
+                            file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                    file_list_src_ref_start = self.filter_file_string(file_list_src_ref_start)
+
+                    file_list_src_ref_end = self.define_file_string(
+                            None, os.path.join(self.folder_name_src_ref_end, self.file_name_src_ref_end),
+                            file_extra_variables=file_extra_variables, file_extra_collections=file_extra_collections)
+                    file_list_src_ref_end = self.filter_file_string(file_list_src_ref_end)
+
+                    file_obj_src_ref_start[domain_name_step][exec_name] = file_list_src_ref_start
+                    file_obj_src_ref_end[domain_name_step][exec_name] = file_list_src_ref_end
+
+                    if domain_name_step not in list(exec_name_obj.keys()):
+                        exec_name_obj[domain_name_step] = [exec_name]
+                    else:
+                        tmp_exec = exec_name_obj[domain_name_step]
+                        tmp_exec.append(exec_name)
+                        exec_name_obj[domain_name_step] = tmp_exec
+
+                    if domain_name_step not in list(view_warn_obj.keys()):
+                        view_warn_obj[domain_name_step] = [run_view_warn_step]
+                    else:
+                        run_view_warn_tmp = view_warn_obj[domain_name_step]
+                        run_view_warn_tmp.append(run_view_warn_step)
+                        view_warn_obj[domain_name_step] = run_view_warn_tmp
+                    if domain_name_step not in list(view_exec_obj.keys()):
+                        view_exec_obj[domain_name_step] = [run_view_exec_step]
+                    else:
+                        run_view_exec_tmp = view_exec_obj[domain_name_step]
+                        run_view_exec_tmp.append(run_view_exec_step)
+                        view_exec_obj[domain_name_step] = run_view_exec_tmp
 
         self.file_obj_src_ref_start = file_obj_src_ref_start
         self.file_obj_src_ref_end = file_obj_src_ref_end
+
+        self.exec_name_obj = exec_name_obj
+        self.view_warn_obj = view_warn_obj
+        self.view_exec_obj = view_exec_obj
 
         # define file ancillary reference
         self.file_path_anc_source = self.define_file_string(
@@ -465,16 +497,19 @@ class DriverDynamic:
 
     # -------------------------------------------------------------------------------------
     # Method to dump dynamic data
-    def dump_dynamic_data(self, analysis_datasets_collections, time_datasets_collections):
+    def dump_dynamic_data(self, analysis_datasets_collections,
+                          time_last_run_datasets_collections, time_period_datasets_collections):
 
         # get reference time(s)
         time_exec, time_run, time_mode = self.time_exec, self.time_run, self.time_mode
-
+        # get bulletin title
         title_name = self.title_name
 
-        # get domain and execution list
+        # get domain list
         domain_name_list = self.domain_name_list
-        exec_name_list = self.exec_name_list
+        # get execution and view object(s)
+        exec_name_obj = self.exec_name_obj
+        view_warn_obj, view_exec_obj = self.view_warn_obj, self.view_exec_obj
 
         # get execution and section dataframe(s)
         exec_dframe = self.exec_dframe
@@ -501,7 +536,7 @@ class DriverDynamic:
             if os.path.exists(file_path_anc):
                 os.remove(file_path_anc)
 
-        # organize bulletin datasets
+        # organize bulletin start
         log_stream.info(' ----> Organize summary bulletin  ... ')
 
         # check ancillary file
@@ -510,37 +545,57 @@ class DriverDynamic:
             # iterate over domains list
             summary_collections = {}
             for domain_name_step in domain_name_list:
+
+                # info domain start
                 log_stream.info(' -----> Domain reference "' + domain_name_step + '" ... ')
 
                 # get analysis and time collections
                 analysis_datasets_domain = analysis_datasets_collections[domain_name_step]
-                time_datasets_domain = time_datasets_collections[domain_name_step]
+                time_last_datasets_domain = time_last_run_datasets_collections[domain_name_step]
+                time_period_datasets_domain = time_period_datasets_collections[domain_name_step]
 
-                # iterate over executions list
-                for exec_name_step in exec_name_list:
+                # get exec list (checking the domain availability in the execution obj)
+                if domain_name_step in list(exec_name_obj.keys()):
+                    exec_name_list = exec_name_obj[domain_name_step]
+                else:
+                    log_stream.error(' ===> Domain "' + domain_name_step + '" not included in the "exec_name_obj"')
+                    raise RuntimeError('Domain must be included in the "exec_name_obj" to correctly get the datasets')
+                # get view warn and execution list
+                view_warn_list = view_warn_obj[domain_name_step]
+                view_exec_list = view_exec_obj[domain_name_step]
 
-                    log_stream.info(' ------> Execution reference "' + exec_name_step + '" ... ')
+                # iterate over executions and view list(s)
+                for exec_name_step, view_warn_step, view_exec_step in zip(exec_name_list,
+                                                                          view_warn_list, view_exec_list):
+
+                    # info execution start
+                    log_stream.info(' ------> Analyze execution reference "' + exec_name_step + '" ... ')
 
                     # get run data and attributes (1)
                     attrs_exec = exec_dframe[exec_dframe.index == exec_name_step].to_dict('r')[0]
                     run_name = attrs_exec[self.tag_summary_run_name]
                     run_description = attrs_exec[self.tag_summary_run_description]
 
-                    # get analysis data and attributes (2)
-                    data_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_section]
-                    attrs_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_attrs]
-                    # get time data
-                    data_time = time_datasets_domain[exec_name_step]
+                    # get time last and period data
+                    data_time_last = time_last_datasets_domain[exec_name_step]
+                    data_time_period = time_period_datasets_domain[exec_name_step]
 
                     # compute time last run available
-                    time_list = [elem for elem in data_time if elem is not None]
+                    time_list = [elem for elem in data_time_last if elem is not None]
                     time_idx = pd.DatetimeIndex(time_list)
-                    time_last_run = time_idx.max().ceil(freq='min')
+                    run_time_last = time_idx.max().ceil(freq='min')
 
                     # get extend attributes of run (some basic information) (3)
                     attrs_extend = {
-                        'domain_name': domain_name_step, 'run_last_available': time_last_run,
+                        'domain_name': domain_name_step,
+                        'run_time_last': run_time_last,
+                        'run_time_period': data_time_period,
+                        'view_warnings': view_warn_step, 'view_execution': view_exec_step,
                         self.tag_summary_run_name: run_name, self.tag_summary_run_description: run_description}
+
+                    # get analysis data and attributes (2)
+                    data_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_section]
+                    attrs_analysis = analysis_datasets_domain[exec_name_step][self.tag_run_datasets_attrs]
 
                     # add time attributes to analysis attributes
                     if attrs_analysis is None:
@@ -556,6 +611,7 @@ class DriverDynamic:
                     # define datasets attributes
                     attrs_datasets = {**attrs_analysis, **attrs_exec, **attrs_extend}
 
+                    # check analysis availability
                     if data_analysis is not None:
 
                         summary_datasets = {}
@@ -653,10 +709,18 @@ class DriverDynamic:
                                 log_stream.info(' -------> Section "' + section_name +
                                                 '" ... SKIPPED. Datasets are undefined')
 
+                            # info execution end
+                            log_stream.info(' ------> Analyze execution reference "' +
+                                            exec_name_step + '" ... DONE')
+
                     else:
+                        # info execution end
+                        log_stream.info(' ------> Analyze execution reference "' + exec_name_step +
+                                        '" ... SKIPPED. All datasets are undefined')
                         summary_datasets = None
 
-                    # add information to summary collections
+                    # add information to summary collections start
+                    log_stream.info(' ------> Organize execution reference "' + exec_name_step + '" ... ')
                     if exec_name_step not in list(summary_collections.keys()):
 
                         # set datasets to the summary collections
@@ -685,16 +749,24 @@ class DriverDynamic:
                             attrs_merged = merge_bulletin_attrs(init_bulletin_attrs(attrs_datasets), tmp_attrs)
                             summary_collections[exec_name_step][self.tag_info] = attrs_merged
 
-                    log_stream.info(' ------> Execution reference "' + exec_name_step + '" ... DONE')
+                        # add information to summary collections start
+                        log_stream.info(' ------> Organize execution reference "' + exec_name_step + '" ... DONE')
 
+                # info domain end
                 log_stream.info(' -----> Domain reference "' + domain_name_step + '" ... DONE')
 
+            # organize bulletin end
             log_stream.info(' ----> Organize summary bulletin ... DONE')
+
+            # organize bulletin info
+            log_stream.info(' ----> Organize info bulletin  ... ')
+            bulletin_dframe_info, bulletin_dframe_thr = organize_bulletin_info(exec_name_obj, summary_collections)
+            log_stream.info(' ----> Organize info bulletin  ... DONE')
 
             # organize bulletin thr generic
             log_stream.info(' ----> Organize section bulletin generic ... ')
             bulletin_dframe_sections_generic = organize_bulletin_warnings_generic(
-                exec_name_list, summary_collections, sections_dframe)
+                exec_name_obj, summary_collections, sections_dframe)
             log_stream.info(' ----> Organize section bulletin generic ... DONE')
 
             # organize bulletin thr max
@@ -718,11 +790,6 @@ class DriverDynamic:
             bulletin_dframe_tomorrow = organize_bulletin_warnings_section(
                 bulletin_dframe_sections_tomorrow, sections_dframe)
             log_stream.info(' ----> Organize section bulletin tomorrow ... DONE')
-
-            # organize bulletin info
-            log_stream.info(' ----> Organize info bulletin  ... ')
-            bulletin_dframe_info, bulletin_dframe_thr = organize_bulletin_info(exec_name_list, summary_collections)
-            log_stream.info(' ----> Organize info bulletin  ... DONE')
 
             # save datasets to ancillary file
             folder_name_anc, file_name_anc = os.path.split(file_path_anc)
@@ -813,9 +880,12 @@ class DriverDynamic:
         time = self.time_run
         time_select_start, time_select_end = self.time_select_start, self.time_select_end
 
-        # get domain and execution list
+        # get domain list
         domain_name_list = self.domain_name_list
-        exec_name_list = self.exec_name_list
+        # get execution and view object(s)
+        exec_name_obj = self.exec_name_obj
+        view_warn_obj, view_exec_obj = self.view_warn_obj, self.view_exec_obj
+
         # get execution dataframe
         exec_dframe = self.exec_dframe
         # get ancillary object(s)
@@ -843,6 +913,15 @@ class DriverDynamic:
                 # get file information for selected domain
                 domain_workspace = file_workspace[domain_name_step]
 
+                # get exec list (checking the domain availability in the execution obj)
+                if domain_name_step in list(exec_name_obj.keys()):
+                    exec_name_list = exec_name_obj[domain_name_step]
+                else:
+                    log_stream.error(' ===> Domain "' + domain_name_step + '" not included in the "exec_name_obj"')
+                    raise RuntimeError('Domain must be included in the "exec_name_obj" to correctly get the datasets')
+                # get view warn list
+                view_warn_list = view_warn_obj[domain_name_step]
+
                 # init workspace using domain tag
                 if analyze_warnings_collections is None:
                     analyze_warnings_collections = {}
@@ -851,8 +930,8 @@ class DriverDynamic:
                     analyze_datasets_collections = {}
                 analyze_datasets_collections[domain_name_step] = {}
 
-                # cycles over execution name(s)
-                for exec_name_step in exec_name_list:
+                # cycles over execution name(s) and view option(s)
+                for exec_name_step, view_warn_step in zip(exec_name_list, view_warn_list):
 
                     # info execution start
                     log_stream.info(' ----> Execution reference "' + exec_name_step + '" ... ')
@@ -881,7 +960,8 @@ class DriverDynamic:
                             analysis_datasets_section, attrs_datasets_section = analyze_discharge_ts(
                                     exec_name_step, exec_data_collection,
                                     time_start=time_select_start, time_end=time_select_end,
-                                    tag_discharge_observed=exec_run_var_obs, tag_discharge_simulated=exec_run_var_sim,
+                                    tag_discharge_observed=exec_run_var_obs,
+                                    tag_discharge_simulated=exec_run_var_sim,
                                     tag_discharge_thr_alert=self.tag_summary_alert_thr,
                                     tag_discharge_thr_alarm=self.tag_summary_alarm_thr,
                                     tag_discharge_max_alert_value=self.tag_summary_alert_value,
@@ -942,33 +1022,42 @@ class DriverDynamic:
     # Method to organize dynamic data
     def organize_dynamic_data(self):
 
+        # get reference time(s)
         time = self.time_run
 
-        outlet_name_obj = self.outlet_name_obj
-
+        # get domain list
         domain_name_list = self.domain_name_list
-        exec_name_list = self.exec_name_list
-
+        # get execution and view object(s)
+        exec_name_obj = self.exec_name_obj
+        view_warn_obj, view_exec_obj = self.view_warn_obj, self.view_exec_obj
+        # get outlet obj
+        outlet_name_obj = self.outlet_name_obj
+        # execution dframe
         exec_dframe = self.exec_dframe
 
+        # get source obj
         file_obj_src_ref_start = self.file_obj_src_ref_start
         file_obj_src_ref_end = self.file_obj_src_ref_end
-
+        # get ancillary obj
         file_path_anc = self.file_path_anc_source
         flag_clean_anc = self.flag_cleaning_dynamic_source
 
+        # info routine start
         log_stream.info(' ---> Organize dynamic datasets [' + str(time) + '] ... ')
 
+        # check ancillary flag and file
         if flag_clean_anc:
             if os.path.exists(file_path_anc):
                 os.remove(file_path_anc)
 
+        # check ancillary file
         if not os.path.exists(file_path_anc):
 
             # cycles over domain name(s)
-            file_workspace, history_workspace = None, None
+            file_workspace, history_time_last_workspace, history_time_period_workspace = None, None, None
             for domain_name_step in domain_name_list:
 
+                # info domain start
                 log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... ')
 
                 # get domain information
@@ -976,18 +1065,29 @@ class DriverDynamic:
                 file_collections_src_ref_start = file_obj_src_ref_start[domain_name_step]
                 file_collections_src_ref_end = file_obj_src_ref_end[domain_name_step]
 
+                # check domain availability in the execution obj
+                if domain_name_step in list(exec_name_obj.keys()):
+                    exec_name_list = exec_name_obj[domain_name_step]
+                else:
+                    log_stream.error(' ===> Domain "' + domain_name_step + '" not included in the "exec_name_obj"')
+                    raise RuntimeError('Domain must be included in the "exec_name_obj" to correctly get the datasets')
+
                 # init file workspace using domain tag
                 if file_workspace is None:
                     file_workspace = {}
                 file_workspace[domain_name_step] = {}
                 # init history workspace using domain tag
-                if history_workspace is None:
-                    history_workspace = {}
-                history_workspace[domain_name_step] = {}
+                if history_time_last_workspace is None:
+                    history_time_last_workspace = {}
+                history_time_last_workspace[domain_name_step] = {}
+                if history_time_period_workspace is None:
+                    history_time_period_workspace = {}
+                history_time_period_workspace[domain_name_step] = {}
 
                 # cycles over execution name(s)
                 for exec_name_step in exec_name_list:
 
+                    # info execution start
                     log_stream.info(' -----> Execution reference "' + exec_name_step + '" ... ')
 
                     file_path_src_ref_start = file_collections_src_ref_start[exec_name_step]
@@ -1012,11 +1112,13 @@ class DriverDynamic:
                     file_workspace[domain_name_step][exec_name_step][self.tag_info][self.tag_time_ref_end] = None
                     file_workspace[domain_name_step][exec_name_step][self.tag_data] = None
                     # initialize history workspace
-                    history_workspace[domain_name_step][exec_name_step] = {}
+                    history_time_last_workspace[domain_name_step][exec_name_step] = {}
+                    history_time_period_workspace[domain_name_step][exec_name_step] = {}
 
                     # iterate to find actual running experiments
                     for time_step in time_search:
 
+                        # info time start
                         log_stream.info(' ------> Time  "' + str(time_step) + '" ... ')
 
                         log_stream.info(' -------> Reference run_start datasets ... ')
@@ -1139,17 +1241,24 @@ class DriverDynamic:
                             history_time_ref = None
                             log_stream.info(' -------> Search available datasets ... ALL NOT AVAILABLE.')
 
-                        # Store history information
-                        log_stream.info(' -------> Update history information ... ')
-                        if not history_workspace[domain_name_step][exec_name_step]:
-                            history_workspace[domain_name_step][exec_name_step] = [history_time_ref]
+                        # Store history time last information
+                        log_stream.info(' -------> Update history time last information ... ')
+                        if not history_time_last_workspace[domain_name_step][exec_name_step]:
+                            history_time_last_workspace[domain_name_step][exec_name_step] = [history_time_ref]
                         else:
-                            history_time_tmp = history_workspace[domain_name_step][exec_name_step]
+                            history_time_tmp = history_time_last_workspace[domain_name_step][exec_name_step]
                             history_time_tmp.append(history_time_ref)
-                            history_workspace[domain_name_step][exec_name_step] = history_time_tmp
-                        log_stream.info(' -------> Update history information ... DONE')
+                            history_time_last_workspace[domain_name_step][exec_name_step] = history_time_tmp
+                        log_stream.info(' -------> Update history time last information ... DONE')
+                        # Store history information
+                        log_stream.info(' -------> Update history time period information ... ')
+                        if not history_time_period_workspace[domain_name_step][exec_name_step]:
+                            time_search = sorted(time_search)
+                            time_from, time_to = time_search[0], time_search[-1]
+                            history_time_period_workspace[domain_name_step][exec_name_step] = [time_from, time_to]
+                        log_stream.info(' -------> Update history time period information ... DONE')
 
-                        # Store reference source information and datasets
+                        # Store reference source information and datasets for start step
                         log_stream.info(' -------> Update start process information ... ')
                         if file_insert_start:
                             file_workspace[domain_name_step][exec_name_step][
@@ -1160,7 +1269,7 @@ class DriverDynamic:
                         else:
                             log_stream.info(' -------> Update start process information ... SKIPPED. '
                                             'Information are not available')
-
+                        # Store reference source information and datasets for end step
                         log_stream.info(' -------> Update end process information ... ')
                         if file_insert_end:
                             file_workspace[domain_name_step][exec_name_step][
@@ -1174,10 +1283,13 @@ class DriverDynamic:
                             log_stream.info(' -------> Update end process information ... SKIPPED. '
                                             'Information are not available')
 
+                        # info time end
                         log_stream.info(' ------> Time  "' + str(time_step) + '" ... DONE')
 
+                    # info execution end
                     log_stream.info(' -----> Execution reference "' + exec_name_step + '" ... DONE')
 
+                # info domain end
                 log_stream.info(' ----> Domain reference "' + domain_name_step + '" ... DONE')
 
             # store data in a workspace file
@@ -1186,7 +1298,9 @@ class DriverDynamic:
                 folder_name_anc, file_name_anc = os.path.split(file_path_anc)
                 make_folder(folder_name_anc)
                 # merge file and history workspace
-                data_collections = {'file_workspace': file_workspace, 'history_workspace': history_workspace}
+                data_collections = {'file_workspace': file_workspace,
+                                    'history_time_last_workspace': history_time_last_workspace,
+                                    'history_time_period_workspace': history_time_period_workspace}
                 # save data collections
                 write_obj(file_path_anc, data_collections)
                 log_stream.info(' ----> Freeze dynamic datasets ... DONE')
@@ -1197,11 +1311,13 @@ class DriverDynamic:
             data_collections = read_obj(file_path_anc)
             # get file and history workspace
             file_workspace = data_collections['file_workspace']
-            history_workspace = data_collections['history_workspace']
+            history_time_last_workspace = data_collections['history_time_last_workspace']
+            history_time_period_workspace = data_collections['history_time_period_workspace']
 
+        # info routine end
         log_stream.info(' ---> Organize dynamic datasets [' + str(time) + '] ... DONE')
 
-        return file_workspace, history_workspace
+        return file_workspace, history_time_last_workspace, history_time_period_workspace
 
     # -------------------------------------------------------------------------------------
 

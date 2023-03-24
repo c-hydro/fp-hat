@@ -43,12 +43,12 @@ def read_file_execution_info(file_name,
 # Method to read file execution data
 def read_file_execution_data(execution_data, tag_name='run_name'):
 
-    log_stream.info(' ---> Read execution data ... ')
-
     collections_data, collections_columns = {}, None
     for exec_id, exec_step in execution_data.items():
         exec_key = exec_step['features'][tag_name]
         collections_data[exec_key] = {}
+
+        log_stream.info(' -----> Run reference "' + exec_key + '" ... ')
 
         data_list, columns_list = [], []
         for exec_subkey in exec_step.keys():
@@ -56,13 +56,29 @@ def read_file_execution_data(execution_data, tag_name='run_name'):
                 columns_list.append(exec_type)
                 data_list.append(exec_value)
 
+            if 'run_domain_reference' not in columns_list:
+                log_stream.error(' ===> The field "run_domain_reference" must be defined in the execution "' +
+                                 exec_key + '" datasets')
+                raise RuntimeError('Insert the key "run_domain_reference" in the execution datasets to skip the error.')
+
+            if 'view_warnings' not in columns_list:
+                log_stream.warning(' ===> The field "view_warnings" is not found in the execution "' +
+                                   exec_key + '" datasets. The default value will be set to "true"')
+                columns_list.append('view_warnings')
+                data_list.append(True)
+            if 'view_execution' not in columns_list:
+                log_stream.warning(' ===> The field "view_execution" is not found in the execution "' +
+                                   exec_key + '" datasets. The default value will be set to "true"')
+                columns_list.append('view_execution')
+                data_list.append(True)
+
         collections_data[exec_key] = data_list
         if collections_columns is None:
             collections_columns = columns_list
 
-    execution_df = pd.DataFrame.from_dict(collections_data, orient='index', columns=collections_columns)
+        log_stream.info(' -----> Run reference "' + exec_key + '" ... DONE')
 
-    log_stream.info(' ---> Read execution data ... DONE')
+    execution_df = pd.DataFrame.from_dict(collections_data, orient='index', columns=collections_columns)
 
     return execution_df
 

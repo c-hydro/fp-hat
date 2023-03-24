@@ -11,6 +11,9 @@ Version:       '1.0.0'
 # Library
 import logging
 import os
+import pandas as pd
+
+from copy import deepcopy
 
 from lib_data_io_shapefile import read_file_section_data, filter_file_section_data
 from lib_utils_exec import read_file_execution_data
@@ -55,13 +58,112 @@ class DriverStatic:
         if not isinstance(self.domain_name_list, list):
             self.domain_name_list = [self.domain_name_list]
 
-        self.folder_name_section = self.src_dict[self.flag_section_data][self.folder_name_tag]
-        self.file_name_section = self.src_dict[self.flag_section_data][self.file_name_tag]
-        self.file_path_section = os.path.join(self.folder_name_section, self.file_name_section)
+        self.section_data = self.define_section_data()
+
+        #self.folder_name_section = self.src_dict[self.flag_section_data][self.folder_name_tag]
+        #self.file_name_section = self.src_dict[self.flag_section_data][self.file_name_tag]
+        #self.file_path_section = os.path.join(self.folder_name_section, self.file_name_section)
 
         self.execution_data = self.src_dict[self.flag_execution_data]
 
         self.flag_cleaning_static = flag_cleaning_static
+
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # method to define section data
+    def define_section_data(self):
+
+        domain_name_list = self.domain_name_list
+        src_dict = self.src_dict
+
+        if domain_name_list.__len__() > 1:
+            for domain_name_step in domain_name_list:
+                if domain_name_step not in list(src_dict[self.flag_section_data].keys()):
+                    log_stream.error(' ===> Domain "' + domain_name_step + '" is not defined in the source data obj')
+                    raise RuntimeError('All the domains must be defined in the source data obj')
+
+        # case for domain or multi-domains declared in the source dictionary
+        section_data_dict = None
+        for domain_name_step in domain_name_list:
+            if domain_name_step in list(src_dict[self.flag_section_data].keys()):
+
+                if section_data_dict is None:
+                    section_data_dict = {}
+
+                folder_name_step = src_dict[self.flag_section_data][domain_name_step][self.folder_name_tag]
+                file_name_step = src_dict[self.flag_section_data][domain_name_step][self.file_name_tag]
+                file_path_step = os.path.join(folder_name_step, file_name_step)
+
+                section_data_dict[domain_name_step] = file_path_step
+
+        # case for single domain not declared in the source dictionary
+        if (section_data_dict is None) and (domain_name_list.__len__() == 1):
+
+            domain_name_step = domain_name_list[0]
+
+            folder_name_step = src_dict[self.flag_section_data][self.folder_name_tag]
+            file_name_step = src_dict[self.flag_section_data][self.file_name_tag]
+            file_path_step = os.path.join(folder_name_step, file_name_step)
+
+            if section_data_dict is None:
+                section_data_dict = {}
+            section_data_dict[domain_name_step] = {}
+            section_data_dict[domain_name_step] = file_path_step
+        elif section_data_dict is not None:
+            pass
+        else:
+            log_stream.error(' ===> Section data is not defined and the size of the domain list is not supported')
+            raise NotImplemented('Case not implemented yet')
+
+        for domain_name_step in domain_name_list:
+            if domain_name_step not in list(section_data_dict.keys()):
+                log_stream.error(' ===> Domain "' + domain_name_step + '" is not defined in the section data obj')
+                raise RuntimeError('All the domains must be defined in the section data obj')
+
+        return section_data_dict
+
+    # -------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------
+    # method to organize section data
+    def organize_section_data(self, tag_db='reference_db'):
+
+        # iterate over domain(s)
+        dframe_section_merged = None
+        for section_data_name, section_data_file_path in self.section_data.items():
+
+            log_stream.info(' -----> Domain reference "' + section_data_name + '" ... ')
+
+            dframe_section_step = read_file_section_data(section_data_file_path)
+            dframe_section_step[tag_db] = section_data_name
+
+            update_section_tag = False
+            if 'section_tag' in list(dframe_section_step.columns):
+                section_tag_check = dframe_section_step['section_tag'][0]
+                if ':' not in section_tag_check:
+                    update_section_tag = True
+            else:
+                update_section_tag = True
+            if update_section_tag:
+                log_stream.warning(' ===> The column "section_tag" is not in the correct format. '
+                                   'The column will be updated by the expected fields format.')
+                section_catch_list = dframe_section_step['section_catchment'].values
+                section_name_list = dframe_section_step['section_name'].values
+
+                section_tag_list = ["{}:{}".format(elem_a, elem_b)
+                                    for elem_a, elem_b in zip(section_catch_list, section_name_list)]
+
+                dframe_section_step['section_tag'] = section_tag_list
+
+            if dframe_section_merged is None:
+                dframe_section_merged = deepcopy(dframe_section_step)
+            else:
+                dframe_section_merged = pd.concat([dframe_section_merged, dframe_section_step])
+
+            log_stream.info(' -----> Domain reference "' + section_data_name + '" ... DONE')
+
+        return dframe_section_merged
 
     # -------------------------------------------------------------------------------------
 
@@ -75,12 +177,19 @@ class DriverStatic:
         # Data collection object
         dframe_collections = {}
 
-        # Read section dataset
-        dframe_section = read_file_section_data(self.file_path_section)
+        # Organize sections datasets
+        log_stream.info(' ----> Sections datasets ... ')
+        # Organize section datasets
+        dframe_section = self.organize_section_data()
+        # Filter section datasets
         dframe_section = filter_file_section_data(
-            dframe_section, field_value_list=self.domain_name_list, field_tag='domain_name')
+            dframe_section, field_value_list=self.domain_name_list, field_tag='reference_db')
+        log_stream.info(' ----> Sections datasets ... DONE')
+
         # Read execution dataset
+        log_stream.info(' ----> Executions datasets ... ')
         dframe_execution = read_file_execution_data(self.execution_data)
+        log_stream.info(' ----> Executions datasets ... DONE')
 
         # Collect datasets in a common object
         dframe_collections[self.flag_section_data] = dframe_section
