@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Version 1.6.2 [2023-05-08]
+===========
+APP: **HAT_Q2T.py**
+    - Operational Release
+    	- refactor from previous version outside the package
+    
 Version 1.6.1 [2023-03-20]
 ===========
 APP: **HAT_RunAnalyzer_HMC.py**

@@ -1,7 +1,7 @@
 """
 Class Features
 
-Name:          lib_jupyter_data_geo_ascii
+Name:          lib_data_geo_ascii
 Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
 Date:          '20210113'
 Version:       '1.0.0'
@@ -17,13 +17,13 @@ import numpy as np
 
 from rasterio.crs import CRS
 
-from lib_data_io_generic import create_darray_2d
+from lib_utils_io import create_darray_2d
 from lib_info_args import logger_name
 
 # Logging
-log_stream = logging.getLogger(logger_name)
 logging.getLogger("rasterio").setLevel(logging.WARNING)
 logging.getLogger("fiona").setLevel(logging.WARNING)
+log_stream = logging.getLogger(logger_name)
 
 # Debug
 import matplotlib.pylab as plt

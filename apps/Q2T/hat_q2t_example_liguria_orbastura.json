@@ -1,0 +1,118 @@
+{
+	"algorithm" : {
+		"general": {
+			"title": "HAT - Q2T",
+			"web-site": "",
+			"source": "Python library developed by CIMA Research Foundation",
+			"history": "1.1.0 [20230508]",
+			"project-info": "HAT - Hydrological Analysis Tool",
+			"algorithm": "Analysis tools developed by CIMA Research Foundation"
+		},
+		"flags": {
+			"cleaning_static": true,
+      		"cleaning_dynamic_source": true,
+			"cleaning_dynamic_analysis": true,
+			"cleaning_dynamic_destination": true
+		},
+		"template": {
+			"source_datetime": "%Y%m%d%H%M",
+			"source_sub_path_time": "%Y/%m/%d/",
+			"ancillary_datetime": "%Y%m%d%H%M",
+			"ancillary_sub_path_time": "%Y/%m/%d/",
+			"destination_datetime": "%Y%m%d%H%M",
+			"destination_sub_path_time": "%Y/%m/%d/",
+			"run_name": "string_name",
+			"domain_name": "string_domain_name"
+		},
+		"info": {
+			"domains": ["OrbaSturaDomain"],
+			"dim_km": 0.1705,
+			"time_window_left": 4,
+			"time_window_right": 5,
+			"run": "weather_stations_realtime"
+		}
+	},
+
+	"data": {
+		"static" : {
+			"source": {
+				"statistics": {
+					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_static/stats/",
+					"file_name": "{domain_name}Statistica_classes.mat"
+				},
+				"geo": {
+					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_static/gridded/",
+					"file_name": "{domain_name}.area.txt"
+				},
+				"watermark": {
+					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_static/gridded/",
+					"file_name": "{domain_name}.WaterMark.txt"
+				}
+			},
+			"destination": {
+				"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_static/ancillary/",
+				"file_name": "{domain_name}.static.workspace"
+			}
+		},
+
+		"dynamic": {
+			"source": {
+				"__comment__": "format: [binary, netcdf]; ratio_factor: for binary file = 1, 10 ... for netcdf file = 1",
+				"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_dynamic/{domain_name}/{source_sub_path_time}/gridded/",
+				"file_name": "hmc.output-grid.{source_datetime}.nc.gz",
+				"ratio_factor": 1,
+				"variable": "Discharge",
+				"type": "netcdf",
+				"compression": true
+			},
+			"ancillary": {
+				"Q": {
+					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_dynamic/{domain_name}/{ancillary_sub_path_time}/gridded/",
+					"file_name": "q.{domain_name}.{ancillary_datetime}.workspace"
+				},
+				"T": {
+					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_dynamic/{domain_name}/{ancillary_sub_path_time}/gridded/",
+					"file_name": "t.{domain_name}.{ancillary_datetime}.workspace"
+				}
+			},
+			"destination": {
+				"TQ": {
+					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_dynamic/{destination_sub_path_time}/TQ/",
+					"file_name": "TQ_{destination_datetime}.tif",
+					"type": "tiff",
+					"ratio_factor": 1,
+					"variable" : "TQ",
+					"compression": false
+				},
+				"TQ_MAX": {
+					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_dynamic/{destination_sub_path_time}/TQMax/",
+					"file_name": "TQ_{destination_datetime}.tif",
+					"type": "tiff",
+					"ratio_factor": 1,
+					"variable" : "TQ_MAX",
+					"compression": false
+				}
+			}
+		}
+	},
+
+	"time": {
+		"time_now": "2022-10-21 09:00",
+		"time_period": 2,
+		"time_start": null,
+		"time_end": null,
+		"time_frequency": "H",
+		"time_rounding" : "H"
+	},
+
+	"log": {
+		"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/log/",
+		"file_name": "hat_q2t_logging.txt"
+	},
+
+	"tmp": {
+		"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/tmp/",
+		"file_name": null
+	}
+
+}
