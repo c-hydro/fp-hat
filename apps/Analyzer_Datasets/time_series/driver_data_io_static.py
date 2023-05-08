@@ -14,7 +14,7 @@ import os
 
 from lib_data_geo_ascii import read_data_grid
 from lib_data_geo_shapefile import read_data_section
-from lib_utils_geo import compute_section_mask, compute_section_area, order_section_area
+from lib_utils_geo import compute_section_area, order_section_area
 from lib_utils_io import read_obj, write_obj
 from lib_utils_system import fill_tags2string, make_folder, join_path
 

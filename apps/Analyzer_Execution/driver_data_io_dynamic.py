@@ -228,7 +228,6 @@ class DriverDynamic:
         else:
             self.status_dest_warn_daily = True
 
-
         self.exec_name_obj = exec_name_obj
         self.view_warn_obj = view_warn_obj
         self.view_exec_obj = view_exec_obj
