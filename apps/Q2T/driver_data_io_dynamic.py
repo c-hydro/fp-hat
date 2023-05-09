@@ -72,6 +72,7 @@ class DriverDynamic:
         self.dset_type_tag = 'type'
         self.dset_compression_tag = 'compression'
         self.dset_ratio_factor_tag = 'ratio_factor'
+        self.dset_sub_path_ref_tag = 'sub_path_ref'
 
         self.obj_domain_name = self.alg_info['domains']
         self.obj_run_name = self.alg_info['run']
@@ -86,6 +87,7 @@ class DriverDynamic:
         self.dset_type_src = src_dict[self.dset_type_tag]
         self.dset_compression_src = src_dict[self.dset_compression_tag]
         self.dset_ratio_factor_src = src_dict[self.dset_ratio_factor_tag]
+        self.dset_sub_path_ref_src = src_dict[self.dset_sub_path_ref_tag]
 
         folder_name_anc_q = anc_dict[self.flag_anc_q][self.folder_name_tag]
         file_name_anc_q = anc_dict[self.flag_anc_q][self.file_name_tag]
@@ -101,6 +103,7 @@ class DriverDynamic:
         self.dset_type_dst_q_ref = dst_dict[self.flag_dst_q_ref][self.dset_type_tag]
         self.dset_compression_dst_q_ref = dst_dict[self.flag_dst_q_ref][self.dset_compression_tag]
         self.dset_ratio_factor_dst_q_ref = dst_dict[self.flag_dst_q_ref][self.dset_ratio_factor_tag]
+        self.dset_sub_path_dst_q_ref = dst_dict[self.flag_dst_q_ref][self.dset_sub_path_ref_tag]
 
         folder_name_dst_q_max = dst_dict[self.flag_dst_q_max][self.folder_name_tag]
         file_name_dst_q_max = dst_dict[self.flag_dst_q_max][self.file_name_tag]
@@ -109,6 +112,7 @@ class DriverDynamic:
         self.dset_type_dst_q_max = dst_dict[self.flag_dst_q_max][self.dset_type_tag]
         self.dset_compression_dst_q_max = dst_dict[self.flag_dst_q_max][self.dset_compression_tag]
         self.dset_ratio_factor_dst_q_max = dst_dict[self.flag_dst_q_max][self.dset_ratio_factor_tag]
+        self.dset_sub_path_dst_q_max = dst_dict[self.flag_dst_q_max][self.dset_sub_path_ref_tag]
 
         self.folder_name_tmp = tmp_dict[self.folder_name_tag]
         self.file_name_tmp = tmp_dict[self.file_name_tag]
@@ -312,11 +316,14 @@ class DriverDynamic:
         # info start
         log_stream.info(' ----> Save dynamic datasets ... ')
 
-        # get domains list
+        # get domain and time information
         domain_list = self.obj_domain_name
         time_reference = self.time_reference
         idx_reference = self.idx_reference
         time_window = self.time_window
+        # get sub path reference
+        sub_path_ref = self.dset_sub_path_ref_src
+
         # get file name
         file_path_anc_t_raw = self.file_path_anc_t
         file_path_dst_q_ref_raw = self.file_path_dst_q_ref
@@ -340,16 +347,26 @@ class DriverDynamic:
                 log_stream.error(' ===> Statistics information for domain "' + domain_name + '" are not available')
                 raise RuntimeError("Statistics information are mandatory for correctly running the algorithm")
 
+            # choose sub path reference type
+            if sub_path_ref == 'sub_path_run':
+                time_sub_path = deepcopy(time_reference)
+            elif sub_path_ref == 'sub_path_time':
+                log_stream.error(' ===> Reference sub_path "' + sub_path_ref + '" is not available for dst dataset')
+                raise NotImplemented('Case not implemented yet')
+            else:
+                log_stream.error(' ===> Reference sub_path "' + sub_path_ref + '" is not supported for dst dataset')
+                raise NotImplemented('Case not implemented yet')
+
             # define destination filename(s)
             file_path_dst_q_ref_def = self.define_file_name(
                 file_path_dst_q_ref_raw, tags_template=self.alg_template,
                 tags_filled={'domain_name': domain_name,
-                             'destination_datetime': time_reference, 'destination_sub_path_time': time_reference})
+                             'destination_datetime': time_reference, 'destination_sub_path_time': time_sub_path})
 
             file_path_dst_q_max_def = self.define_file_name(
                 file_path_dst_q_max_raw, tags_template=self.alg_template,
                 tags_filled={'domain_name': domain_name,
-                             'destination_datetime': time_reference, 'destination_sub_path_time': time_reference})
+                             'destination_datetime': time_reference, 'destination_sub_path_time': time_sub_path})
 
             if flag_cleaning_dynamic_dst:
                 if os.path.exists(file_path_dst_q_ref_def):
@@ -454,10 +471,11 @@ class DriverDynamic:
         # info start
         log_stream.info(' ----> Analyze dynamic datasets ... ')
 
-        # get domains list
+        # get domain and time information
         domain_list = self.obj_domain_name
         time_reference = self.time_reference
         time_window = self.time_window
+
         # get file name
         file_path_anc_q_raw = self.file_path_anc_q
         file_path_anc_t_raw = self.file_path_anc_t
@@ -585,6 +603,9 @@ class DriverDynamic:
         domain_list = self.obj_domain_name
         time_reference = self.time_reference
         time_window = self.time_window
+        # get sub path reference
+        sub_path_ref = self.dset_sub_path_ref_src
+
         # get file name
         file_path_src_raw = self.file_path_src
         file_path_anc_q_raw = self.file_path_anc_q
@@ -608,15 +629,24 @@ class DriverDynamic:
                 # info time start
                 log_stream.info(' ------> Time "' + time_step.strftime(time_format_algorithm) + '" ... ')
 
+                # choose sub path reference type
+                if sub_path_ref == 'sub_path_run':
+                    time_sub_path = deepcopy(time_reference)
+                elif sub_path_ref == 'sub_path_time':
+                    time_sub_path = deepcopy(time_step)
+                else:
+                    log_stream.error(' ===> Reference sub_path "' + sub_path_ref + '" is not supported for src dataset')
+                    raise NotImplemented('Case not implemented yet')
+
                 # define src and ancillary filename(s)
                 file_path_src_def = self.define_file_name(
                     file_path_src_raw, tags_template=self.alg_template,
                     tags_filled={'domain_name': domain_name,
-                                 'source_datetime': time_step, 'source_sub_path_time': time_step})
+                                 'source_datetime': time_step, 'source_sub_path_time': time_sub_path})
                 file_path_anc_q_def = self.define_file_name(
                     file_path_anc_q_raw, tags_template=self.alg_template,
                     tags_filled={'domain_name': domain_name,
-                                 'ancillary_datetime': time_step, 'ancillary_sub_path_time': time_step})
+                                 'ancillary_datetime': time_step, 'ancillary_sub_path_time': time_sub_path})
 
                 # check static datasets
                 if domain_name in list(alg_static.keys()):
