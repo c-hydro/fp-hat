@@ -314,7 +314,8 @@ class DriverDynamic:
     def save_dynamic(self, anl_file_collection):
 
         # info start
-        log_stream.info(' ----> Save dynamic datasets ... ')
+        log_stream.info(' ----> Save dynamic datasets ['
+                        + self.time_reference.strftime(time_format_algorithm) + '] ... ')
 
         # get domain and time information
         domain_list = self.obj_domain_name
@@ -461,7 +462,8 @@ class DriverDynamic:
                 log_stream.info(' -----> Domain "' + domain_name + '" ... SKIPPED. Datasets previously saved.')
 
         # info end
-        log_stream.info(' ----> Save dynamic datasets ... DONE')
+        log_stream.info(' ----> Save dynamic datasets ['
+                        + self.time_reference.strftime(time_format_algorithm) + '] ... DONE')
     # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
@@ -469,7 +471,8 @@ class DriverDynamic:
     def analyze_dynamic(self, src_file_collection):
 
         # info start
-        log_stream.info(' ----> Analyze dynamic datasets ... ')
+        log_stream.info(' ----> Analyze dynamic datasets ['
+                        + self.time_reference.strftime(time_format_algorithm) + '] ... ')
 
         # get domain and time information
         domain_list = self.obj_domain_name
@@ -586,7 +589,8 @@ class DriverDynamic:
             log_stream.info(' -----> Domain "' + domain_name + '" ... DONE')
 
         # info end
-        log_stream.info(' ----> Analyze dynamic datasets ... DONE')
+        log_stream.info(' ----> Analyze dynamic datasets ['
+                        + self.time_reference.strftime(time_format_algorithm) + '] ... DONE')
 
         return anl_file_collection
 
@@ -597,7 +601,8 @@ class DriverDynamic:
     def organize_dynamic(self):
 
         # info start
-        log_stream.info(' ----> Organize dynamic datasets ... ')
+        log_stream.info(' ----> Organize dynamic datasets ['
+                        + self.time_reference.strftime(time_format_algorithm) + '] ... ')
 
         # get domain and time information
         domain_list = self.obj_domain_name
@@ -702,7 +707,8 @@ class DriverDynamic:
             log_stream.info(' -----> Domain "' + domain_name + '" ... DONE')
 
         # info end
-        log_stream.info(' ----> Organize dynamic datasets ... DONE')
+        log_stream.info(' ----> Organize dynamic datasets ['
+                        + self.time_reference.strftime(time_format_algorithm) + '] ... DONE')
 
         return src_file_collection
     # -------------------------------------------------------------------------------------

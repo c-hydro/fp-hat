@@ -84,7 +84,7 @@
 					"ratio_factor": 1,
 					"variable" : "TQ",
 					"compression": false,
-					"sub_path_ref": "sub_path_time"
+					"sub_path_ref": "sub_path_run"
 				},
 				"TQ_MAX": {
 					"folder_name": "/home/fabio/Desktop/Workspace/HAT_Workspace/hat-ws/q2t/data_dynamic/{destination_sub_path_time}/TQMax/",
@@ -93,7 +93,7 @@
 					"ratio_factor": 1,
 					"variable" : "TQ_MAX",
 					"compression": false,
-					"sub_path_ref": "sub_path_time"
+					"sub_path_ref": "sub_path_run"
 				}
 			}
 		}

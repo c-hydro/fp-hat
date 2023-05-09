@@ -83,7 +83,7 @@ def main():
         time_format=time_format,
         time_period=data_settings['time']['time_period'],
         time_frequency=data_settings['time']['time_frequency'],
-        time_rounding=data_settings['time']['time_rounding'])
+        time_rounding=data_settings['time']['time_rounding'], time_reverse=False)
     # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
