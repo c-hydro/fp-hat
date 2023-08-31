@@ -92,6 +92,9 @@ def main():
     # -------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------
+    global n_warnings
+    n_warnings = 0
+
     # Check meteo models availability
     logging.info(" --> Input data analysis... ")
 
@@ -342,7 +345,7 @@ def main():
                 raise FileNotFoundError('Verify that your .netrc file exists in the home directory and that it includes proper smtp credentials!')
         with open(os.path.join(report_folder_now, report_file_now)) as file:
             text_mail = file.read()
-        send_email(email_settings, text_mail, data_settings["algorithm"]["flags"]["send_warning_report"], warning_report)
+        send_email(email_settings, text_mail, data_settings["algorithm"]["flags"]["send_warning_report"], warning_report, n_warnings)
         logging.info(" --> Send email... DONE")
     # -------------------------------------------------------------------------------------
 
@@ -400,7 +403,7 @@ def assign_warning(max_value, red_th, orange_th, yellow_th, section, run, df_val
 
 # -------------------------------------------------------------------------------------
 # Function for sending email
-def send_email(mail_dict, text_mail, attach_warning, warning_report):
+def send_email(mail_dict, text_mail, attach_warning, warning_report, n_warnings=0):
     msg = EmailMessage()
 
     if attach_warning == True:
@@ -409,7 +412,10 @@ def send_email(mail_dict, text_mail, attach_warning, warning_report):
         msg.set_content(text_mail + mail_dict["other_infos"])
 
     msg.set_content(text_mail + mail_dict["other_infos"])
-    msg['Subject'] = mail_dict['subject']
+    if n_warnings > 0:
+        msg['Subject'] = mail_dict['subject'] + " -- WARNING!"
+    else:
+        msg['Subject'] = mail_dict['subject']
     msg['To'] = mail_dict['recipient']
     msg['From'] = mail_dict['sender']
 
@@ -539,6 +545,8 @@ def check_run_condition(time_end_value, eta_value):
 
     elif eta_value < time_now_utc:
         status = "WARNING"
+        global n_warnings
+        n_warnings += 1
 
     elif eta_value > time_now_utc:
         status = "OK, wait for scheduled time"
@@ -590,6 +598,8 @@ def check_last_realtime_model(file_template, empty_template, length_check=24, fr
         out_string = "OK! Last available data: " + last_available.strftime("%Y-%m-%d %H:00")
     else:
         out_string = "WARNING! Last available data more than " + str(length_check) + " " + freq_check + " ago"
+        global n_warnings
+        n_warnings += 1
 
     return out_string
 
@@ -606,6 +616,8 @@ def check_forecast_availability(file_now, eta_value):
     else:
         if eta_value is None:
             out_string = "WARNING! Model is not available"
+            global n_warnings
+            n_warnings += 1
         elif eta_value < time_now_utc:
             out_string = "WARNING! Model is not available"
         else:
