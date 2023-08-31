@@ -1,0 +1,140 @@
+{
+  "algorithm": {
+    "flags": {
+      "send_email": false,
+      "public_check_spreadsheet": true,
+      "check_warning": false,
+      "send_warning_report": false
+    },
+    "general": {
+      "title": "Modified Coonditional Merging",
+      "web-site": "",
+      "source": "Python library developed by CIMA Research Foundation",
+      "history": "1.2.0 [20201209]",
+      "project-info": "Hydrological Data Engines - HyDE Library/Project",
+      "algorithm": "Data dynamic tool developed by CIMA Research Foundation",
+      "operational_chain_name": "FloodPROOFS Volta"
+    },
+    "template": {
+      "sub_path_date": "%Y/%m/%d/",
+      "sub_path_datetime": "%Y/%m/%d/%H",
+      "file_long_datetime_no_min": "%Y%m%d%H",
+      "file_long_datetime": "%Y%m%d%H%M",
+      "file_gfs_datetime": "%Hz.0p25.%Y%m%d",
+      "file_lock_datetime": "%Y%m%d_%H"
+    }
+  },
+  "data": {
+    "static": {
+      "section_file": "/share/fp/fp_volta/data/data_static/volta/shapefile/sections_fp_volta.shp",
+      "format": "shapefile",
+      "admin_border": "/share/fp/fp_volta/data/data_static/volta/shapefile/Volta_countries_adm1_basin.shp",
+      "river_network": "/share/fp/fp_volta/data/data_static/volta/shapefile/volta_network.shp"
+    },
+    "dynamic": {
+      "models": {
+        "obs_imerg": {
+          "type": "realtime",
+          "actions": {
+            "check": true
+          },
+          "folder": "/share/fp/fp_volta/data/data_dynamic/outcome/obs/imerg/early_1h/{sub_path_date}",
+          "file_name": "volta_imerg_{file_long_datetime_no_min}00_mm_1h.tif",
+          "full_name": "IMERG early",
+          "hours_delay": 10
+        },
+        "nwp_gfs": {
+          "type": "forecast",
+          "actions": {
+            "check": true
+          },
+          "folder": "/share/fp/fp_volta/data/data_dynamic/outcome/nwp/gfs0p25/{sub_path_date}",
+          "file_name": "volta_gfs0p25_{file_long_datetime_no_min}.nc",
+          "full_name": "GFS forecast",
+          "eta": "6:00"
+        }
+      },
+      "runs": {
+      	"nwp_gfs-det": {
+          "type": "deterministic",
+          "actions": {
+            "check": true,
+            "warning": true
+          },
+          "full_name": "Deterministic GFS",
+          "start_lock_file": "/share/fp/fp_volta/lock/hmc/volta/hmc_{run_name}_lock_{file_lock_datetime}_START.txt",
+          "end_lock_file": "/share/fp/fp_volta/lock/hmc/volta/hmc_{run_name}_lock_{file_lock_datetime}_END.txt",
+          "collection_path": "/share/fp/fp_volta/storage/dewetra/data/data_dynamic/{run_name}/{sub_path_datetime}/outcome/collections/deterministic",
+          "collection_name": "hydrograph_{section_name}_{section_basin}_{file_long_datetime}.json",
+          "eta": "7:15"
+        },
+        "state_imerg-obs": {
+          "type": "deterministic_historical",
+          "actions": {
+            "check": true,
+            "warning": false
+          },
+          "full_name": "Last long term state IMERG run",
+          "start_lock_file": "/share/fp/fp_volta/lock/hmc/volta/hmc_{run_name}_lock_{file_lock_datetime}_START.txt",
+          "end_lock_file": "/share/fp/fp_volta/lock/hmc/volta/hmc_{run_name}_lock_{file_lock_datetime}_END.txt",
+          "collection_path": "",
+          "collection_name": "",
+          "time_delay_h": "24"
+        },
+        "bulletin-flood": {
+          "type": "deterministic",
+          "actions": {
+            "check": true,
+            "warning": false
+          },
+          "full_name": "Bulletin - Impact Based Flood",
+          "start_lock_file": "/share/fp/fp_volta/lock/postprocessing/bulletin_lock_impact-based_hydro_fp_realtime_{file_lock_datetime}_START.txt",
+          "end_lock_file": "/home/fp/share/fp_volta/storage/dewetra/data/data_dynamic/impactBasedFrc/{sub_path_date}/{file_long_datetime}_impacts-adm1FLOODFP.shp",
+          "collection_path": "",
+          "collection_name": "",
+          "eta": "8:00"
+        },
+        "bulletin-rain": {
+          "type": "deterministic",
+          "actions": {
+            "check": true,
+            "warning": false
+          },
+          "full_name": "Bulletin - Impact Based Rain",
+          "start_lock_file": "/share/fp/fp_volta/lock/postprocessing/bulletin_lock_impact-based_rain_gfs_realtime_{file_lock_datetime}_START.txt",
+          "end_lock_file": "/home/fp/share/fp_volta/storage/dewetra/data/data_dynamic/impactBasedFrc/{sub_path_date}/{file_long_datetime}_impacts-adm1RAIN.shp",
+          "collection_path": "",
+          "collection_name": "",
+          "eta": "7:30"
+        }
+        },
+      "outcome": {
+        "check": {
+          "folder": "/share/fp/fp_volta/storage/run_report/summary/{sub_path_date}/",
+          "file_name": "operational_chains_check_{file_lock_datetime}.txt",
+          "api_key": "/share/fp/fp_volta/.floodproofs-africa-121c0b1bed7b.json",
+          "url": "https://docs.google.com/spreadsheets/d/1f0zdg5pVmQS_g44aAS8iQzHdKEQSSO3sHAvNZ221Tbg"
+        },
+        "warning": {
+          "folder": "/share/fp/fp_volta/storage/run_report/summary/{sub_path_date}/",
+          "file_name": "warning_report_{file_lock_datetime}.xlsx",
+          "exclude_obs": true
+        },
+        "email": {
+          "sender": "floodproofs.monitoring@gmail.com",
+          "recipient": "andrea.libertino@cimafoundation.org,anna.mapelli@cimafoundation.org",
+          "smtp_server": "smtp.gmail.com",
+          "smtp_port":  587,
+          "user": "floodproofs.monitoring@gmail.com",
+          "pwd": "tfgqhzrdcnxqucki",
+          "subject": "FloodPROOFS Volta: Recap Runs and Downloads",
+          "other_infos": "\nFor the complete operational report visit: https://docs.google.com/spreadsheets/d/1f0zdg5pVmQS_g44aAS8iQzHdKEQSSO3sHAvNZ221Tbg/edit?usp=sharing"
+        }
+      }
+    },
+    "log": {
+      "filename": "hat_reporting_tool.txt",
+      "folder": "/share/fp/fp_volta/log/postprocessing"
+    }
+  }
+}
