@@ -2,6 +2,13 @@
 Changelog
 =========
 
+Version 1.6.3 [2023-08-31]
+===========
+TOOL: **hat_tool_runs_resume_lite.py**
+    - Operational Release
+    	- simplified analyser dataset and execution for basic FP implementations
+        - refactor from previous version outside the package
+
 Version 1.6.2 [2023-05-08]
 ===========
 APP: **HAT_Q2T.py**
