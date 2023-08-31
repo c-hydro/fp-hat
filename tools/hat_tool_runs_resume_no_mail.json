@@ -126,7 +126,7 @@
           "smtp_server": "smtp.gmail.com",
           "smtp_port":  587,
           "user": "floodproofs.monitoring@gmail.com",
-          "pwd": "tfgqhzrdcnxqucki",
+          "pwd": "",
           "subject": "FloodPROOFS Volta: Recap Runs and Downloads",
           "other_infos": "\nFor the complete operational report visit: https://docs.google.com/spreadsheets/d/1f0zdg5pVmQS_g44aAS8iQzHdKEQSSO3sHAvNZ221Tbg/edit?usp=sharing"
         }

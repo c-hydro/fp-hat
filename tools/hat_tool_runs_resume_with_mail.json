@@ -760,7 +760,7 @@
           "smtp_server": "smtp.gmail.com",
           "smtp_port":  587,
           "user": "floodproofs.monitoring@gmail.com",
-          "pwd": "tfgqhzrdcnxqucki",
+          "pwd": "",
           "subject": "FloodPROOFS East Africa: Recap Runs and Downloads",
           "other_infos": "\n See the full forecast on www.mydewetra.world \nFor the complete operational report visit: https://docs.google.com/spreadsheets/d/19xmOrr6dgN3UZH9MZYBPMxmJ_JmIwUgzLE2egDgxOKw/edit?usp=sharing"
         }
