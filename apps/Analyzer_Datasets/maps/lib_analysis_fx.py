@@ -130,16 +130,25 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
-            var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
-                                                         var_darray_sorted[var_coord_time].values)
+            if var_time_flag:
 
-            var_time_end = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
-            var_time_start = var_time_range[0].strftime(time_format_algorithm)
+                var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
+                                                             var_darray_sorted[var_coord_time].values)
 
-            if var_time_flag and (var_darray_selected is not None):
-                var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_start))
+                if var_time_flag and (var_darray_selected is not None):
+
+                    var_time_end = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+                    var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
+                    var_time_start = var_time_range[0].strftime(time_format_algorithm)
+                    var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_start))
+                else:
+                    log_stream.warning(
+                        ' ===> Data array is not selected due to a temporal mismatch - acc case left')
+                    var_darray_tmp = None
+
             else:
+                log_stream.warning(
+                    ' ===> Data array is not selected due to the lacking of some expected time steps - acc case left')
                 var_darray_tmp = None
 
         elif var_temporal_direction == 'right':
@@ -152,16 +161,24 @@ def var_cmp_accumulated(var_time, var_darray_src, var_darray_terrain,
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
-            var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
-                                                         var_darray_sorted[var_coord_time].values)
+            if var_time_flag:
+                var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
+                                                             var_darray_sorted[var_coord_time].values)
 
-            var_time_start = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_end = pd.date_range(start=var_time_start, periods=var_t_period,
-                                         freq=var_t_frequency)[-1].strftime(time_format_algorithm)
+                if var_time_flag and (var_darray_selected is not None):
+                    var_time_start = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+                    var_time_end = pd.date_range(start=var_time_start, periods=var_t_period,
+                                                 freq=var_t_frequency)[-1].strftime(time_format_algorithm)
 
-            if var_time_flag and (var_darray_selected is not None):
-                var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_end))
+                    var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_end))
+                else:
+                    log_stream.warning(
+                        ' ===> Data array is not selected due to a temporal mismatch - acc case right')
+                    var_darray_tmp = None
+
             else:
+                log_stream.warning(
+                    ' ===> Data array is not selected due to the lacking of some expected time steps - acc case right')
                 var_darray_tmp = None
 
         else:
@@ -242,16 +259,24 @@ def var_cmp_average(var_time, var_darray_src, var_darray_terrain,
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
-            var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
-                                                         var_darray_sorted[var_coord_time].values)
+            if var_time_flag:
+                var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
+                                                             var_darray_sorted[var_coord_time].values)
 
-            var_time_end = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
-            var_time_start = var_time_range[0].strftime(time_format_algorithm)
+                if var_time_flag and (var_darray_selected is not None):
+                    var_time_end = pd.Timestamp(
+                        var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+                    var_time_range = pd.date_range(end=var_time_end, periods=var_t_period, freq=var_t_frequency)
+                    var_time_start = var_time_range[0].strftime(time_format_algorithm)
+                    var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_start))
+                else:
+                    log_stream.warning(
+                        ' ===> Data array is not selected due to a temporal mismatch - avg case - left')
+                    var_darray_tmp = None
 
-            if var_time_flag and (var_darray_selected is not None):
-                var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_end, var_time_start))
             else:
+                log_stream.warning(
+                    ' ===> Data array is not selected due to the lacking of some expected time steps - avg case left')
                 var_darray_tmp = None
 
         elif var_temporal_direction == 'right':
@@ -264,16 +289,25 @@ def var_cmp_average(var_time, var_darray_src, var_darray_terrain,
 
             var_time_flag = verify_temporal_window(var_time, var_darray_sorted[var_coord_time].values, var_t_period)
 
-            var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
-                                                         var_darray_sorted[var_coord_time].values)
+            if var_time_flag:
+                var_darray_selected = select_temporal_darray(var_time, var_darray_sorted,
+                                                             var_darray_sorted[var_coord_time].values)
 
-            var_time_start = pd.Timestamp(var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
-            var_time_end = pd.date_range(start=var_time_start, periods=var_t_period,
-                                         freq=var_t_frequency)[-1].strftime(time_format_algorithm)
+                if var_time_flag and (var_darray_selected is not None):
+                    var_time_start = pd.Timestamp(
+                        var_darray_selected[var_coord_time].values[0]).strftime(time_format_algorithm)
+                    var_time_end = pd.date_range(start=var_time_start, periods=var_t_period,
+                                                 freq=var_t_frequency)[-1].strftime(time_format_algorithm)
 
-            if var_time_flag and (var_darray_selected is not None):
-                var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_end))
+                    var_darray_tmp = var_darray_sorted.sel(time=slice(var_time_start, var_time_end))
+                else:
+                    log_stream.warning(
+                        ' ===> Data array is not selected due to a temporal mismatch - avg case right')
+                    var_darray_tmp = None
+
             else:
+                log_stream.warning(
+                    ' ===> Data array is not selected due to the lacking of some expected time steps - avg case right')
                 var_darray_tmp = None
         else:
             log_stream.error(' ===> Temporal direction "' + var_temporal_direction + '" flag is not allowed')

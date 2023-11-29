@@ -25,6 +25,7 @@ from lib_graph_map_colormap import load
 import matplotlib.pylab as plt
 import matplotlib.colors as colors
 import cartopy.io.img_tiles as cimgt
+import lib_img_tiles as cimgt_custom # custom to correct the api for osm tiles (read in the code the changes)
 
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
@@ -45,7 +46,7 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
                  var_time_from='NA', var_time_to='NA', var_time_direction='NA',
                  var_time_window='NA', var_time_type='UTC',
                  var_name_geo_x='longitude', var_name_geo_y='latitude',
-                 tag_sep=' ', fig_background='stamen',
+                 tag_sep=' ', fig_background='osm',
                  fig_color_map_type=None, fig_color_map_label=None,
                  fig_dpi=150, fig_show=False):
     
@@ -148,7 +149,26 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
     if fig_background == 'stamen':
         map_background = cimgt.Stamen('terrain-background')
     elif fig_background == 'osm':
-        map_background = cimgt.OSM()
+        '''
+        # https://stackoverflow.com/questions/57531716/valueerror-a-non-empty-list-of-tiles-should-be-provided-to-merge-cartopy-osm
+        # ValueError: A non-empty list of tiles should be provided to merge
+        
+        Following suggestions on https://github.com/SciTools/cartopy/issues/1341
+        You need to make some changes in the img_tiles.py script which can be found in your python library
+        /python3.x/site-packages/cartopy/io/
+        The changes to be made are:
+        (1) add line:
+            from urllib.request import Request
+        within the class GoogleWTS, method get_image (approx line 158)
+        (2) remove line:
+            fh = urlopen(url)
+        (3) replace with lines:
+            req = Request(url)
+            req.add_header('User-agent', 'your bot 0.1')
+            fh = urlopen(req)
+        '''
+
+        map_background = cimgt_custom.OSM()
     elif fig_background == 'google':
         map_background = cimgt.GoogleTiles()
     else:
