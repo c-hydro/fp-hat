@@ -147,7 +147,9 @@ def plot_map_var(file_path, var_darray, var_time, var_limit_min=None, var_limit_
 
     # Create a background map
     if fig_background == 'stamen':
-        map_background = cimgt.Stamen('terrain-background')
+        log_stream.error(' ===> Cartopy background "stamen" is not supported by 2023-10-31. Please use "osm" instead.')
+        raise RuntimeError('Use "osm" or other cartopy background to render the map variable')
+        # map_background = cimgt.Stamen('terrain-background')
     elif fig_background == 'osm':
         '''
         # https://stackoverflow.com/questions/57531716/valueerror-a-non-empty-list-of-tiles-should-be-provided-to-merge-cartopy-osm
