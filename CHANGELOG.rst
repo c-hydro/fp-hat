@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Version 1.6.4 [2023-11-29]
+===========
+APP: **HAT_RunPublisher_HMC_Maps.py**
+    - FIX: bugs related to the data failure for some steps in accumulated and average methods.
+    - FIX: bugs related to the image tiling for osm background mode in map creation.
+
 Version 1.6.3 [2023-08-31]
 ===========
 TOOL: **hat_tool_runs_resume_lite.py**
