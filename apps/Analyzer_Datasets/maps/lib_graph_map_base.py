@@ -3,8 +3,8 @@ Library Features:
 
 Name:          lib_graph_map_base
 Author(s):     Fabio Delogu (fabio.delogu@cimafoundation.org)
-Date:          '20210903'
-Version:       '1.0.0'
+Date:          '20231129'
+Version:       '1.1.0'
 """
 #######################################################################################
 
