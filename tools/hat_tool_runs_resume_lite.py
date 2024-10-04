@@ -174,6 +174,7 @@ def main():
             runs_check.loc[run_full_name]['Expected end'] = eta_value.strftime("%Y-%m-%d %H:%M")
         except:
             if "historical" in data_settings["data"]["dynamic"]["runs"][run]["type"]:
+                eta_value = time_run.replace(tzinfo=pytz.UTC)
                 runs_check.loc[run_full_name]['Expected end'] = time_run.strftime("%Y-%m-%d %H:%M")
             else:
                 eta_value = None
