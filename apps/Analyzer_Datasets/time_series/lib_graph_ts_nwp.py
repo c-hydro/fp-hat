@@ -19,8 +19,9 @@ from lib_utils_system import make_folder
 
 from copy import deepcopy
 
-from lib_graph_ts_utils import configure_ts_axes, configure_ts_attrs, get_ts_attrs, set_ax_limits_discharge, \
-    compute_ts_peaks, compute_ts_quantile, compute_ts_ensemble_avg
+from lib_graph_ts_utils import (configure_ts_axes, configure_ts_attrs, get_ts_attrs,
+                                set_ax_limits_discharge, upd_ax_limits_variable,
+                                compute_ts_peaks, compute_ts_quantile, compute_ts_ensemble_avg)
 
 from lib_info_args import logger_name, time_format_algorithm
 
@@ -841,12 +842,34 @@ def plot_ts_discharge_nwp_deterministic(
     section_drained_area = str(attrs_ts_ground_network['section_drained_area'])
     section_name = attrs_ts_ground_network['section_name']
     section_domain = attrs_ts_ground_network['section_domain']
+    section_discharge_thr_alarm = attrs_ts_ground_network['section_discharge_thr_alarm']
+
+    axs_min_discharge, axs_max_discharge = set_ax_limits_discharge(
+        max_value_dyn=float(section_discharge_thr_alarm),
+        min_value_default=float(value_min_discharge), max_value_default=float(value_max_discharge))
 
     if df_discharge_observed is None:
         df_values = deepcopy(df_discharge_simulated_ground_network.values)
         df_index = deepcopy(df_discharge_simulated_ground_network.index)
         df_values[:, 0] = -9996.0
         df_discharge_observed = pd.DataFrame(data=df_values, index=df_index)
+
+    # update axis discharge limits
+    dyn_max_discharge = max(
+        df_discharge_observed.max().values, df_discharge_simulated_ground_network.max().values,
+        df_discharge_simulated_nwp.max().values)[0]
+    axs_max_discharge = upd_ax_limits_variable(
+        dyn_max_discharge, axs_max_discharge, add_percentage=10, add_difference=30)
+
+    # update axis rain avg limits
+    dyn_max_rain_avg = max(df_rain_ground_network.max().values, df_rain_nwp.max().values)[0]
+    value_max_rain_avg = upd_ax_limits_variable(
+        dyn_max_rain_avg, value_max_rain_avg, add_percentage=10, add_difference=10)
+
+    # update axis rain accumulated limits
+    dyn_max_rain_accumulated = max(df_rain_ground_network.cumsum().max().values, df_rain_nwp.cumsum().max().values)[0]
+    value_max_rain_accumulated = upd_ax_limits_variable(
+        dyn_max_rain_accumulated, value_max_rain_accumulated, add_percentage=10, add_difference=10)
 
     figure_title = 'Time Series \n Section: "' + section_name + '"' +  \
                    ' == Basin: "' + section_domain + '"' +  \
@@ -904,7 +927,7 @@ def plot_ts_discharge_nwp_deterministic(
     ax2.set_xlabel(label_time, color='#000000')
     ax2.set_xlim(tick_time_period[0], tick_time_period[-1])
     ax2.set_ylabel(label_discharge_generic, color='#000000')
-    ax2.set_ylim(value_min_discharge, value_max_discharge)
+    ax2.set_ylim(axs_min_discharge, axs_max_discharge)
     ax2.grid(b=True)
 
     p27 = ax2.axvline(attrs_ts_ground_network['time_run'], color='#000000', linestyle='--', lw=2, label='time run obs')

@@ -10,6 +10,10 @@ Version:       '1.0.0'
 #######################################################################################
 # Libraries
 import logging
+
+import re
+
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 
@@ -105,7 +109,48 @@ def read_data_section(file_name, file_filter=None,
     for column_name_in, column_name_out, column_type in zip(columns_name_expected_in,
                                                             columns_name_expected_out, columns_name_type):
         if column_name_in in file_dframe_raw.columns:
-            column_data = file_dframe_raw[column_name_in].values.tolist()
+
+            column_data = file_dframe_raw[column_name_in].values
+
+            if isinstance(column_data[0], str):
+                tmp_type = 'str'
+                test_type = re.sub('[^a-zA-Z0-9 \n\.]', '', column_data[0])
+                test_type = test_type.replace('.', '')
+            elif isinstance(column_data[0], int):
+                tmp_type = 'int'
+                test_type = int(column_data[0])
+            elif isinstance(column_data[0], float):
+                tmp_type = 'float'
+                test_type = float(column_data[0])
+            else:
+                log_stream.error(' ===> Column datatype is not allowed.')
+                raise NotImplementedError('Datatype not implemented yet')
+
+            if tmp_type != column_type:
+                log_stream.warning(' ===> Column "' + column_name_in + '" datatype "' + tmp_type +
+                                   '" is not consistent with expected datatype. Keep datatype "' + column_type+ '"')
+
+            if column_type == 'int':
+                if test_type.isdigit():
+                    column_data = np.array(column_data, dtype=int).tolist()
+                else:
+                    log_stream.error(' ===> Column datatype is not allowed. Type expected: ' + str(column_type))
+                    column_data = np.array(column_data, dtype=str).tolist()
+            elif column_type == 'str':
+
+                column_data = np.array(column_data, dtype=str).tolist()
+
+            elif column_type == 'float':
+
+                if test_type.isdigit():
+                    column_data = np.array(column_data, dtype=float).tolist()
+                else:
+                    log_stream.error(' ===> Column datatype is not allowed. Type expected: ' + str(column_type))
+                    column_data = np.array(column_data, dtype=str).tolist()
+            else:
+                log_stream.error(' ===> Column datatype is not allowed.')
+                raise NotImplementedError('Datatype not implemented yet')
+
         else:
             if column_type == 'int':
                 column_data = [-9999] * file_rows

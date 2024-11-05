@@ -19,6 +19,8 @@ from lib_info_args import logger_name
 
 # Logging
 log_stream = logging.getLogger(logger_name)
+
+
 #######################################################################################
 
 
@@ -32,6 +34,8 @@ def read_ts_table(file_name):
         log_stream.error(' ===> Fx table "' + file_name + '" does not exist.')
         raise IOError('Fx table is not available in the selected location')
     return file_table
+
+
 # -------------------------------------------------------------------------------------
 
 
@@ -53,13 +57,14 @@ def compute_ts_ensemble_avg(dframe_variable, variable_axis=1):
     dframe_variable_avg = pd.DataFrame(index=variable_index_avg, data=variable_values_avg)
 
     return dframe_variable_avg
+
+
 # -------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------
 # Method to compute variable peaks
 def compute_ts_peaks(dframe_variable, peak_value_min=0, peak_timestr_min=None):
-
     dframe_cols = list(dframe_variable.columns)
 
     dframe_peaks = pd.DataFrame(index=dframe_cols, columns=['peak', 'time'])
@@ -83,6 +88,7 @@ def compute_ts_peaks(dframe_variable, peak_value_min=0, peak_timestr_min=None):
 
     return dframe_peaks
 
+
 # -------------------------------------------------------------------------------------
 
 
@@ -90,7 +96,6 @@ def compute_ts_peaks(dframe_variable, peak_value_min=0, peak_timestr_min=None):
 # Method to compute variable(s) quantile(s)
 def compute_ts_quantile(dframe_variable_ensemble,
                         variable_qtls_name='qtls', variable_qtls_list=None, variable_qtls_axis=1):
-
     if variable_qtls_list is None:
         variable_qtls_list = [0, 0.25, 0.5, 0.75, 1]
 
@@ -101,18 +106,32 @@ def compute_ts_quantile(dframe_variable_ensemble,
 
     return dframe_variable_ensemble
 
+
 # -------------------------------------------------------------------------------------
 
 
 # -------------------------------------------------------------------------------------
 # Method to configure time-series axes
 def configure_ts_axes(dframe_data, time_format='%m-%d %H'):
-
     tick_time_period = list(dframe_data.index)
     tick_time_idx = dframe_data.index
     tick_time_labels = [tick_label.strftime(time_format) for tick_label in dframe_data.index]
 
     return tick_time_period, tick_time_idx, tick_time_labels
+
+
+# -------------------------------------------------------------------------------------
+
+
+# -------------------------------------------------------------------------------------
+# Method to upd variable axs limits
+def upd_ax_limits_variable(value_dyn, value_axs, add_percentage=10, add_difference=30):
+    if value_dyn > value_axs:
+        value_add = value_dyn * add_percentage / 100
+        value_axs = value_dyn + value_add
+        if value_add > add_difference:
+            value_axs = value_dyn + add_difference
+    return value_axs
 # -------------------------------------------------------------------------------------
 
 
@@ -120,9 +139,8 @@ def configure_ts_axes(dframe_data, time_format='%m-%d %H'):
 # Method to get discharge axis limits
 def set_ax_limits_discharge(min_value_dyn=0, max_value_dyn=100, min_value_default=0, max_value_default=100,
                             min_add_percentage=0, max_add_percentage=10, max_add_difference=30):
-
     def cmp_percentage_part(part, whole):
-        return float(whole)/100 * float(part)
+        return float(whole) / 100 * float(part)
 
     def round_value(perc_value, perc_ceil_round=10):
         return float(int(math.ceil(perc_value / perc_ceil_round)) * perc_ceil_round)
@@ -153,6 +171,8 @@ def set_ax_limits_discharge(min_value_dyn=0, max_value_dyn=100, min_value_defaul
         max_value_ax = max_value_default
 
     return min_value_ax, max_value_ax
+
+
 # -------------------------------------------------------------------------------------
 
 
@@ -163,7 +183,6 @@ def get_ts_attrs(attrs_ts,
                  tag_section_thr_alarm_discharge='section_discharge_thr_alarm',
                  tag_section_thr_alert_discharge='section_discharge_thr_alert',
                  tag_section_drainage_area='section_drained_area'):
-
     if tag_section_name in list(attrs_ts.keys()):
         section_name = attrs_ts[tag_section_name]
     else:
@@ -188,6 +207,8 @@ def get_ts_attrs(attrs_ts,
         section_drained_area = -9999.0
 
     return section_name, section_domain, section_discharge_thr_alert, section_discharge_thr_alarm, section_drained_area
+
+
 # -------------------------------------------------------------------------------------
 
 
@@ -200,7 +221,6 @@ def configure_ts_attrs(attrs_data,
                        tag_section_thr_alarm_discharge='section_discharge_thr_alarm',
                        tag_section_thr_alert_discharge='section_discharge_thr_alert',
                        tag_section_drainage_area='section_drained_area'):
-
     if attrs_data is not None:
         attrs_ts = {}
         for attr_key, attr_value in attrs_data.items():

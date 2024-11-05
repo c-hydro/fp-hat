@@ -1,0 +1,98 @@
+{
+	"algorithm" : {
+		"general": {
+			"title": "HAT - QPercentile",
+			"web-site": "",
+			"source": "Python library developed by CIMA Research Foundation",
+			"history": "1.0.0 [20241101]",
+			"project-info": "HAT - Hydrological Analysis Tool",
+			"algorithm": "Analysis tools developed by CIMA Research Foundation"
+		},
+		"flags": {
+			"clean_static": true,
+      		"clean_dynamic_source": true,
+			"clean_dynamic_analysis": true,
+			"clean_dynamic_destination": true
+		},
+		"template": {
+			"source_datetime": "%Y%m%d%H%M",
+			"source_sub_path_time": "%Y/%m/%d/",
+			"ancillary_datetime": "%Y%m%d%H%M",
+			"ancillary_sub_path_time": "%Y/%m/%d/",
+			"destination_datetime": "%Y%m%d%H%M",
+			"destination_sub_path_time": "%Y/%m/%d/",
+			"ensemble_name": "string_ensemble",
+			"run_name": "string_name",
+			"domain_name": "string_domain_name"
+		},
+		"info": {
+			"domains": ["marche"],
+			"run": "rfarm_expert_forecast_realtime",
+			"quantile": [0.1, 0.9],
+			"ensemble": {"n_min": 1, "n_max": 5, "n_format": "{:03d}"}
+		}
+	},
+	"data": {
+		"static" : {
+			"source": {
+				"channel_network": {
+					"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/data/data_static/gridded/",
+					"file_name": "{domain_name}.choice.txt"
+				},
+				"watermark": {
+					"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/data/data_static/gridded/",
+					"file_name": "{domain_name}.WaterMark.txt"
+				}
+			},
+			"destination": {
+				"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/data/ancillary/data_geo/",
+				"file_name": "{domain_name}.static.workspace"
+			}
+		},
+		"dynamic": {
+			"source": {
+				"__comment__": "sub_path_ref: [sub_path_run, sub_path_time]; format: [binary, netcdf]; ratio_factor: for binary file = 1, 10 ... for netcdf file = 1",
+				"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/data/data_dynamic/source/rfarm/probabilistic_{ensemble_name}/{source_sub_path_time}/",
+				"file_name": "hmc.output-grid.{source_datetime}.nc.gz",
+				"ratio_factor": 1,
+				"variable": "Discharge",
+				"format": "netcdf",
+				"decimals": 1,
+				"compression": true,
+				"sub_path_ref": "sub_path_time"
+			},
+			"ancillary": {
+				"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/data/ancillary/data_dynamic/{ancillary_sub_path_time}/",
+				"file_name": "q.quantiles.{domain_name}.{ancillary_datetime}.workspace"
+			},
+			"destination": {
+				"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/data/data_dynamic/destination/{destination_sub_path_time}/",
+				"file_name": "q.quantiles.{destination_datetime}.tif",
+				"ratio_factor": 1,
+				"format": "tiff",
+				"variable" : "q_quantile_{:}",
+				"decimals": 1,
+				"compression": false,
+				"sub_path_ref": "sub_path_time"
+			}
+		}
+	},
+	"time": {
+		"time_now": "2022-10-21 09:00",
+		"time_period": {"left": 4, "right": 5},
+		"time_start": null,
+		"time_end": null,
+		"time_frequency": "H",
+		"time_rounding" : "H"
+	},
+	"log": {
+		"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/log/",
+		"file_name": "hat_q_perc80_example.txt"
+	},
+
+	"tmp": {
+		"folder_name": "/home/fabio/Desktop/HAT_Workspace/hat-ws/opchain_marche/tmp/",
+		"file_name": null
+	}
+
+}

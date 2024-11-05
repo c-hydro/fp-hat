@@ -9,11 +9,11 @@
       "algorithm": "Time-series publisher postprocessing tool"
     },
     "flags": {
-      "cleaning_static": false,
-      "cleaning_dynamic_registry": false,
-      "cleaning_dynamic_source": false,
-      "cleaning_dynamic_analysis": false,
-      "cleaning_dynamic_destination": false,
+      "cleaning_static": true,
+      "cleaning_dynamic_registry": true,
+      "cleaning_dynamic_source": true,
+      "cleaning_dynamic_analysis": true,
+      "cleaning_dynamic_destination": true,
       "cleaning_dynamic_tmp": true
     },
     "template": {
@@ -81,7 +81,7 @@
       },
       "destination": {
         "info": {
-          "folder_name": "\"/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/LiguriaDomain/info/",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/data/data_static/LiguriaDomain/info/",
           "file_name": "{domain_name}.info_ts.workspace"
         }
       }
@@ -89,7 +89,7 @@
     "dynamic": {
       "source": {
         "time_series_01": {
-          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/archive/weather_station_realtime_magra/{time_series_sub_path}/collections/",
+          "folder_name": "/home/fabio/Desktop/PyCharm_Workspace/hmc-ws/opchain_liguria/archive/MagraDomain/weather_stations_realtime/{time_series_sub_path}/collections/",
           "file_name": "hmc.collections.{time_series_datetime}.nc",
           "run_mode": "deterministic",
           "run_description": "observed",
@@ -107,7 +107,7 @@
               "discharge": "Discharge:section_discharge_sim:{basin_name}:{section_name}"
             }
           },
-          "time_search_period": 10,
+          "time_search_period": 1,
           "time_search_frequency": "H"
         }
       },

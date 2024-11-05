@@ -137,8 +137,8 @@ def compute_section_area(fdir_da, fdir_map=None, fdir_nodata=0, terrain_da=None,
     section_dframe[drainage_area_tag] = section_data_default
     for section_id, section_fields in section_dframe.iterrows():
 
-        section_idx_y = section_fields['hmc_idx_x']
-        section_idx_x = section_fields['hmc_idx_y']
+        section_idx_y = int(section_fields['hmc_idx_x'])
+        section_idx_x = int(section_fields['hmc_idx_y'])
         section_name = section_fields['section_name']
         section_domain = section_fields['section_domain']
         section_drainage_area_db = section_fields['section_drained_area']

@@ -17,7 +17,8 @@ import pandas as pd
 from copy import deepcopy
 
 from lib_utils_system import make_folder
-from lib_graph_ts_utils import configure_ts_attrs, configure_ts_axes, get_ts_attrs, set_ax_limits_discharge
+from lib_graph_ts_utils import (configure_ts_attrs, configure_ts_axes, get_ts_attrs,
+                                set_ax_limits_discharge, upd_ax_limits_variable)
 
 from lib_info_args import logger_name, time_format_algorithm
 
@@ -71,14 +72,29 @@ def plot_ts_discharge_obs(
         section_drained_area = get_ts_attrs(attrs_ts)
 
     axs_min_discharge, axs_max_discharge = set_ax_limits_discharge(
-        max_value_dyn=section_discharge_thr_alarm,
-        min_value_default=value_min_discharge, max_value_default=value_max_discharge)
+        max_value_dyn=float(section_discharge_thr_alarm),
+        min_value_default=float(value_min_discharge), max_value_default=float(value_max_discharge))
 
     if df_discharge_obs is None:
         df_values = deepcopy(df_discharge_sim.values)
         df_index = deepcopy(df_discharge_sim.index)
         df_values[:, 0] = -9996.0
         df_discharge_obs = pd.DataFrame(data=df_values, index=df_index)
+
+    # update axis discharge limits
+    dyn_max_discharge = max(df_discharge_obs.max().values, df_discharge_sim.max().values)[0]
+    axs_max_discharge = upd_ax_limits_variable(
+        dyn_max_discharge, axs_max_discharge, add_percentage=10, add_difference=30)
+
+    # update axis rain avg limits
+    dyn_max_rain_avg = df_rain.max().values[0]
+    value_max_rain_avg = upd_ax_limits_variable(
+        dyn_max_rain_avg, value_max_rain_avg, add_percentage=10, add_difference=10)
+
+    # update axis rain accumulated limits
+    dyn_max_rain_accumulated = df_rain.cumsum().max().values[0]
+    value_max_rain_accumulated = upd_ax_limits_variable(
+        dyn_max_rain_accumulated, value_max_rain_accumulated, add_percentage=10, add_difference=10)
 
     figure_title = 'Time Series \n Section: "' + section_name + '"' +  \
                    ' == Basin: "' + section_domain + '"' +  \

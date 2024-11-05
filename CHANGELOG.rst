@@ -2,6 +2,17 @@
 Changelog
 =========
 
+Version 1.6.6 [2024-11-01]
+===========
+APP: **HAT_Q_Percentile.py**
+	- Beta release
+
+Version 1.6.5 [2023-11-30]
+===========
+APP: **HAT_RunPublisher_HMC_Maps.py**
+    - FIX: bugs related to the data failure for some steps in accumulated and average methods.
+    - FIX: bugs related to the image tiling for osm background mode in map creation.
+
 Version 1.6.4 [2023-11-29]
 ===========
 APP: **HAT_RunPublisher_HMC_Maps.py**
@@ -12,7 +23,7 @@ Version 1.6.3 [2023-08-31]
 ===========
 TOOL: **hat_tool_runs_resume_lite.py**
     - Operational Release
-    	- simplified analyser dataset and execution for basic FP implementations
+    	- simplified analyzer dataset and execution for basic FP implementations
         - refactor from previous version outside the package
 
 Version 1.6.2 [2023-05-08]
