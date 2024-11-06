@@ -2,8 +2,8 @@
 """
 Hydrological Analysis Tool - Q2T
 
-__date__ = '20230508'
-__version__ = '1.1.0'
+__date__ = '20241106'
+__version__ = '1.2.0'
 __author__ =
         'Francesco Silvestro (francesco.silvestro@cimafoundation.org',
         'Fabio Delogu (fabio.delogu@cimafoundation.org',
@@ -14,6 +14,7 @@ General command line:
 python3 HAT_Q2T.py -settings_file configuration.json -time "YYYY-MM-DD HH:MM"
 
 Version(s):
+20241106 (1.2.0) --> Add tiff format for discharge data
 20230508 (1.1.0) --> Refactor for HAT packagee
 20221101 (1.0.0) --> Operational Release
 """
@@ -42,8 +43,8 @@ log_stream = logging.getLogger(logger_name)
 
 # -------------------------------------------------------------------------------------
 # Algorithm information
-alg_version = '1.1.0'
-alg_release = '2023-05-08'
+alg_version = '1.2.0'
+alg_release = '2024-11-06'
 alg_name = 'Q2T'
 # -------------------------------------------------------------------------------------
 

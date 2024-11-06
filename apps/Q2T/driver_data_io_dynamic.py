@@ -17,7 +17,7 @@ import rasterio
 import numpy as np
 import pandas as pd
 
-from lib_data_io_tiff import write_file_tiff
+from lib_data_io_tiff import read_file_tiff, write_file_tiff
 from lib_data_io_nc import read_file_nc
 from lib_data_io_binary import read_file_binary
 from lib_data_io_pickle import read_obj, write_obj
@@ -249,6 +249,10 @@ class DriverDynamic:
                 file_data = read_file_binary(
                     file_path_tmp,
                     file_dim_x=dim_x, file_dim_y=dim_y, file_ratio_factor=self.dset_ratio_factor_src)
+            elif self.dset_type_src == 'tiff' or self.dset_type_src == 'tif':
+                file_data, file_proj, file_geotrans = read_file_tiff(
+                    file_path_tmp,
+                    var_name=self.dset_variable_src, var_ratio_factor=self.dset_ratio_factor_src)
             else:
                 log_stream.error(' ===> File type "' + self.dset_type_src + '" is not supported')
                 raise NotImplemented('Case not implemented yet')
@@ -323,7 +327,8 @@ class DriverDynamic:
         idx_reference = self.idx_reference
         time_window = self.time_window
         # get sub path reference
-        sub_path_ref = self.dset_sub_path_ref_src
+        sub_path_dst_q_ref = self.dset_sub_path_dst_q_ref
+        sub_path_dst_q_max = self.dset_sub_path_dst_q_max
 
         # get file name
         file_path_anc_t_raw = self.file_path_anc_t
@@ -348,14 +353,19 @@ class DriverDynamic:
                 log_stream.error(' ===> Statistics information for domain "' + domain_name + '" are not available')
                 raise RuntimeError("Statistics information are mandatory for correctly running the algorithm")
 
+            # check sub path q ref and max
+            assert sub_path_dst_q_ref == sub_path_dst_q_max, 'sub path q reference and sub path q max are not equal'
+            sub_path_dst = sub_path_dst_q_ref = sub_path_dst_q_max
+
             # choose sub path reference type
-            if sub_path_ref == 'sub_path_run':
+            if sub_path_dst == 'sub_path_run':
                 time_sub_path = deepcopy(time_reference)
-            elif sub_path_ref == 'sub_path_time':
-                log_stream.error(' ===> Reference sub_path "' + sub_path_ref + '" is not available for dst dataset')
+            elif sub_path_dst == 'sub_path_time':
+                log_stream.error(' ===> Reference sub_path "' + sub_path_dst + '" is not available for dst dataset')
                 raise NotImplemented('Case not implemented yet')
             else:
-                log_stream.error(' ===> Reference sub_path "' + sub_path_ref + '" is not supported for dst dataset')
+                log_stream.error(' ===> Reference sub_path "' + sub_path_dst +
+                                 '" is not supported for dst dataset')
                 raise NotImplemented('Case not implemented yet')
 
             # define destination filename(s)

@@ -266,7 +266,7 @@ class DriverDynamic:
             write_file_tiff(file_name=file_name, file_data=list_data,
                             file_wide=file_data_width, file_high=file_data_height,
                             file_geotrans=file_data_transform, file_proj=file_epsg_code,
-                            file_metadata=list_variable)
+                            file_metadata=list_variable, file_description=list_variable)
         else:
             # file format not supported
             log_stream.error(' ===> File type "' + file_type + '" is not supported. Only tiff format is allowed')

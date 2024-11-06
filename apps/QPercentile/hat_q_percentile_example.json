@@ -9,8 +9,8 @@
 			"algorithm": "Analysis tools developed by CIMA Research Foundation"
 		},
 		"flags": {
-			"clean_static": true,
-      		"clean_dynamic_source": true,
+			"clean_static": false,
+      		"clean_dynamic_source": false,
 			"clean_dynamic_destination": true
 		},
 		"template": {

@@ -25,7 +25,7 @@ log_stream = logging.getLogger(logger_name)
 # -------------------------------------------------------------------------------------
 # Method to write file tiff
 def write_file_tiff(file_name, file_data, file_wide, file_high, file_geotrans, file_proj,
-                    file_metadata=None, file_format=gdalconst.GDT_Float32):
+                    file_metadata=None, file_format=gdalconst.GDT_Float32, file_description=None):
 
     if not isinstance(file_data, list):
         file_data = [file_data]
@@ -34,6 +34,10 @@ def write_file_tiff(file_name, file_data, file_wide, file_high, file_geotrans, f
         file_metadata = {'description_field': 'data'}
     if not isinstance(file_metadata, list):
         file_metadata = [file_metadata] * file_data.__len__()
+    if file_description is None:
+        file_description = "band_description"
+    if not isinstance(file_description, list):
+        file_description = [file_description] * file_data.__len__()
 
     if isinstance(file_geotrans, Affine):
         file_geotrans = file_geotrans.to_gdal()
@@ -47,9 +51,16 @@ def write_file_tiff(file_name, file_data, file_wide, file_high, file_geotrans, f
     dset_handle.SetGeoTransform(file_geotrans)
     dset_handle.SetProjection(file_wkt)
 
-    for file_id, (file_data_step, file_metadata_step) in enumerate(zip(file_data, file_metadata)):
+    for file_id, (file_data_step, file_metadata_step, file_description_step) in enumerate(
+            zip(file_data, file_metadata, file_description)):
+
+        if not isinstance(file_description_step, str):
+            file_description_step = str(file_description_step)
+
         dset_handle.GetRasterBand(file_id + 1).WriteArray(file_data_step)
         dset_handle.GetRasterBand(file_id + 1).SetMetadata(file_metadata_step)
+        dset_handle.GetRasterBand(file_id + 1).SetDescription(file_description_step)
+
     del dset_handle
 # -------------------------------------------------------------------------------------
 

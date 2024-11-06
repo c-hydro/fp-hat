@@ -56,7 +56,7 @@ def write_file_tiff(file_name, file_data, file_wide, file_high, file_geotrans, f
 
 # -------------------------------------------------------------------------------------
 # Method to read file tiff
-def read_file_tiff(file_name):
+def read_file_tiff(file_name, var_name=None, var_ratio_factor=1):
 
     file_handle = rasterio.open(file_name)
     file_proj = file_handle.crs.wkt
@@ -68,14 +68,24 @@ def read_file_tiff(file_name):
 
     if file_bands == 1:
         file_data = file_handle.read(1)
+        file_description = list(file_handle.descriptions)
     elif file_bands > 1:
-        file_data = []
+        file_data, file_description = [], []
         for band_id in range(0, file_bands):
             file_data_tmp = file_handle.read(band_id + 1)
             file_data.append(file_data_tmp)
+        file_description = list(file_handle.descriptions)
     else:
         logger_name.error(' ===> File multi-band are not supported')
         raise NotImplementedError('File multi-band not implemented yet')
+
+    if var_name is not None:
+        if var_name in file_description:
+            var_idx = file_description.index(var_name)
+            file_data = file_data[var_idx]
+        else:
+            logger_name.error(' ===> Variable ' + var_name + ' not found in file description')
+            raise IOError('Variable ' + var_name + ' not found in file description')
 
     return file_data, file_proj, file_geotrans
 # -------------------------------------------------------------------------------------
