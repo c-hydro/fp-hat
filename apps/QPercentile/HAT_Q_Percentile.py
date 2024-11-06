@@ -109,7 +109,6 @@ def main():
         alg_info=data_settings['algorithm']['info'],
         alg_template=data_settings['algorithm']['template'],
         flag_clean_dynamic_src=data_settings['algorithm']['flags']['clean_dynamic_source'],
-        flag_clean_dynamic_anl=data_settings['algorithm']['flags']['clean_dynamic_analysis'],
         flag_clean_dynamic_dst=data_settings['algorithm']['flags']['clean_dynamic_destination'],
 
     )

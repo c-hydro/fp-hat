@@ -6,6 +6,8 @@ Version 1.6.6 [2024-11-01]
 ===========
 APP: **HAT_Q_Percentile.py**
 	- Beta release
+APP: **HAT_RunPublisher_HMC_TimeSeries.py**
+	- FIX: bugs related to the reading of point shapefile (columns unexpected formats) 
 
 Version 1.6.5 [2023-11-30]
 ===========

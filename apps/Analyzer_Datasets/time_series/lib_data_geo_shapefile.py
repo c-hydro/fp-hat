@@ -116,7 +116,7 @@ def read_data_section(file_name, file_filter=None,
                 tmp_type = 'str'
                 test_type = re.sub('[^a-zA-Z0-9 \n\.]', '', column_data[0])
                 test_type = test_type.replace('.', '')
-            elif isinstance(column_data[0], int):
+            elif isinstance(column_data[0], (int, np.int64)):
                 tmp_type = 'int'
                 test_type = int(column_data[0])
             elif isinstance(column_data[0], float):
@@ -131,22 +131,26 @@ def read_data_section(file_name, file_filter=None,
                                    '" is not consistent with expected datatype. Keep datatype "' + column_type+ '"')
 
             if column_type == 'int':
-                if test_type.isdigit():
-                    column_data = np.array(column_data, dtype=int).tolist()
-                else:
-                    log_stream.error(' ===> Column datatype is not allowed. Type expected: ' + str(column_type))
-                    column_data = np.array(column_data, dtype=str).tolist()
+                # check if columns expected are string of integer number
+                if not isinstance(test_type, (int, float)):
+                    if column_data[0].isdigit():
+                        column_data = np.array(column_data, dtype=int).tolist()
+                    else:
+                        log_stream.warning(' ===> Column datatype is not allowed. Type expected: ' + str(column_type))
+                        column_data = np.array(column_data, dtype=str).tolist()
             elif column_type == 'str':
 
                 column_data = np.array(column_data, dtype=str).tolist()
 
             elif column_type == 'float':
 
-                if test_type.isdigit():
-                    column_data = np.array(column_data, dtype=float).tolist()
-                else:
-                    log_stream.error(' ===> Column datatype is not allowed. Type expected: ' + str(column_type))
-                    column_data = np.array(column_data, dtype=str).tolist()
+                # check if columns expected are string of integer number
+                if not isinstance(test_type, (int, float)):
+                    if column_data[0].isdigit():
+                        column_data = np.array(column_data, dtype=float).tolist()
+                    else:
+                        log_stream.warning(' ===> Column datatype is not allowed. Type expected: ' + str(column_type))
+                        column_data = np.array(column_data, dtype=str).tolist()
             else:
                 log_stream.error(' ===> Column datatype is not allowed.')
                 raise NotImplementedError('Datatype not implemented yet')

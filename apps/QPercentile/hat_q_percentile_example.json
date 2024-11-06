@@ -11,7 +11,6 @@
 		"flags": {
 			"clean_static": true,
       		"clean_dynamic_source": true,
-			"clean_dynamic_analysis": true,
 			"clean_dynamic_destination": true
 		},
 		"template": {

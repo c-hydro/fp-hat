@@ -50,7 +50,7 @@ class DriverDynamic:
                  alg_static=None, alg_info=None, alg_template=None,
                  flag_cnet_data='channel_network', flag_idx_data='idx',
                  flag_src='Q', flag_anc='Q', flag_dst='Q',
-                 flag_clean_dynamic_src=True, flag_clean_dynamic_anl=True, flag_clean_dynamic_dst=True):
+                 flag_clean_dynamic_src=True, flag_clean_dynamic_dst=True):
 
         # time info
         self.time_reference = time_reference
@@ -122,7 +122,6 @@ class DriverDynamic:
 
         # flags info
         self.flag_clean_dynamic_src = flag_clean_dynamic_src
-        self.flag_clean_dynamic_anl = flag_clean_dynamic_anl
         self.flag_clean_dynamic_dst = flag_clean_dynamic_dst
 
         self.flag_debug = 0
