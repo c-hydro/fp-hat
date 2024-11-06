@@ -578,18 +578,30 @@ class DriverDynamic:
                     ensemble_quantiles = compute_quantile(
                         ensemble_data, ensemble_list=ensemble_list, geo_idx=geo_idx, quantile_list=quantile_list)
 
-                    # write data collections
-                    folder_name_anc, file_name_anc = os.path.split(file_path_anc_def)
-                    make_folder(folder_name_anc)
-                    write_obj(file_path_anc_def, ensemble_quantiles)
+                    # filter nan values (all values are nans)
+                    ensemble_quantiles = ensemble_quantiles.dropna(how='all')
 
-                    # organize file collection
-                    file_collection[domain_name][time_step] = {}
-                    file_collection[domain_name][time_step] = file_path_anc_def
+                    # check quantile availability
+                    if not ensemble_quantiles.empty:
 
-                    # info time end
-                    log_stream.info(' ------> Time "' + time_step.strftime(time_format_algorithm) +
-                                    '" ... DONE')
+                        # write data collections
+                        folder_name_anc, file_name_anc = os.path.split(file_path_anc_def)
+                        make_folder(folder_name_anc)
+                        write_obj(file_path_anc_def, ensemble_quantiles)
+
+                        # organize file collection
+                        file_collection[domain_name][time_step] = {}
+                        file_collection[domain_name][time_step] = file_path_anc_def
+
+                        # info time end
+                        log_stream.info(' ------> Time "' + time_step.strftime(time_format_algorithm) +
+                                        '" ... DONE')
+
+                    else:
+                        # info time end
+                        log_stream.info(' ------> Time "' + time_step.strftime(time_format_algorithm) +
+                                        '" ... SKIPPED. '
+                                        'Datasets are defined by nan values for all ensembles and quantiles.')
 
                 else:
                     # organize file collection

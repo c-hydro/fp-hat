@@ -28,7 +28,7 @@
 			"domains": ["marche"],
 			"run": "rfarm_expert_forecast_realtime",
 			"quantile": [0.1, 0.9],
-			"ensemble": {"n_min": 1, "n_max": 5, "n_format": "{:03d}"}
+			"ensemble": {"n_min": 3, "n_max": 5, "n_format": "{:03d}"}
 		}
 	},
 	"data": {
@@ -78,7 +78,7 @@
 	},
 	"time": {
 		"time_now": "2022-10-21 09:00",
-		"time_period": {"left": 4, "right": 5},
+		"time_period": {"left": 1, "right": 60},
 		"time_start": null,
 		"time_end": null,
 		"time_frequency": "H",
