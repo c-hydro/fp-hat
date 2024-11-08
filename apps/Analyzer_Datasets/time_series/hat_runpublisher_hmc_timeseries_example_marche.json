@@ -320,7 +320,7 @@
               "graph_fx": {
                 "name": "plot_ts_discharge_nwp_probabilistic_comparison",
                 "attrs": {"graph_description": ""},
-                "map":  "time_series_nwp_probabilistic_comparison"
+                "map":  "time_series_nwp_probabilistic_comparison_type_01"
               }
             }
           }

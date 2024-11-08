@@ -76,8 +76,56 @@
         "df_discharge_observed": "observed_data:discharge"
     }
   },
-
-  "time_series_nwp_probabilistic_comparison": {
+	
+ "time_series_nwp_probabilistic_comparison_generic": {
+    "common": {
+      "file_name": "filename",
+      "tag_discharge_sim_name_nwp_01": "Discharge Sims NWP Prob MODEL_01",
+      "tag_discharge_sim_name_nwp_02": "Discharge Sims NWP Prob MODEL_02",
+      "tag_soil_moisture_name_nwp_01": "Soil Moisture Avg MODEL_01",
+      "tag_soil_moisture_name_nwp_02": "Soil Moisture Avg MODEL_02",
+      "tag_type_run": "nwp probabilistic comparison MODEL_01 / MODEL_02",
+      "tag_rain_avg_name_nwp_01": "Rain Avg NWP MODEL_01",
+      "tag_rain_avg_name_nwp_02": "Rain Avg NWP MODEL_02",
+      "tag_rain_accumulated_name_nwp_01": "Rain Accumulated NWP MODEL_01",
+      "tag_rain_accumulated_name_nwp_02": "Rain Accumulated NWP MODEL_02",
+      "label_title_time_run_nwp_01": "Time_Run_NWP_MODEL_01",
+      "label_title_time_run_nwp_02": "Time_Run_NWP_MODEL_02"
+    },
+    "observed": {
+      "file_attributes_ground_network": "attributes_ts",
+      "df_rain_ground_network": "forcing_data:rain",
+      "df_discharge_simulated_ground_network": "outcome_data:discharge",
+      "df_soil_moisture_ground_network": "outcome_data:soil_moisture",
+      "df_discharge_observed": "observed_data:discharge"
+    },
+    "nwp_deterministic_dset_01": {
+      "file_attributes_nwp_deterministic_01": "attributes_ts",
+      "df_rain_nwp_deterministic_01": "forcing_data:rain",
+      "df_discharge_simulated_nwp_deterministic_01": "outcome_data:discharge",
+      "df_soil_moisture_nwp_deterministic_01": "outcome_data:soil_moisture"
+    },
+    "nwp_deterministic_dset_02": {
+      "file_attributes_nwp_deterministic_02": "attributes_ts",
+      "df_rain_nwp_deterministic_02": "forcing_data:rain",
+      "df_discharge_simulated_nwp_deterministic_02": "outcome_data:discharge",
+      "df_soil_moisture_nwp_deterministic_02": "outcome_data:soil_moisture"
+    },
+    "nwp_probabilistic_dset_01": {
+      "file_attributes_nwp_probabilistic_01": "attributes_ts",
+      "df_rain_nwp_probabilistic_01": "forcing_data:rain",
+      "df_discharge_simulated_nwp_probabilistic_01": "outcome_data:discharge",
+      "df_soil_moisture_nwp_probabilistic_01": "outcome_data:soil_moisture"
+    },
+    "nwp_probabilistic_dset_02": {
+      "file_attributes_nwp_probabilistic_02": "attributes_ts",
+      "df_rain_nwp_probabilistic_02": "forcing_data:rain",
+      "df_discharge_simulated_nwp_probabilistic_02": "outcome_data:discharge",
+      "df_soil_moisture_nwp_probabilistic_02": "outcome_data:soil_moisture"
+    }
+  },
+	
+  "time_series_nwp_probabilistic_comparison_type_1": {
     "common": {
       "file_name": "filename",
       "tag_discharge_sim_name_nwp_01": "Discharge Sims NWP Prob LAMI-2I",
@@ -123,5 +171,54 @@
       "df_discharge_simulated_nwp_probabilistic_02": "outcome_data:discharge",
       "df_soil_moisture_nwp_probabilistic_02": "outcome_data:soil_moisture"
     }
+  },
+
+  "time_series_nwp_probabilistic_comparison_type_02": {
+    "common": {
+      "file_name": "filename",
+      "tag_discharge_sim_name_nwp_01": "Discharge Sims NWP Prob ICON-2I",
+      "tag_discharge_sim_name_nwp_02": "Discharge Sims NWP Prob ECMWF0100",
+      "tag_soil_moisture_name_nwp_01": "Soil Moisture Avg ICON-2I",
+      "tag_soil_moisture_name_nwp_02": "Soil Moisture Avg ECMWF0100",
+      "tag_type_run": "nwp probabilistic comparison ICON-2I / ECMWF0100",
+      "tag_rain_avg_name_nwp_01": "Rain Avg NWP ICON-2I",
+      "tag_rain_avg_name_nwp_02": "Rain Avg NWP EMCMW0100",
+      "tag_rain_accumulated_name_nwp_01": "Rain Accumulated NWP ICON-2I",
+      "tag_rain_accumulated_name_nwp_02": "Rain Accumulated NWP ECMWF0100",
+      "label_title_time_run_nwp_01": "Time_Run_NWP_ICON-2I",
+      "label_title_time_run_nwp_02": "Time_Run_NWP_ECMWF0100"
+    },
+    "observed": {
+      "file_attributes_ground_network": "attributes_ts",
+      "df_rain_ground_network": "forcing_data:rain",
+      "df_discharge_simulated_ground_network": "outcome_data:discharge",
+      "df_soil_moisture_ground_network": "outcome_data:soil_moisture",
+      "df_discharge_observed": "observed_data:discharge"
+    },
+    "nwp_deterministic_dset_01": {
+      "file_attributes_nwp_deterministic_01": "attributes_ts",
+      "df_rain_nwp_deterministic_01": "forcing_data:rain",
+      "df_discharge_simulated_nwp_deterministic_01": "outcome_data:discharge",
+      "df_soil_moisture_nwp_deterministic_01": "outcome_data:soil_moisture"
+    },
+    "nwp_deterministic_dset_02": {
+      "file_attributes_nwp_deterministic_02": "attributes_ts",
+      "df_rain_nwp_deterministic_02": "forcing_data:rain",
+      "df_discharge_simulated_nwp_deterministic_02": "outcome_data:discharge",
+      "df_soil_moisture_nwp_deterministic_02": "outcome_data:soil_moisture"
+    },
+    "nwp_probabilistic_dset_01": {
+      "file_attributes_nwp_probabilistic_01": "attributes_ts",
+      "df_rain_nwp_probabilistic_01": "forcing_data:rain",
+      "df_discharge_simulated_nwp_probabilistic_01": "outcome_data:discharge",
+      "df_soil_moisture_nwp_probabilistic_01": "outcome_data:soil_moisture"
+    },
+    "nwp_probabilistic_dset_02": {
+      "file_attributes_nwp_probabilistic_02": "attributes_ts",
+      "df_rain_nwp_probabilistic_02": "forcing_data:rain",
+      "df_discharge_simulated_nwp_probabilistic_02": "outcome_data:discharge",
+      "df_soil_moisture_nwp_probabilistic_02": "outcome_data:soil_moisture"
+    }
   }
+  
 }

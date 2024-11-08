@@ -225,10 +225,10 @@ class DriverGraph:
             elif ts_mode == 'other':
                 pass
             elif (ts_mode == 'reference') and (ts_mode in ts_mode_list):
-                log_stream(' ===> Mode "reference" is defined for multiple datasets.')
+                log_stream.error(' ===> Mode "reference" is defined for multiple datasets.')
                 raise NotImplementedError('Case not implemented yet')
             else:
-                log_stream(' ===> Unexpected error in time-series mode definition.')
+                log_stream.error(' ===> Unexpected error in time-series mode definition.')
                 raise RuntimeError('Check your time-series mode definitions')
 
             if ts_mode not in self.fx_mode_tags:
